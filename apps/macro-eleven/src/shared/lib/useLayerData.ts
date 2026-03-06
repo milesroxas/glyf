@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { LayerData } from "../../entities/layer";
 import { getLayerData } from "./tauri";
 
@@ -7,17 +7,22 @@ export function useLayerData() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    getLayerData()
-      .then((data) => {
-        setLayers(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(String(err));
-        setLoading(false);
-      });
+  const loadLayers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getLayerData();
+      setLayers(data);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { layers, loading, error };
+  useEffect(() => {
+    loadLayers();
+  }, [loadLayers]);
+
+  return { layers, loading, error, refresh: loadLayers };
 }

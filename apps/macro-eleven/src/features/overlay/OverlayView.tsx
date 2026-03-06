@@ -6,9 +6,11 @@ import { Separator } from "../../shared/ui/separator";
 import { keycodeToLabel } from "../../shared/lib/keycode-labels";
 import { useKeyEvents } from "../../shared/lib/useKeyEvents";
 import { useLayerData } from "../../shared/lib/useLayerData";
+import { getKeyForDisplay } from "../../entities/layer";
 import { usePotValue } from "../../shared/lib/usePotValue";
 import { onDeviceStatus } from "../../shared/lib/tauri";
 import { cn } from "../../shared/lib/utils";
+import "./OverlayKeyCell.css";
 
 function OverlayKeyCell({
   keycode,
@@ -21,10 +23,9 @@ function OverlayKeyCell({
   return (
     <div
       className={cn(
-        "flex h-full w-full items-center justify-center overflow-hidden rounded border px-1 py-0.5 transition-all duration-100",
-        "bg-muted border-border text-foreground",
-        pressed &&
-          "scale-[0.97] border-chart-2 bg-chart-2/20 text-chart-2 ring-1 ring-chart-2/40"
+        "overlay-key-cell flex h-full w-full items-center justify-center overflow-hidden rounded-lg px-1 py-0.5 transition-all duration-100",
+        "text-foreground",
+        pressed && "text-primary"
       )}
       title={keycode}
       data-pressed={pressed}
@@ -134,7 +135,7 @@ export function OverlayView() {
             fluid
             renderKey={(index) => (
               <OverlayKeyCell
-                keycode={currentLayer.keys[index] ?? "KC_NO"}
+                keycode={getKeyForDisplay(currentLayer.keys, index)}
                 pressed={keys[index] ?? false}
               />
             )}

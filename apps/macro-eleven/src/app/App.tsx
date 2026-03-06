@@ -5,6 +5,7 @@ import { StatusBadge } from "../shared/ui/StatusBadge";
 import { KeyTesterPage } from "../pages/KeyTesterPage";
 import { LayerViewerPage } from "../pages/LayerViewerPage";
 import { PotMonitorPage } from "../pages/PotMonitorPage";
+import { KeymapDesignerPage } from "../pages/KeymapDesignerPage";
 import { OverlayView } from "../features/overlay/OverlayView";
 import { openOverlayWindow } from "../shared/lib/tauri";
 import { cn } from "../shared/lib/utils";
@@ -55,6 +56,7 @@ function MainApp() {
                   <Route path="/" element={<KeyTesterPage />} />
                   <Route path="/layers" element={<LayerViewerPage />} />
                   <Route path="/pot" element={<PotMonitorPage />} />
+                  <Route path="/designer" element={<KeymapDesignerPage />} />
                 </Routes>
               </div>
             </main>

@@ -33,7 +33,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * └───────┴───────┴───────┴───────┘
      */
     [0] = LAYOUT(
-        APP_FIGMA,   APP_CHROME,  BACK_HOME,
+        BACK_HOME,   APP_CHROME,  APP_FIGMA,
         APP_VSCODE,  APP_SLACK,   APP_SPOTIFY, APP_TERMINAL,
         APP_MESSAGES,APP_NOTES,   APP_MUSIC,   APP_FINDER
     ),
@@ -207,7 +207,7 @@ static bool bootloader_hold_active = false;
 static bool figma_depth_held = false;
 
 // Test mode for companion app (disables all key actions)
-static bool test_mode_active = false;
+static bool test_mode_active = true;
 
 // Function to launch app via Spotlight and switch to layer
 void launch_app(const char* app_name, uint8_t target_layer) {

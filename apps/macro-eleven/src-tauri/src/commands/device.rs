@@ -25,7 +25,17 @@ pub fn disconnect_device(connection: State<'_, Mutex<HidConnection>>) {
 }
 
 #[tauri::command]
-pub fn set_test_mode(enable: bool, connection: State<'_, Mutex<HidConnection>>) -> Result<(), String> {
+pub fn set_test_mode(
+    app: AppHandle,
+    enable: bool,
+    connection: State<'_, Mutex<HidConnection>>,
+) -> Result<(), String> {
     let conn = connection.lock().unwrap();
-    conn.set_test_mode(enable)
+    conn.set_test_mode(enable, &app)
+}
+
+#[tauri::command]
+pub fn reload_keymap(connection: State<'_, Mutex<HidConnection>>) -> Result<(), String> {
+    let conn = connection.lock().unwrap();
+    conn.reload_keymap()
 }

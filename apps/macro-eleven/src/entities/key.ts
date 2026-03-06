@@ -1,11 +1,23 @@
-export interface MatrixPosition {
-  row: number;
-  col: number;
-}
+import type { MatrixPosition, KeyEvent as SchemaKeyEvent } from '@embedded/keymap-schema';
 
+export type { MatrixPosition };
+
+/**
+ * Legacy key event format (state of all keys)
+ * @deprecated Use individual KeyPressEvent instead
+ */
 export interface KeyEvent {
   keys: boolean[];
   layer: number;
+}
+
+/**
+ * Individual key press/release event
+ */
+export interface KeyPressEvent extends SchemaKeyEvent {
+  position: MatrixPosition;
+  pressed: boolean;
+  timestamp: number;
 }
 
 export interface PotEvent {

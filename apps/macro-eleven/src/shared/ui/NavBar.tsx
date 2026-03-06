@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
 import { cn } from "../lib/utils";
-import { LayoutGrid, Cpu, Activity } from "lucide-react";
+import { LayoutGrid, Cpu, Activity, NotebookPen } from "lucide-react";
 
 const NAV_ITEMS = [
   { to: "/", label: "Key Tester", icon: Cpu },
   { to: "/layers", label: "Layer Viewer", icon: LayoutGrid },
   { to: "/pot", label: "Pot Monitor", icon: Activity },
+  { to: "/designer", label: "Keymap Designer", icon: NotebookPen },
 ];
 
 export function NavBar() {

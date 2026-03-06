@@ -18,7 +18,8 @@ pub fn parse_keymap(source: &str) -> Vec<LayerData> {
     let layout_re = Regex::new(r#"\[(\d+)\]\s*=\s*LAYOUT\(\s*\n?([\s\S]*?)\)"#).unwrap();
 
     // Collect layer names from comments
-    let mut layer_names: std::collections::HashMap<usize, String> = std::collections::HashMap::new();
+    let mut layer_names: std::collections::HashMap<usize, String> =
+        std::collections::HashMap::new();
     for cap in comment_re.captures_iter(source) {
         let idx: usize = cap[1].parse().unwrap_or(0);
         let name = cap[2].trim().to_string();
@@ -32,14 +33,7 @@ pub fn parse_keymap(source: &str) -> Vec<LayerData> {
 
         let keys: Vec<String> = body
             .split(',')
-            .map(|s| {
-                s.trim()
-                    .lines()
-                    .next()
-                    .unwrap_or("")
-                    .trim()
-                    .to_string()
-            })
+            .map(|s| s.trim().lines().next().unwrap_or("").trim().to_string())
             .filter(|s| !s.is_empty())
             .collect();
 
@@ -48,7 +42,11 @@ pub fn parse_keymap(source: &str) -> Vec<LayerData> {
             .cloned()
             .unwrap_or_else(|| format!("Layer {}", idx));
 
-        layers.push(LayerData { index: idx, name, keys });
+        layers.push(LayerData {
+            index: idx,
+            name,
+            keys,
+        });
     }
 
     layers.sort_by_key(|l| l.index);

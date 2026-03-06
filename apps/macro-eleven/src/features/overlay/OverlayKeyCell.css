@@ -1,0 +1,36 @@
+/* Matches KnobDial styling: gradient bevel, shadow, dark theme */
+.overlay-key-cell {
+    --_key-top: oklch(0.38 0 0);
+    --_key-btm: oklch(0.22 0 0); /* Lighter bottom to avoid "going dark" */
+
+  /* Bevel technique */
+  border: .004em solid transparent;
+  background-clip: padding-box, border-box;
+  background-origin: border-box;
+  background-image:
+    /* Inner face: use card color like knob */
+    linear-gradient(var(--card), var(--card)),
+    /* Outer bevel: linear gradient */
+    linear-gradient(to bottom, var(--_key-top), var(--_key-btm));
+
+  /* Separation: subtle inner highlight to define the face edge */
+  box-shadow:
+    0 0.25em 0.5em oklch(0 0 0 / 0.5),
+    inset 0 1px 0 0 oklch(1 0 0 / 0.15),
+    inset 0 0 0 1px oklch(1 0 0 / 0.05);
+}
+
+.overlay-key-cell[data-pressed="true"] {
+  /* Pressed state: darker face, inverted bevel */
+  --_key-top: oklch(0.28 0.08 163);
+  --_key-btm: oklch(0.40 0.08 163);
+
+  background-image:
+    /* Inner face: highlight when pressed */
+    linear-gradient(to bottom, var(--accent), var(--accent)),
+    /* Outer bevel: inverted gradient */
+    linear-gradient(to bottom, var(--_key-btm), var(--_key-top));
+
+  box-shadow: 0 0.1em 0.2em oklch(0 0 0 / 0.5), inset 0 0 0 1px oklch(0.70 0.15 162 / 1);
+  transform: translateY(0.1em) scale(0.97);
+}

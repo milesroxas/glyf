@@ -1,0 +1,96 @@
+{
+  "version": "1.0.0",
+  "name": "Macro Eleven Default",
+  "description": "Default keymap with app launcher and per-app shortcuts",
+  "device": {
+    "name": "Macro Eleven",
+    "vendorId": "0x4653",
+    "productId": "0x0002",
+    "matrix": {
+      "rows": 3,
+      "cols": 4
+    }
+  },
+  "layers": {
+    "0": {
+      "name": "App Launcher",
+      "description": "Layer 0: Select which app to control",
+      "keys": {
+        "0,0": { "action": "switch_layer", "layer": 0, "label": "Home" },
+        "0,1": { "action": "launch_app", "app": "Google Chrome", "label": "Chrome" },
+        "0,2": { "action": "launch_app", "app": "Figma", "label": "Figma" },
+        "1,0": { "action": "launch_app", "app": "Visual Studio Code", "label": "VSCode" },
+        "1,1": { "action": "launch_app", "app": "Slack", "label": "Slack" },
+        "1,2": { "action": "launch_app", "app": "Spotify", "label": "Spotify" },
+        "1,3": { "action": "launch_app", "app": "Terminal", "label": "Terminal" },
+        "2,0": { "action": "launch_app", "app": "Messages", "label": "Messages" },
+        "2,1": { "action": "launch_app", "app": "Notes", "label": "Notes" },
+        "2,2": { "action": "launch_app", "app": "Music", "label": "Music" },
+        "2,3": { "action": "launch_app", "app": "Finder", "label": "Finder" }
+      }
+    },
+    "1": {
+      "name": "Chrome Shortcuts",
+      "description": "Shortcuts for Google Chrome",
+      "triggerApp": "Google Chrome",
+      "keys": {
+        "0,0": { "action": "switch_layer", "layer": 0, "label": "Back" },
+        "0,1": { "action": "shortcut", "keys": ["cmd", "t"], "label": "New Tab" },
+        "0,2": { "action": "shortcut", "keys": ["cmd", "w"], "label": "Close Tab" },
+        "1,0": { "action": "shortcut", "keys": ["cmd", "shift", "t"], "label": "Reopen" },
+        "1,1": { "action": "shortcut", "keys": ["cmd", "l"], "label": "Address Bar" },
+        "1,2": { "action": "shortcut", "keys": ["cmd", "r"], "label": "Reload" },
+        "1,3": { "action": "shortcut", "keys": ["cmd", "shift", "i"], "label": "DevTools" },
+        "2,0": { "action": "shortcut", "keys": ["cmd", "["], "label": "Back" },
+        "2,1": { "action": "shortcut", "keys": ["cmd", "]"], "label": "Forward" },
+        "2,2": { "action": "shortcut", "keys": ["cmd", "f"], "label": "Find" },
+        "2,3": { "action": "shortcut", "keys": ["cmd", "shift", "delete"], "label": "Clear Data" }
+      }
+    },
+    "2": {
+      "name": "Figma Shortcuts",
+      "description": "Shortcuts for Figma",
+      "triggerApp": "Figma",
+      "keys": {
+        "0,0": { "action": "switch_layer", "layer": 0, "label": "Back" },
+        "0,1": { "action": "shortcut", "keys": ["f"], "label": "Frame" },
+        "0,2": { "action": "shortcut", "keys": ["r"], "label": "Rectangle" },
+        "1,0": { "action": "shortcut", "keys": ["t"], "label": "Text" },
+        "1,1": { "action": "shortcut", "keys": ["v"], "label": "Move" },
+        "1,2": { "action": "shortcut", "keys": ["cmd", "d"], "label": "Duplicate" },
+        "1,3": { "action": "shortcut", "keys": ["cmd", "g"], "label": "Group" },
+        "2,0": { "action": "shortcut", "keys": ["cmd", "/"], "label": "Search" },
+        "2,1": { "action": "shortcut", "keys": ["shift", "a"], "label": "Auto Layout" },
+        "2,2": { "action": "shortcut", "keys": ["cmd", "\\"], "label": "UI" },
+        "2,3": { "action": "shortcut", "keys": ["shift", "r"], "label": "Ruler" }
+      }
+    },
+    "3": {
+      "name": "VSCode Shortcuts",
+      "description": "Shortcuts for Visual Studio Code",
+      "triggerApp": "Visual Studio Code",
+      "keys": {
+        "0,0": { "action": "switch_layer", "layer": 0, "label": "Back" },
+        "0,1": { "action": "shortcut", "keys": ["cmd", "p"], "label": "Quick Open" },
+        "0,2": { "action": "shortcut", "keys": ["cmd", "shift", "p"], "label": "Command" },
+        "1,0": { "action": "shortcut", "keys": ["cmd", "b"], "label": "Toggle Sidebar" },
+        "1,1": { "action": "shortcut", "keys": ["cmd", "shift", "f"], "label": "Search" },
+        "1,2": { "action": "shortcut", "keys": ["cmd", "`"], "label": "Terminal" },
+        "1,3": { "action": "shortcut", "keys": ["cmd", "shift", "d"], "label": "Debug" },
+        "2,0": { "action": "shortcut", "keys": ["cmd", "shift", "e"], "label": "Explorer" },
+        "2,1": { "action": "shortcut", "keys": ["cmd", "k", "cmd", "s"], "label": "Shortcuts" },
+        "2,2": { "action": "shortcut", "keys": ["cmd", "/"], "label": "Comment" },
+        "2,3": { "action": "shortcut", "keys": ["cmd", "shift", "k"], "label": "Delete Line" }
+      }
+    }
+  },
+  "settings": {
+    "defaultLayer": 0,
+    "autoSwitchLayers": true,
+    "debounceMs": 50
+  },
+  "metadata": {
+    "author": "macro-eleven",
+    "tags": ["default", "apps"]
+  }
+}
