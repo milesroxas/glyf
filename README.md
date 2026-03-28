@@ -1,79 +1,129 @@
-# Embedded Projects
+# Embedded Product Family
 
-Microcontroller and hardware projects workspace.
+RP2040-based input and display devices — firmware, companion apps, and R&D.
 
-## Structure
+## Products
+
+| Product | Type | Status |
+|---------|------|--------|
+| [macro-eleven](domains/macropads/macro-eleven/) | 11-key macropad + potentiometer | Production |
+| [four-pad](domains/macropads/four-pad/) | 4-key prototype macropad | Prototype / Rev 1 |
+| [glyf](domains/displays/glyf/) | 4.0" TFT display + touch | Production |
+
+## Repository Structure
 
 ```
 embedded/
-├── shared/                 # Reusable components (DDD: Shared Kernel)
-│   ├── libs/               # Common libraries
-│   │   ├── button-debounce/
-│   │   ├── rotary-encoder/
-│   │   ├── hid-keycodes/
-│   │   ├── led-matrix/
-│   │   └── key-matrix/
-│   └── drivers/            # Hardware abstraction
-│       ├── ws2812/
-│       ├── oled-ssd1306/
-│       └── usb-hid/
+├── apps/                       # Companion desktop apps (Tauri)
+│   ├── glyf/                   # glyf companion app
+│   └── macro-eleven/           # Macro Eleven companion app
 │
-├── domains/                # Project domains (DDD: Bounded Contexts)
-│   └── macropads/          # Macropad projects
-│       ├── _template/      # Project template
-│       ├── four-pad/       # 9-key Pico macropad
-│       └── macro-eleven/   # 11-key app launcher macropad
+├── domains/                    # Device hardware domains (firmware)
+│   ├── displays/
+│   │   └── glyf/               # ST7796S 480×320 + XPT2046 (Pico SDK)
+│   └── macropads/
+│       ├── macro-eleven/       # 11-key QMK macropad
+│       └── four-pad/           # 4-key QMK prototype
 │
-├── sandbox/                # Experiments and prototypes
-├── sdks/                   # SDKs (pico-sdk, etc.)
-├── tools/                  # Build scripts, utilities
-└── docs/                   # Global documentation
+├── shared/                     # Shared kernel (single source of truth)
+│   └── libs/
+│       ├── display-schema/     # @embedded/display-schema — glyf types
+│       └── keymap-schema/      # @embedded/keymap-schema — macropad types
+│
+├── research/                   # Tracked R&D (experiments, prototypes)
+├── sdks/                       # External SDKs (clone separately — see sdks/README.md)
+└── docs/                       # Project documentation
 ```
 
-## Setup
+## Quick Start
 
-### QMK (for keyboard/macropad firmware)
+### Prerequisites
+
+| Tool | Purpose | Install |
+|------|---------|---------|
+| pnpm 10 | JS package manager | `npm i -g pnpm` |
+| Rust (stable) | Tauri backends | [rustup.rs](https://rustup.rs) |
+| Tauri CLI v2 | App dev/build | `cargo install tauri-cli --version ^2` |
+| QMK CLI | Macropad firmware | `brew install qmk/qmk/qmk && qmk setup` |
+| Pico SDK | glyf firmware | See [sdks/README.md](sdks/README.md) |
+| picotool | Flash firmware | `brew install picotool` |
+
+### Install JS dependencies (all workspaces)
 
 ```bash
-# Install QMK CLI
-brew install qmk/qmk/qmk
-
-# Setup QMK
-qmk setup
+pnpm install
 ```
 
-### Pico SDK (for non-QMK projects)
+### Run a companion app
 
 ```bash
-# Install toolchain
-brew install cmake arm-none-eabi-gcc
-
-# Clone SDK
-git clone https://github.com/raspberrypi/pico-sdk.git ~/embedded/sdks/pico-sdk
-cd ~/embedded/sdks/pico-sdk && git submodule update --init
-
-# Set environment variable (add to ~/.zshrc)
-export PICO_SDK_PATH=~/embedded/sdks/pico-sdk
+pnpm dev:glyf           # glyf companion app
+pnpm dev:macro-eleven   # Macro Eleven companion app
 ```
 
-### PlatformIO (alternative build system)
+### Typecheck all apps
 
 ```bash
-brew install platformio
+pnpm typecheck
 ```
 
-## Creating a New Project
+---
 
-1. Copy `domains/<domain>/_template` to new project folder
-2. Update README with project details
-3. For QMK projects: firmware lives in the project; build script syncs to `~/qmk_firmware` before compiling
+## Firmware
 
-## Domains
+### macropad (QMK)
 
-| Domain | Description |
-|--------|-------------|
-| macropads | Custom keyboard macropads |
+```bash
+cd domains/macropads/macro-eleven
+./build.sh apps        # build
+./build.sh apps flash  # build + flash
+./watch-and-flash.sh   # interactive: detects bootloader, prompts keymap
+```
 
-## External Dependencies
+```bash
+cd domains/macropads/four-pad
+./build.sh apps flash
+```
 
-- **QMK Firmware**: Required for macropad builds. Clone to `~/qmk_firmware` (see [sdks/README.md](sdks/README.md)). The build scripts sync keyboard source from each project into the QMK tree before compiling.
+### glyf (Pico SDK)
+
+```bash
+export PICO_SDK_PATH=/path/to/pico-sdk   # or set in ~/.zshrc
+
+cd domains/displays/glyf
+./build.sh         # build only
+./build.sh flash   # build + flash
+```
+
+---
+
+## Architecture
+
+All apps follow **Feature-Sliced Design (FSD)** on the frontend and
+**Domain-Driven Design (DDD)** at the repo level.
+
+- **No multiple sources of truth** — shared types live in `shared/libs/` and are
+  mirrored (not duplicated) in Rust via matching `serde` structs.
+- **Bounded contexts** — each product in `domains/` and `apps/` is self-contained.
+- **Single install** — `pnpm install` at the root installs everything via workspaces.
+
+### USB Identifiers
+
+| Product | VID | PID |
+|---------|-----|-----|
+| macro-eleven | `0x4653` | `0x0002` |
+| glyf | `0x4653` | `0x0003` |
+
+---
+
+## R&D
+
+See [`research/README.md`](research/README.md) for conventions on starting and
+graduating experiments.
+
+## CI
+
+GitHub Actions runs on every push to `main` and every pull request:
+
+- **TypeScript** — `tsc --noEmit` for all companion apps (matrix, parallel)
+- **Rust** — `cargo check --workspace` across all Tauri backends

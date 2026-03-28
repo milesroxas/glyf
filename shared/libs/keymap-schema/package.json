@@ -9,6 +9,6 @@
     ".": "./src/index.ts"
   },
   "keywords": ["keymap", "macropad", "schema"],
-  "author": "",
+  "author": "Miles Roxas",
   "license": "MIT"
 }

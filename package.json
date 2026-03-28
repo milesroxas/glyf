@@ -1,0 +1,12 @@
+{
+  "name": "embedded",
+  "private": true,
+  "packageManager": "pnpm@10.29.3",
+  "scripts": {
+    "dev:glyf": "pnpm --filter glyf tauri dev",
+    "dev:macro-eleven": "pnpm --filter macro-eleven tauri dev",
+    "typecheck": "pnpm -r typecheck",
+    "build:glyf": "pnpm --filter glyf build",
+    "build:macro-eleven": "pnpm --filter macro-eleven build"
+  }
+}

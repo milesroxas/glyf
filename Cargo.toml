@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "apps/glyf/src-tauri",
+    "apps/macro-eleven/src-tauri",
+]
+resolver = "2"
