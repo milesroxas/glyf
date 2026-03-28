@@ -14,7 +14,8 @@ build/
 
 # ── Rust / Cargo ─────────────────────────────────────────────────────────────
 # Cargo.lock is committed for app crates (reproducible builds).
-# target/ is excluded per-crate via each src-tauri/.gitignore.
+# target/ is excluded per-crate via each src-tauri/.gitignore, and at root.
+target/
 
 # ── JS / Node ────────────────────────────────────────────────────────────────
 node_modules/
