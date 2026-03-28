@@ -209,7 +209,8 @@ pub fn detect_device() -> bool {
         Ok(api) => api,
         Err(_) => return false,
     };
-    api.device_list().any(|d| {
+    let found = api.device_list().any(|d| {
         d.vendor_id() == VID && d.product_id() == PID && d.usage_page() == USAGE_PAGE
-    })
+    });
+    found
 }
