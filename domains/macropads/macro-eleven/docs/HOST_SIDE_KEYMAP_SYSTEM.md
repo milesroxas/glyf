@@ -51,7 +51,7 @@ Firmware (RP2040)                 Tauri App                    macOS
 
 ## Keymap File Format
 
-Keymaps are JSON files following the `@embedded/keymap-schema`:
+Keymaps are JSON files following the `@glyf/keymap-schema`:
 
 ```json
 {

@@ -15,9 +15,9 @@ export type {
   NoopAction,
   MacroStep,
   KeyModifier,
-} from '@embedded/keymap-schema';
+} from '@glyf/keymap-schema';
 
-import type { Action, MatrixPosition } from '@embedded/keymap-schema';
+import type { Action, MatrixPosition } from '@glyf/keymap-schema';
 
 export interface ActionErrorEvent {
   position: MatrixPosition;

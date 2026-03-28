@@ -22,7 +22,7 @@ src/
 ├── app/          # App shell, providers, global styles. Imports from all layers.
 ├── pages/        # Route-level components. Thin wrappers around features.
 ├── features/     # Self-contained UI + logic (display-preview, touch-monitor, settings).
-├── entities/     # Domain types re-exported from @embedded/display-schema. No UI.
+├── entities/     # Domain types re-exported from @glyf/display-schema. No UI.
 └── shared/       # Reusable UI components (ui/) and utilities (lib/). No business logic.
 ```
 
@@ -30,7 +30,7 @@ src/
 
 ### Domain-Driven Design
 
-Entities model the hardware domain (single source of truth: `@embedded/display-schema`):
+Entities model the hardware domain (single source of truth: `@glyf/display-schema`):
 - `device.ts`  — connection status, device info
 - `display.ts` — display config, state, orientation
 - `touch.ts`   — touch point, calibration, events

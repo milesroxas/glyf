@@ -1,6 +1,6 @@
-# @embedded/keymap-schema
+# @glyf/keymap-schema
 
-Shared keymap schema for macropad projects in the embedded monorepo.
+Shared keymap schema for macropad projects in the glyf monorepo.
 
 ## Purpose
 
@@ -17,7 +17,7 @@ import {
   Keymap,
   validateKeymap,
   MACRO_ELEVEN_DEFAULT_KEYMAP
-} from '@embedded/keymap-schema';
+} from '@glyf/keymap-schema';
 
 // Load a keymap
 const keymap: Keymap = JSON.parse(keymapJson);

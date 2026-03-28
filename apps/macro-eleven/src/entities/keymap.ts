@@ -10,14 +10,14 @@ import type {
   Action,
   MatrixPositionKey,
   ActiveContext,
-} from '@embedded/keymap-schema';
+} from '@glyf/keymap-schema';
 
 import {
   validateKeymap,
   parseMatrixPosition,
   formatMatrixPosition,
   MACRO_ELEVEN_DEFAULT_KEYMAP,
-} from '@embedded/keymap-schema';
+} from '@glyf/keymap-schema';
 
 // Re-export types
 export type {

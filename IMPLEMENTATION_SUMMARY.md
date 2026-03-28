@@ -83,7 +83,7 @@ Firmware (RP2040)
 
 ### File Organization (Domain-Driven)
 ```
-embedded/                              # Monorepo root
+glyf/                                  # Monorepo root
 ├── shared/
 │   └── libs/
 │       └── keymap-schema/             # ← Shared schema (reusable)
@@ -227,7 +227,7 @@ embedded/                              # Monorepo root
 - `objc = "0.2"` (macOS) - Objective-C runtime
 
 ### TypeScript (package.json)
-- `@embedded/keymap-schema` (local package) - Shared schema
+- `@glyf/keymap-schema` (local package) - Shared schema
 
 ## Files Changed/Created
 
@@ -291,8 +291,8 @@ A: Yes! The system is additive. Firmware keymaps work in "test mode" when the ap
 **Q: How do plugins work?**
 A: Future feature. Plugins will be dynamically loaded TypeScript/WASM modules with standardized action interfaces.
 
-**Q: What about other embedded projects in the monorepo?**
-A: The shared schema (`@embedded/keymap-schema`) can be used by any macropad project. Just import and use!
+**Q: What about other projects in the monorepo?**
+A: The shared schema (`@glyf/keymap-schema`) can be used by any macropad project. Just import and use!
 
 ## Contact Points for Future Work
 

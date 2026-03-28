@@ -10,12 +10,12 @@ importers:
 
   apps/glyf:
     dependencies:
-      '@embedded/display-schema':
-        specifier: file:../../shared/libs/display-schema
-        version: link:../../shared/libs/display-schema
       '@fontsource-variable/inter':
         specifier: ^5.2.8
         version: 5.2.8
+      '@glyf/display-schema':
+        specifier: file:../../shared/libs/display-schema
+        version: link:../../shared/libs/display-schema
       '@tailwindcss/vite':
         specifier: ^4.2.1
         version: 4.2.2(vite@7.3.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0))
@@ -83,12 +83,12 @@ importers:
 
   apps/macro-eleven:
     dependencies:
-      '@embedded/keymap-schema':
-        specifier: file:../../shared/libs/keymap-schema
-        version: link:../../shared/libs/keymap-schema
       '@fontsource-variable/inter':
         specifier: ^5.2.8
         version: 5.2.8
+      '@glyf/keymap-schema':
+        specifier: file:../../shared/libs/keymap-schema
+        version: link:../../shared/libs/keymap-schema
       '@tailwindcss/vite':
         specifier: ^4.2.1
         version: 4.2.2(vite@7.3.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0))

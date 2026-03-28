@@ -1,4 +1,4 @@
-# Embedded Product Family
+# glyf
 
 RP2040-based input and display devices — firmware, companion apps, and R&D.
 
@@ -13,7 +13,7 @@ RP2040-based input and display devices — firmware, companion apps, and R&D.
 ## Repository Structure
 
 ```
-embedded/
+glyf/
 ├── apps/                       # Companion desktop apps (Tauri)
 │   ├── glyf/                   # glyf companion app
 │   └── macro-eleven/           # Macro Eleven companion app
@@ -27,8 +27,8 @@ embedded/
 │
 ├── shared/                     # Shared kernel (single source of truth)
 │   └── libs/
-│       ├── display-schema/     # @embedded/display-schema — glyf types
-│       └── keymap-schema/      # @embedded/keymap-schema — macropad types
+│       ├── display-schema/     # @glyf/display-schema — glyf types
+│       └── keymap-schema/      # @glyf/keymap-schema — macropad types
 │
 ├── research/                   # Tracked R&D (experiments, prototypes)
 ├── sdks/                       # External SDKs (clone separately — see sdks/README.md)

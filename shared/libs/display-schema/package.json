@@ -1,5 +1,5 @@
 {
-  "name": "@embedded/display-schema",
+  "name": "@glyf/display-schema",
   "version": "1.0.0",
   "description": "Shared display schema for glyf TFT display projects",
   "type": "module",

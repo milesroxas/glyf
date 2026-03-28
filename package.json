@@ -1,5 +1,5 @@
 {
-  "name": "embedded",
+  "name": "glyf",
   "private": true,
   "packageManager": "pnpm@10.29.3",
   "scripts": {

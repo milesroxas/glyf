@@ -8,7 +8,7 @@ importers:
 
   .:
     dependencies:
-      '@embedded/keymap-schema':
+      '@glyf/keymap-schema':
         specifier: file:../../shared/libs/keymap-schema
         version: file:../../shared/libs/keymap-schema
       '@fontsource-variable/inter':
@@ -236,7 +236,7 @@ packages:
     peerDependencies:
       '@noble/ciphers': ^1.0.0
 
-  '@embedded/keymap-schema@file:../../shared/libs/keymap-schema':
+  '@glyf/keymap-schema@file:../../shared/libs/keymap-schema':
     resolution: {directory: ../../shared/libs/keymap-schema, type: directory}
 
   '@esbuild/aix-ppc64@0.27.3':
@@ -3201,7 +3201,7 @@ snapshots:
     dependencies:
       '@noble/ciphers': 1.3.0
 
-  '@embedded/keymap-schema@file:../../shared/libs/keymap-schema': {}
+  '@glyf/keymap-schema@file:../../shared/libs/keymap-schema': {}
 
   '@esbuild/aix-ppc64@0.27.3':
     optional: true

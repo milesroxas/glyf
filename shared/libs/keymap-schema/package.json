@@ -1,5 +1,5 @@
 {
-  "name": "@embedded/keymap-schema",
+  "name": "@glyf/keymap-schema",
   "version": "1.0.0",
   "description": "Shared keymap schema for macropad projects",
   "type": "module",

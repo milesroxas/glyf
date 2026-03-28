@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// Keymap schema - mirrors @embedded/keymap-schema TypeScript types
+/// Keymap schema - mirrors @glyf/keymap-schema TypeScript types
 ///
 /// This is the Rust representation of the shared keymap schema.
 /// Keep in sync with /shared/libs/keymap-schema/src/types.ts

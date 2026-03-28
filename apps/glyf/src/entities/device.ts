@@ -4,4 +4,4 @@ export interface DeviceInfo {
   connected: boolean;
 }
 
-export type { DeviceStatusEvent } from "@embedded/display-schema";
+export type { DeviceStatusEvent } from "@glyf/display-schema";

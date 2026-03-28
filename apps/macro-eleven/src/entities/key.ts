@@ -1,4 +1,4 @@
-import type { MatrixPosition, KeyEvent as SchemaKeyEvent } from '@embedded/keymap-schema';
+import type { MatrixPosition, KeyEvent as SchemaKeyEvent } from '@glyf/keymap-schema';
 
 export type { MatrixPosition };
 
