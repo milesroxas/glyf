@@ -1,4 +1,4 @@
-# Build outputs
+# ── Firmware build outputs ───────────────────────────────────────────────────
 *.uf2
 *.hex
 *.bin
@@ -12,34 +12,41 @@ build/
 .pioenvs/
 .piolibdeps/
 
-# IDE
+# ── Rust / Cargo ─────────────────────────────────────────────────────────────
+# Cargo.lock is committed for app crates (reproducible builds).
+# target/ is excluded per-crate via each src-tauri/.gitignore.
+
+# ── JS / Node ────────────────────────────────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# ── IDE ──────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS
+# ── OS ───────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 
-# Dependencies
-node_modules/
-
-# Temp files
+# ── Temp / logs ──────────────────────────────────────────────────────────────
 *.tmp
-*.bak
 *.log
+npm-debug.log*
+pnpm-debug.log*
 
-# Sandbox (may contain external repos)
+# ── Sandbox (gitignored local-only experiments — use research/ for tracked work)
 sandbox/
 
-# SDKs (external repos - clone separately, see sdks/README.md)
+# ── SDKs (clone separately — see sdks/README.md) ────────────────────────────
 sdks/*
 !sdks/README.md
 
-# CAD temp files
-*.bak
+# ── CAD temp files ───────────────────────────────────────────────────────────
 *-cache.lib
 *-backups/
 *.kicad_prl
