@@ -7,11 +7,12 @@ line (see [docs/product-line.md](../../../docs/product-line.md)), not the whole 
 ## Quick Start
 
 ```bash
-cd firmware
-mkdir build && cd build
-cmake .. -DPICO_SDK_PATH=/path/to/pico-sdk
-make -j4
-# Drag glyf.uf2 onto RPI-RP2
+export PICO_SDK_PATH=/path/to/pico-sdk
+
+bash build.sh
+bash flash-picotool.sh   # explicit USB flashing path
+# or
+bash flash-uf2.sh        # explicit BOOTSEL / mounted RPI-RP2 path
 ```
 
 ## Structure

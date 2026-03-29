@@ -3,12 +3,14 @@ import {
   getDisplayConfig,
   saveDisplayConfig,
   resetDisplayConfig,
+  setDisplayBrightness,
 } from "../../shared/lib/tauri";
 import type { DisplayConfig, DisplayOrientation } from "../../entities/display";
 import { DEFAULT_DISPLAY_CONFIG } from "../../entities/display";
 import { Card, CardContent, CardHeader, CardTitle } from "../../shared/ui/card";
 import { Button } from "../../shared/ui/button";
 import { RotateCcw, Save } from "lucide-react";
+import { useDevice } from "../../app/providers";
 
 const ORIENTATIONS: { value: DisplayOrientation; label: string }[] = [
   { value: "landscape",      label: "Landscape (480×320)" },
@@ -20,6 +22,7 @@ const ORIENTATIONS: { value: DisplayOrientation; label: string }[] = [
 export function DeviceSettings() {
   const [config, setConfig] = useState<DisplayConfig>(DEFAULT_DISPLAY_CONFIG);
   const [saved, setSaved] = useState(false);
+  const { status } = useDevice();
 
   useEffect(() => {
     getDisplayConfig()
@@ -39,6 +42,21 @@ export function DeviceSettings() {
     setConfig(fresh);
   }
 
+  async function handleBrightnessChange(value: number) {
+    setConfig((c) => ({
+      ...c,
+      brightness: value,
+    }));
+
+    if (status === "connected") {
+      try {
+        await setDisplayBrightness(value);
+      } catch {
+        // Keep local state editable even if the live command fails.
+      }
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <Card>
@@ -49,6 +67,9 @@ export function DeviceSettings() {
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium">Orientation</label>
+              <p className="text-xs text-muted-foreground">
+                Saved locally only. Firmware support is not wired through yet.
+              </p>
               <select
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                 value={config.orientation}
@@ -79,18 +100,16 @@ export function DeviceSettings() {
                 min={0}
                 max={255}
                 value={config.brightness}
-                onChange={(e) =>
-                  setConfig((c) => ({
-                    ...c,
-                    brightness: Number(e.target.value),
-                  }))
-                }
+                onChange={(e) => handleBrightnessChange(Number(e.target.value))}
                 className="w-full accent-primary"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium">Sleep After</label>
+              <p className="text-xs text-muted-foreground">
+                Saved locally only. The device does not currently apply idle sleep.
+              </p>
               <select
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                 value={config.sleepAfterMs}

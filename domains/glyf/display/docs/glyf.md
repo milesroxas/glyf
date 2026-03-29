@@ -104,14 +104,18 @@ Report size: **32 bytes**, usage page `0xFF60`.
 Prerequisites: [Pico SDK](https://github.com/raspberrypi/pico-sdk) v1.5+ and CMake.
 
 ```bash
-cd domains/glyf/display/firmware
-mkdir build && cd build
-cmake .. -DPICO_SDK_PATH=/path/to/pico-sdk
-make -j4
-# Flash: drag glyf.uf2 onto the RPI-RP2 drive
+export PICO_SDK_PATH=/path/to/pico-sdk
+
+cd domains/glyf/display
+bash build.sh
+bash flash-picotool.sh   # explicit USB tool path
+# or
+bash flash-uf2.sh        # explicit BOOTSEL / mounted RPI-RP2 path
 ```
 
-Bootloader entry: hold the BOOTSEL button while connecting USB.
+Best-practice note: keep artifact generation (`build.sh`) separate from flash
+transport (`flash-picotool.sh` or `flash-uf2.sh`). Use the BOOTSEL mass-storage
+path for recovery / early bring-up, not as the default daily workflow.
 
 ---
 

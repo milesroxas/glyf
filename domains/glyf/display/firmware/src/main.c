@@ -27,13 +27,30 @@ void tud_hid_set_report_cb(
 {
     (void)itf; (void)report_id; (void)report_type;
 
-    hid_handle_report(buffer, bufsize);
+    if (buffer == NULL || bufsize == 0) {
+        return;
+    }
+
+    // macOS hidapi writes often include a leading 0x00 report ID even when the
+    // descriptor has no numbered reports. Accept both formats.
+    const uint8_t *payload = buffer;
+    uint16_t payload_len = bufsize;
+    if (payload_len > 1 && payload[0] == 0x00) {
+        payload += 1;
+        payload_len -= 1;
+    }
+
+    if (payload_len == 0) {
+        return;
+    }
+
+    hid_handle_report(payload, payload_len);
 
     // Immediately send state report back
-    if (buffer[0] == CMD_POLL_STATE) {
-        uint8_t report[HID_REPORT_SIZE];
+    if (payload[0] == CMD_POLL_STATE) {
+        uint8_t report[GLYF_HID_REPORT_SIZE];
         hid_build_state_report(report);
-        tud_hid_report(0, report, HID_REPORT_SIZE);
+        tud_hid_report(0, report, GLYF_HID_REPORT_SIZE);
     }
 }
 
@@ -44,7 +61,7 @@ uint16_t tud_hid_get_report_cb(
     uint8_t *buffer, uint16_t reqlen)
 {
     (void)itf; (void)report_id; (void)report_type;
-    uint16_t len = (reqlen < HID_REPORT_SIZE) ? reqlen : HID_REPORT_SIZE;
+    uint16_t len = (reqlen < GLYF_HID_REPORT_SIZE) ? reqlen : GLYF_HID_REPORT_SIZE;
     hid_build_state_report(buffer);
     return len;
 }

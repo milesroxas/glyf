@@ -10,7 +10,7 @@
 | Area | README |
 |------|--------|
 | Display module (RP2040 / Pico SDK) | [`domains/glyf/display/README.md`](../domains/glyf/display/README.md) |
-| Macropad R&D — Macro Eleven | [`domains/rnd/macropads/macro-eleven/README.md`](../domains/rnd/macropads/macro-eleven/README.md) |
-| Macropad R&D — Four Pad | [`domains/rnd/macropads/four-pad/README.md`](../domains/rnd/macropads/four-pad/README.md) |
+| Macropad prototypes — Macro Eleven | [`domains/prototypes/macropads/macro-eleven/README.md`](../domains/prototypes/macropads/macro-eleven/README.md) |
+| Macropad prototypes — Four Pad | [`domains/prototypes/macropads/four-pad/README.md`](../domains/prototypes/macropads/four-pad/README.md) |
 
 **Research** (experiments that are not yet a named module): [`research/README.md`](../research/README.md).

@@ -35,7 +35,8 @@
 
 #include <stdint.h>
 
-#define HID_REPORT_SIZE   32
+/** Report payload size (name avoids TinyUSB's HID_REPORT_SIZE macro). */
+#define GLYF_HID_REPORT_SIZE 32
 #define CMD_POLL_STATE    0x01
 #define CMD_SET_BRIGHTNESS 0x02
 #define CMD_SET_POWER     0x03
@@ -48,6 +49,6 @@
 void hid_handle_report(const uint8_t *buf, uint16_t len);
 
 /**
- * Build a 32-byte state report into @p out (must be HID_REPORT_SIZE bytes).
+ * Build a 32-byte state report into @p out (must be GLYF_HID_REPORT_SIZE bytes).
  */
 void hid_build_state_report(uint8_t *out);

@@ -20,12 +20,22 @@ export async function disconnectDevice(): Promise<void> {
   return invoke<void>("disconnect_device");
 }
 
+/** Last known host link state (updated with each device-status emit). */
+export async function getDeviceConnectionSnapshot(): Promise<boolean> {
+  return invoke<boolean>("get_device_connection_snapshot");
+}
+
 export async function setDisplayBrightness(brightness: number): Promise<void> {
   return invoke<void>("set_display_brightness", { brightness });
 }
 
 export async function setDisplayPower(on: boolean): Promise<void> {
   return invoke<void>("set_display_power", { on });
+}
+
+/** Full-screen RGB565 fill (host → device command `0x04`). */
+export async function fillDisplay(rgb565: number): Promise<void> {
+  return invoke<void>("fill_display", { rgb565 });
 }
 
 export async function getDisplayConfig(): Promise<DisplayConfig> {

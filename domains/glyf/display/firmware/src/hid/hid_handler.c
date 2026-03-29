@@ -48,7 +48,7 @@ void hid_handle_report(const uint8_t *buf, uint16_t len) {
 }
 
 void hid_build_state_report(uint8_t *out) {
-    memset(out, 0, HID_REPORT_SIZE);
+    memset(out, 0, GLYF_HID_REPORT_SIZE);
 
     xpt2046_point_t touch = xpt2046_read(NULL);
 

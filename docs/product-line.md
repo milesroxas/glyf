@@ -20,7 +20,7 @@ Not all of these exist as shipping SKUs yet; the list describes where the line i
 | **Modules** | Concrete devices (e.g. the current display board under `domains/glyf/display/`) whose firmware and host tools are maintained for real use |
 | **Macropad prototypes** | **Macro Eleven** and **Four Pad** are **R&D**: QMK testbeds, layout experiments, and host-side patterns (e.g. keymap schema) that inform Glyf. They are not positioned as the long-term product names for the line |
 
-R&D macropads live under `domains/rnd/macropads/`; shipping modules under `domains/glyf/`. Folder names (`macro-eleven`, `four-pad`) reflect tooling and QMK keyboard IDs; the README tables spell out R&D vs module roles.
+Macropad prototypes live under `domains/prototypes/macropads/`; shipping modules under `domains/glyf/`. Folder names (`macro-eleven`, `four-pad`) reflect tooling and QMK keyboard IDs; the README tables spell out prototype vs module roles.
 
 ## Single source of truth and low overhead
 

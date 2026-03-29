@@ -172,4 +172,6 @@ export interface TouchEvent {
 
 export interface DeviceStatusEvent {
   connected: boolean;
+  /** Human-readable phase or reason (disconnected / error paths). */
+  detail?: string | null;
 }

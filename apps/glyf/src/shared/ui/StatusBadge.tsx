@@ -13,7 +13,7 @@ const STATUS_CONFIG: Record<
   connecting: {
     dot: "bg-destructive animate-pulse",
     badge: "text-destructive bg-destructive/15",
-    label: "Connecting...",
+    label: "Scanning…",
   },
   disconnected: {
     dot: "bg-muted-foreground",

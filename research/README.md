@@ -4,8 +4,8 @@ This directory is for tracked experiments, prototypes, and exploratory work that
 extends the **Glyf** product line. Unlike `sandbox/` (gitignored, local-only throwaway),
 everything here is committed and collaborative.
 
-**Note:** Some R&D also lives under `domains/rnd/` (e.g. macropads under
-`domains/rnd/macropads/`)—handwired/QMK prototypes that predate or sit beside named
+**Note:** Some prototype hardware also lives under `domains/prototypes/` (e.g. macropads under
+`domains/prototypes/macropads/`)—handwired/QMK boards that predate or sit beside named
 Glyf modules. Use `research/` for spin-ups that do not yet belong in a stable
 `domains/glyf/<module>/` folder, or for cross-cutting experiments (protocols, alternate MCUs).
 
@@ -19,7 +19,7 @@ Glyf modules. Use `research/` for spin-ups that do not yet belong in a stable
 | Glyf module firmware                         | `domains/glyf/<module>/`    |
 | Companion app for a module                | `apps/<name>/`              |
 | Shared type schema or library               | `shared/libs/<name>/`       |
-| Established macropad R&D (QMK, legacy tree) | `domains/rnd/macropads/...` *(see [domains/README.md](../domains/README.md))* |
+| Established macropad prototypes (QMK, legacy tree) | `domains/prototypes/macropads/...` *(see [domains/README.md](../domains/README.md))* |
 
 ## Lifecycle
 

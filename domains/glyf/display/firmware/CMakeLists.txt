@@ -11,6 +11,7 @@ pico_sdk_init()
 
 add_executable(glyf
     src/main.c
+    src/usb_descriptors.c
     src/display/st7796s.c
     src/touch/xpt2046.c
     src/hid/hid_handler.c

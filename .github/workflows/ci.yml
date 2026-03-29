@@ -6,6 +6,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 # Cancel in-progress runs for the same branch when a new push arrives
 concurrency:
@@ -17,28 +21,27 @@ jobs:
   repo-layout:
     name: Repository layout
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - name: Verify domains/ tree
         run: |
           test -d domains/glyf/display/firmware
-          test -d domains/rnd/macropads/macro-eleven/firmware
-          test -d domains/rnd/macropads/four-pad/firmware
+          test -d domains/prototypes/macropads/macro-eleven/firmware
+          test -d domains/prototypes/macropads/four-pad/firmware
           test -f domains/glyf/display/build.sh
-          test -f domains/rnd/macropads/macro-eleven/build.sh
-          test -f domains/rnd/macropads/four-pad/build.sh
+          test -f domains/prototypes/macropads/macro-eleven/build.sh
+          test -f domains/prototypes/macropads/four-pad/build.sh
 
-  # ── TypeScript ───────────────────────────────────────────────────────────────
-  typecheck:
-    name: TypeScript (${{ matrix.app }})
+  # ── TypeScript + Vitest (single install: all workspace packages) ───────────
+  typescript:
+    name: TypeScript & Vitest
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        app: [glyf, macro-eleven]
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
+      # Version comes from root package.json "packageManager" (Corepack field).
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
@@ -49,31 +52,45 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck ${{ matrix.app }}
-        run: pnpm --filter ${{ matrix.app }} typecheck
+      - name: Typecheck workspace
+        run: pnpm typecheck
 
-  # ── Rust ─────────────────────────────────────────────────────────────────────
+      - name: Install Playwright Chromium (Vitest browser mode)
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Run Vitest workspace
+        run: pnpm test
+
+  # ── Rust (Tauri crates: compile + unit tests) ──────────────────────────────
   rust:
     name: Rust
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
+      # Matches https://v2.tauri.app/start/prerequisites/ (Debian/Ubuntu) + HID (libudev).
+      # Use libayatana-appindicator3-dev — libappindicator3-dev is deprecated on Ubuntu 24+.
       - name: Install Tauri system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
+            build-essential \
+            curl \
+            wget \
+            file \
             libwebkit2gtk-4.1-dev \
             libgtk-3-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf \
             libssl-dev \
-            libudev-dev
+            libxdo-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libudev-dev \
+            patchelf
 
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: Check workspace
-        run: cargo check --workspace --locked
+      - name: Test workspace
+        run: cargo test --workspace --locked
