@@ -104,7 +104,7 @@ Report size: **32 bytes**, usage page `0xFF60`.
 Prerequisites: [Pico SDK](https://github.com/raspberrypi/pico-sdk) v1.5+ and CMake.
 
 ```bash
-cd domains/displays/glyf/firmware
+cd domains/glyf/display/firmware
 mkdir build && cd build
 cmake .. -DPICO_SDK_PATH=/path/to/pico-sdk
 make -j4

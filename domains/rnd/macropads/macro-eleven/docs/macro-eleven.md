@@ -32,7 +32,7 @@ Columns are labeled by logical matrix index (col 0 = GP5, col 3 = GP2). The top-
 ## Project Structure
 
 ```
-domains/macropads/macro-eleven/
+domains/rnd/macropads/macro-eleven/
 ├── firmware/          # QMK keyboard source (synced to qmk_firmware on build)
 ├── config/
 ├── docs/

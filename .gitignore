@@ -1,4 +1,9 @@
-# ── Firmware build outputs ───────────────────────────────────────────────────
+# ── Rust / Cargo (workspace root — `cargo` from any member uses this) ───────
+/target/
+**/*.rs.bk
+*.pdb
+
+# ── Firmware / embedded ──────────────────────────────────────────────────────
 *.uf2
 *.hex
 *.bin
@@ -12,18 +17,26 @@ build/
 .pioenvs/
 .piolibdeps/
 
-# ── Rust / Cargo ─────────────────────────────────────────────────────────────
-# Cargo.lock is committed for app crates (reproducible builds).
-# target/ is excluded per-crate via each src-tauri/.gitignore.
-
-# ── JS / Node ────────────────────────────────────────────────────────────────
+# ── JS / Node / pnpm ─────────────────────────────────────────────────────────
 node_modules/
 dist/
 dist-ssr/
 *.local
+.turbo/
+.cache/
+*.tsbuildinfo
+.eslintcache
+coverage/
+.nyc_output/
 
-# ── IDE ──────────────────────────────────────────────────────────────────────
-.vscode/
+# ── Environment & secrets (never commit) ──────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── IDE (keep optional team files — un-ignore below) ─────────────────────────
+.vscode/*
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
@@ -32,21 +45,26 @@ dist-ssr/
 # ── OS ───────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# ── Temp / logs ──────────────────────────────────────────────────────────────
+# ── Logs ─────────────────────────────────────────────────────────────────────
 *.tmp
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
 
-# ── Sandbox (gitignored local-only experiments — use research/ for tracked work)
+# ── Sandbox (local-only experiments — use research/ for tracked work) ─────────
 sandbox/
 
 # ── SDKs (clone separately — see sdks/README.md) ────────────────────────────
 sdks/*
 !sdks/README.md
 
-# ── CAD temp files ───────────────────────────────────────────────────────────
+# ── CAD (KiCad) ───────────────────────────────────────────────────────────────
 *-cache.lib
 *-backups/
 *.kicad_prl

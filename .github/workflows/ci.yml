@@ -1,3 +1,4 @@
+# CI: companion apps (pnpm + Rust). Firmware (QMK / Pico SDK) is built locally — see README.
 name: CI
 
 on:
@@ -12,6 +13,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ── Repo layout (catches stale docs / accidental path renames) ─────────────
+  repo-layout:
+    name: Repository layout
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify domains/ tree
+        run: |
+          test -d domains/glyf/display/firmware
+          test -d domains/rnd/macropads/macro-eleven/firmware
+          test -d domains/rnd/macropads/four-pad/firmware
+          test -f domains/glyf/display/build.sh
+          test -f domains/rnd/macropads/macro-eleven/build.sh
+          test -f domains/rnd/macropads/four-pad/build.sh
+
   # ── TypeScript ───────────────────────────────────────────────────────────────
   typecheck:
     name: TypeScript (${{ matrix.app }})

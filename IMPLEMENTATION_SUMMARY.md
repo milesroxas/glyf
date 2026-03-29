@@ -55,7 +55,7 @@ A **scalable, host-side keymap system** that eliminates the need to reflash firm
   - `reset_to_default()`
 
 ### 4. Documentation
-- `/domains/macropads/macro-eleven/docs/HOST_SIDE_KEYMAP_SYSTEM.md` - Complete architecture guide
+- `/domains/rnd/macropads/macro-eleven/docs/HOST_SIDE_KEYMAP_SYSTEM.md` - Complete architecture guide
 - This summary document
 
 ## Architecture Highlights
@@ -88,8 +88,9 @@ glyf/                                  # Monorepo root
 │   └── libs/
 │       └── keymap-schema/             # ← Shared schema (reusable)
 ├── domains/
-│   └── macropads/
-│       └── macro-eleven/
+│   └── rnd/
+│       └── macropads/
+│           └── macro-eleven/
 │           ├── firmware/              # QMK firmware (unchanged)
 │           └── docs/                  # Architecture docs
 └── apps/
@@ -238,7 +239,7 @@ glyf/                                  # Monorepo root
 - `/apps/macro-eleven/src-tauri/src/executor/` (3 files)
 - `/apps/macro-eleven/src-tauri/src/hid/keymap_engine.rs`
 - `/apps/macro-eleven/src-tauri/src/commands/keymap_commands.rs`
-- `/domains/macropads/macro-eleven/docs/HOST_SIDE_KEYMAP_SYSTEM.md`
+- `/domains/rnd/macropads/macro-eleven/docs/HOST_SIDE_KEYMAP_SYSTEM.md`
 
 **Modified: 7 files**
 - `/apps/macro-eleven/package.json`

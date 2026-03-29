@@ -1,8 +1,13 @@
 # Research & Development
 
 This directory is for tracked experiments, prototypes, and exploratory work that
-extends the product family. Unlike `sandbox/` (gitignored, local-only throwaway),
+extends the **Glyf** product line. Unlike `sandbox/` (gitignored, local-only throwaway),
 everything here is committed and collaborative.
+
+**Note:** Some R&D also lives under `domains/rnd/` (e.g. macropads under
+`domains/rnd/macropads/`)—handwired/QMK prototypes that predate or sit beside named
+Glyf modules. Use `research/` for spin-ups that do not yet belong in a stable
+`domains/glyf/<module>/` folder, or for cross-cutting experiments (protocols, alternate MCUs).
 
 ## When to use `research/` vs somewhere else
 
@@ -11,15 +16,16 @@ everything here is committed and collaborative.
 | New hardware variant, MCU, or display        | `research/<name>/`          |
 | Alternative firmware approach or protocol   | `research/<name>/`          |
 | Throwaway / purely local experiment         | `sandbox/` *(gitignored)*   |
-| Production-ready firmware for a device      | `domains/<type>/<name>/`    |
-| Production-ready companion app              | `apps/<name>/`              |
+| Glyf module firmware                         | `domains/glyf/<module>/`    |
+| Companion app for a module                | `apps/<name>/`              |
 | Shared type schema or library               | `shared/libs/<name>/`       |
+| Established macropad R&D (QMK, legacy tree) | `domains/rnd/macropads/...` *(see [domains/README.md](../domains/README.md))* |
 
 ## Lifecycle
 
 ```
-research/<name>/   →   domains/ or apps/   →   shipped
-   [exploring]           [graduating]           [production]
+research/<name>/   →   domains/glyf/… or apps/   →   shipped
+   [exploring]           [graduating]                [production]
 ```
 
 1. **Create** a subdirectory: `research/<name>/`
@@ -27,7 +33,7 @@ research/<name>/   →   domains/ or apps/   →   shipped
 3. **Mark** status in the README header as one of:
    - `[exploring]` — early idea, may be abandoned
    - `[promising]` — worth continued investment
-   - `[graduating]` — ready to move into `domains/` or `apps/`
+   - `[graduating]` — ready to move into `domains/glyf/` or `apps/`
 4. **Graduate** by moving the relevant parts to their production home and deleting
    the research directory (or keeping it as a historical record with `[archived]` status)
 
@@ -50,6 +56,6 @@ research/
 - Every research directory **must** have a `README.md`
 - Research code is held to a lower bar than production — it does not need full
   test coverage or CI passing, but it should build
-- Do not import from `research/` in `apps/` or `domains/` — research depends on
+- Do not import from `research/` in `apps/` or `domains/glyf/` — research depends on
   production, never the other way around
 - Delete or archive stale experiments rather than letting them rot

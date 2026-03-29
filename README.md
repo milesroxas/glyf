@@ -1,41 +1,50 @@
-# glyf
+# Glyf
 
-RP2040-based input and display devices — firmware, companion apps, and R&D.
+Monorepo for **Glyf**—a modular product line of linked physical productivity devices (firmware, companion apps, shared schemas, and R&D).
 
-## Products
+**Vision:** devices compose into a system (e.g. a base module, a display + keys module, a knob / switches module for context). This repository is the engineering home for that line: shared types, apps, and module firmware live together so you can concept and ship without maintaining parallel copies of protocols or tooling.
 
-| Product | Type | Status |
-|---------|------|--------|
-| [macro-eleven](domains/macropads/macro-eleven/) | 11-key macropad + potentiometer | Production |
-| [four-pad](domains/macropads/four-pad/) | 4-key prototype macropad | Prototype / Rev 1 |
-| [glyf](domains/displays/glyf/) | 4.0" TFT display + touch | Production |
+See **[docs/product-line.md](docs/product-line.md)** for roadmap framing, R&D vs modules, and notes on **monorepo vs a separate lab repo**.
 
-## Repository Structure
+## Modules and R&D (current tree)
+
+| Name | What it is | Status |
+|------|------------|--------|
+| [Display module](domains/glyf/display/) | 4.0" TFT + touch (RP2040, Pico SDK) — Glyf display hardware | Active module |
+| [Glyf companion app](apps/glyf/) | Desktop app for the display module | Active |
+| [Macro Eleven](domains/rnd/macropads/macro-eleven/) | 11-key QMK macropad + host keymap experiments | R&D / prototype |
+| [Macro Eleven app](apps/macro-eleven/) | Tauri companion tied to Macro Eleven | R&D / prototype |
+| [Four Pad](domains/rnd/macropads/four-pad/) | QMK macropad prototype | R&D / prototype |
+
+**Macro Eleven** and **Four Pad** are intentionally kept for learning and R&D (layouts, QMK, companion patterns). They are **not** the public product definition of the Glyf line—the line is the **modular system** and the **display module** (and future modules) under Glyf.
+
+## Repository structure
 
 ```
 glyf/
 ├── apps/                       # Companion desktop apps (Tauri)
-│   ├── glyf/                   # glyf companion app
-│   └── macro-eleven/           # Macro Eleven companion app
+│   ├── glyf/                   # Glyf display module companion
+│   └── macro-eleven/           # Macro Eleven (R&D) companion
 │
-├── domains/                    # Device hardware domains (firmware)
-│   ├── displays/
-│   │   └── glyf/               # ST7796S 480×320 + XPT2046 (Pico SDK)
-│   └── macropads/
-│       ├── macro-eleven/       # 11-key QMK macropad
-│       └── four-pad/           # 4-key QMK prototype
+├── domains/                    # Firmware (see domains/README.md)
+│   ├── glyf/
+│   │   └── display/            # Glyf display module (Pico SDK)
+│   └── rnd/
+│       └── macropads/
+│           ├── macro-eleven/   # R&D — QMK
+│           └── four-pad/       # R&D — QMK
 │
-├── shared/                     # Shared kernel (single source of truth)
+├── shared/                     # Shared contracts (single source of truth)
 │   └── libs/
-│       ├── display-schema/     # @glyf/display-schema — glyf types
-│       └── keymap-schema/      # @glyf/keymap-schema — macropad types
+│       ├── display-schema/     # @glyf/display-schema — display types
+│       └── keymap-schema/      # @glyf/keymap-schema — macropad / keymap types
 │
-├── research/                   # Tracked R&D (experiments, prototypes)
-├── sdks/                       # External SDKs (clone separately — see sdks/README.md)
-└── docs/                       # Project documentation
+├── research/                   # Tracked experiments (see research/README.md)
+├── sdks/                       # External SDKs (clone separately — sdks/README.md)
+└── docs/                       # Product line and doc index
 ```
 
-## Quick Start
+## Quick start
 
 ### Prerequisites
 
@@ -44,8 +53,8 @@ glyf/
 | pnpm 10 | JS package manager | `npm i -g pnpm` |
 | Rust (stable) | Tauri backends | [rustup.rs](https://rustup.rs) |
 | Tauri CLI v2 | App dev/build | `cargo install tauri-cli --version ^2` |
-| QMK CLI | Macropad firmware | `brew install qmk/qmk/qmk && qmk setup` |
-| Pico SDK | glyf firmware | See [sdks/README.md](sdks/README.md) |
+| QMK CLI | Macropad R&D firmware | `brew install qmk/qmk/qmk && qmk setup` |
+| Pico SDK | Glyf display firmware | See [sdks/README.md](sdks/README.md) |
 | picotool | Flash firmware | `brew install picotool` |
 
 ### Install JS dependencies (all workspaces)
@@ -57,8 +66,8 @@ pnpm install
 ### Run a companion app
 
 ```bash
-pnpm dev:glyf           # glyf companion app
-pnpm dev:macro-eleven   # Macro Eleven companion app
+pnpm dev:glyf           # Glyf display companion
+pnpm dev:macro-eleven   # Macro Eleven (R&D) companion
 ```
 
 ### Typecheck all apps
@@ -71,26 +80,26 @@ pnpm typecheck
 
 ## Firmware
 
-### macropad (QMK)
+### Macropads (QMK) — R&D
 
 ```bash
-cd domains/macropads/macro-eleven
+cd domains/rnd/macropads/macro-eleven
 ./build.sh apps        # build
 ./build.sh apps flash  # build + flash
 ./watch-and-flash.sh   # interactive: detects bootloader, prompts keymap
 ```
 
 ```bash
-cd domains/macropads/four-pad
+cd domains/rnd/macropads/four-pad
 ./build.sh apps flash
 ```
 
-### glyf (Pico SDK)
+### Glyf display module (Pico SDK)
 
 ```bash
 export PICO_SDK_PATH=/path/to/pico-sdk   # or set in ~/.zshrc
 
-cd domains/displays/glyf
+cd domains/glyf/display
 ./build.sh         # build only
 ./build.sh flash   # build + flash
 ```
@@ -99,31 +108,28 @@ cd domains/displays/glyf
 
 ## Architecture
 
-All apps follow **Feature-Sliced Design (FSD)** on the frontend and
-**Domain-Driven Design (DDD)** at the repo level.
+Apps use **Feature-Sliced Design (FSD)** on the frontend; the repo uses **bounded contexts** per app and domain.
 
-- **No multiple sources of truth** — shared types live in `shared/libs/` and are
-  mirrored (not duplicated) in Rust via matching `serde` structs.
-- **Bounded contexts** — each product in `domains/` and `apps/` is self-contained.
-- **Single install** — `pnpm install` at the root installs everything via workspaces.
+- **Single source of truth** — shared types in `shared/libs/`, mirrored in Rust with matching `serde` structs where needed.
+- **One install** — `pnpm install` at the root installs workspaces together.
 
-### USB Identifiers
+### USB identifiers
 
-| Product | VID | PID |
-|---------|-----|-----|
-| macro-eleven | `0x4653` | `0x0002` |
-| glyf | `0x4653` | `0x0003` |
+| Device | VID | PID |
+|--------|-----|-----|
+| Macro Eleven (R&D) | `0x4653` | `0x0002` |
+| Glyf display module | `0x4653` | `0x0003` |
 
 ---
 
 ## R&D
 
-See [`research/README.md`](research/README.md) for conventions on starting and
-graduating experiments.
+- Tracked experiments and graduation: [`research/README.md`](research/README.md)
+- Macropad prototypes: [`domains/rnd/macropads/`](domains/rnd/macropads/) (see table above)
 
 ## CI
 
-GitHub Actions runs on every push to `main` and every pull request:
+GitHub Actions on push/PR to `main`:
 
-- **TypeScript** — `tsc --noEmit` for all companion apps (matrix, parallel)
-- **Rust** — `cargo check --workspace` across all Tauri backends
+- **TypeScript** — `tsc --noEmit` for Glyf and Macro Eleven apps (matrix)
+- **Rust** — `cargo check --workspace` for Tauri backends

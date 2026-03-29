@@ -105,7 +105,7 @@ Tauri events emitted: `glyf:device-status`, `glyf:display-state`, `glyf:touch-ev
 | GP17  | TCH_CS    | Touch chip-select (active LOW)       |
 | GP18  | TCH_IRQ   | Touch interrupt (active LOW)         |
 
-See `domains/displays/glyf/docs/glyf.md` for the full firmware reference.
+See `domains/glyf/display/docs/glyf.md` for the full firmware reference.
 
 ## Config Storage
 

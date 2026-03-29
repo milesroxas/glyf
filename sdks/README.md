@@ -1,6 +1,6 @@
 # SDKs
 
-External SDKs are not included in this repo. Clone them separately:
+External SDKs are not vendored in the Glyf monorepo. Clone them separately:
 
 ## QMK Firmware (required for macropad projects)
 

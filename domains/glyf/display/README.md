@@ -1,7 +1,8 @@
-# glyf – Display Domain
+# Glyf — display module
 
-RP2040 firmware for the glyf 4.0" ST7796S TFT display device with XPT2046
-resistive touch.
+RP2040 firmware for the **Glyf display module**: the 4.0" ST7796S TFT + XPT2046
+resistive touch board. This directory is the **display** piece of the Glyf product
+line (see [docs/product-line.md](../../../docs/product-line.md)), not the whole line by itself.
 
 ## Quick Start
 

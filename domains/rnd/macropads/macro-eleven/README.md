@@ -1,6 +1,11 @@
 # Macro Eleven
 
-11-key macropad on Raspberry Pi Pico (RP2040) with QMK. App launcher and per-app shortcuts for macOS.
+**R&D prototype** — 11-key macropad on Raspberry Pi Pico (RP2040) with QMK, used for
+layout and host-side keymap experiments that inform the **Glyf** product line. It is
+not positioned as the long-term retail identity of Glyf; see
+[docs/product-line.md](../../../../docs/product-line.md).
+
+App launcher and per-app shortcuts for macOS.
 
 ## Quick Start
 

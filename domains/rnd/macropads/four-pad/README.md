@@ -1,6 +1,10 @@
 # Four Pad
 
-A 7-key handwired macropad using Raspberry Pi Pico (RP2040) with LCD1602 display and application-specific layer switching.
+**R&D prototype** — handwired macropad using Raspberry Pi Pico (RP2040) with LCD1602
+and application-specific layer switching. Part of macropad R&D for the **Glyf**
+ecosystem; see [docs/product-line.md](../../../../docs/product-line.md).
+
+A 7-key handwired macropad with LCD1602 display and application-specific layer switching.
 
 ## Project Structure
 
