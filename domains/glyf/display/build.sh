@@ -46,17 +46,21 @@ JOBS="$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"
 make -j"$JOBS"
 
 UF2="$BUILD_DIR/glyf.uf2"
+ELF="$BUILD_DIR/glyf.elf"
 
-if [ ! -f "$UF2" ]; then
-    echo "Build failed — glyf.uf2 not found."
+if [ ! -f "$UF2" ] || [ ! -f "$ELF" ]; then
+    echo "Build failed — expected artifacts were not found."
     exit 1
 fi
 
 cp "$UF2" "$PROJECT_DIR/"
+cp "$ELF" "$PROJECT_DIR/"
 echo ""
 echo "Build successful!"
 echo "Firmware: $PROJECT_DIR/glyf.uf2"
+echo "ELF: $PROJECT_DIR/glyf.elf"
 echo ""
 echo "Next steps:"
-echo "  Explicit UF2 path:      bash flash-uf2.sh"
+echo "  Preferred SWD path:     bash flash-swd.sh"
 echo "  Explicit picotool path: bash flash-picotool.sh"
+echo "  Explicit UF2 path:      bash flash-uf2.sh"

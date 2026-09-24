@@ -1,26 +1,44 @@
-import { useState } from "react";
-import { DisplayCanvas } from "./DisplayCanvas";
-import { useDisplayState } from "../../shared/lib/useDisplayState";
+import { Power, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useDevice } from "../../app/providers";
 import { setDisplayBrightness, setDisplayPower } from "../../shared/lib/tauri";
-import { Card, CardContent, CardHeader, CardTitle } from "../../shared/ui/card";
+import { useDisplayState } from "../../shared/lib/useDisplayState";
 import { Button } from "../../shared/ui/button";
-import { Sun, Power } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../../shared/ui/card";
+import { DisplayCanvas } from "./DisplayCanvas";
 
 export function DisplayPreview() {
-  const state = useDisplayState();
+  const deviceState = useDisplayState();
+  const { status } = useDevice();
+  const [state, setState] = useState(deviceState);
   const [pending, setPending] = useState(false);
 
+  useEffect(() => {
+    setState(deviceState);
+  }, [deviceState]);
+
   async function handleTogglePower() {
+    const nextOn = !state.on;
+    setState((current) => ({ ...current, on: nextOn }));
     setPending(true);
     try {
-      await setDisplayPower(!state.on);
+      await setDisplayPower(nextOn);
+    } catch (error) {
+      console.error("Failed to toggle display power", error);
+      setState(deviceState);
     } finally {
       setPending(false);
     }
   }
 
   async function handleBrightness(value: number) {
-    await setDisplayBrightness(value);
+    setState((current) => ({ ...current, brightness: value }));
+    try {
+      await setDisplayBrightness(value);
+    } catch (error) {
+      console.error("Failed to update display brightness", error);
+      setState(deviceState);
+    }
   }
 
   return (
@@ -54,7 +72,7 @@ export function DisplayPreview() {
                 variant={state.on ? "outline" : "default"}
                 size="sm"
                 onClick={handleTogglePower}
-                disabled={pending}
+                disabled={pending || status !== "connected"}
               >
                 {state.on ? "Turn Off" : "Turn On"}
               </Button>
@@ -74,6 +92,7 @@ export function DisplayPreview() {
                 max={255}
                 value={state.brightness}
                 onChange={(e) => handleBrightness(Number(e.target.value))}
+                disabled={status !== "connected"}
                 className="w-full accent-primary"
               />
             </div>

@@ -1,13 +1,13 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import type { LayerChangeEvent, LayerData } from "../../entities/layer";
-import type { KeyEvent, PotEvent } from "../../entities/key";
-import type { DeviceStatusEvent } from "../../entities/device";
-import type { LaunchBinding } from "../../entities/keymap";
 import type {
   ActionErrorEvent,
   ActionExecutedEvent,
 } from "../../entities/action";
+import type { DeviceStatusEvent } from "../../entities/device";
+import type { KeyEvent, PotEvent } from "../../entities/key";
+import type { LaunchBinding } from "../../entities/keymap";
+import type { LayerChangeEvent, LayerData } from "../../entities/layer";
 
 export async function detectDevice(): Promise<boolean> {
   return invoke<boolean>("detect_device_cmd");
@@ -46,53 +46,53 @@ export async function openOverlayWindow(): Promise<void> {
 }
 
 export function onKeyEvent(
-  callback: (event: KeyEvent) => void
+  callback: (event: KeyEvent) => void,
 ): Promise<UnlistenFn> {
   return listen<KeyEvent>("macro11:key-event", (e) => callback(e.payload));
 }
 
 export function onLayerChange(
-  callback: (event: LayerChangeEvent) => void
+  callback: (event: LayerChangeEvent) => void,
 ): Promise<UnlistenFn> {
   return listen<LayerChangeEvent>("macro11:layer-change", (e) =>
-    callback(e.payload)
+    callback(e.payload),
   );
 }
 
 export function onTestModeChange(
-  callback: (enabled: boolean) => void
+  callback: (enabled: boolean) => void,
 ): Promise<UnlistenFn> {
   return listen<{ enabled: boolean }>("macro11:test-mode", (e) =>
-    callback(Boolean(e.payload?.enabled))
+    callback(Boolean(e.payload?.enabled)),
   );
 }
 
 export function onPotValue(
-  callback: (event: PotEvent) => void
+  callback: (event: PotEvent) => void,
 ): Promise<UnlistenFn> {
   return listen<PotEvent>("macro11:pot-value", (e) => callback(e.payload));
 }
 
 export function onDeviceStatus(
-  callback: (event: DeviceStatusEvent) => void
+  callback: (event: DeviceStatusEvent) => void,
 ): Promise<UnlistenFn> {
   return listen<DeviceStatusEvent>("macro11:device-status", (e) =>
-    callback(e.payload)
+    callback(e.payload),
   );
 }
 
 export function onActionError(
-  callback: (event: ActionErrorEvent) => void
+  callback: (event: ActionErrorEvent) => void,
 ): Promise<UnlistenFn> {
   return listen<ActionErrorEvent>("macro11:action-error", (e) =>
-    callback(e.payload)
+    callback(e.payload),
   );
 }
 
 export function onActionExecuted(
-  callback: (event: ActionExecutedEvent) => void
+  callback: (event: ActionExecutedEvent) => void,
 ): Promise<UnlistenFn> {
   return listen<ActionExecutedEvent>("macro11:action-executed", (e) =>
-    callback(e.payload)
+    callback(e.payload),
   );
 }

@@ -8,7 +8,11 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "keywords": ["keymap", "macropad", "schema"],
+  "keywords": [
+    "keymap",
+    "macropad",
+    "schema"
+  ],
   "author": "Miles Roxas",
   "license": "MIT"
 }

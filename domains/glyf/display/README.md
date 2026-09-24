@@ -10,10 +10,20 @@ line (see [docs/product-line.md](../../../docs/product-line.md)), not the whole 
 export PICO_SDK_PATH=/path/to/pico-sdk
 
 bash build.sh
+bash flash-swd.sh        # preferred SWD / OpenOCD flashing path
+# or
 bash flash-picotool.sh   # explicit USB flashing path
 # or
 bash flash-uf2.sh        # explicit BOOTSEL / mounted RPI-RP2 path
 ```
+
+## Recommended Dev Workflow
+
+- Build artifacts with `bash build.sh`
+- Flash over SWD with `bash flash-swd.sh`
+- Run the companion app with `pnpm dev:glyf`
+
+Use `flash-uf2.sh` for BOOTSEL recovery or very early board bring-up, not as the default daily path.
 
 ## Structure
 

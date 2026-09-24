@@ -5,6 +5,6 @@
  * Single source of truth for keymap structure, validation, and defaults.
  */
 
-export * from './types';
-export * from './validation';
-export * from './defaults';
+export * from "./defaults";
+export * from "./types";
+export * from "./validation";

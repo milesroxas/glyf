@@ -191,7 +191,7 @@ impl HidConnection {
                             let pot_value = state.pot_value;
 
                             // Emit legacy events before running host-side actions so UI feedback stays responsive
-                            let key_snapshot: Vec<bool> = key_state.iter().copied().collect();
+                            let key_snapshot: Vec<bool> = key_state.to_vec();
                             let _ = app.emit(
                                 "macro11:key-event",
                                 serde_json::json!({

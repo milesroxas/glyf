@@ -20,7 +20,11 @@ export const TOUCH_MAX_Y = 4095;
 // Display Types
 // ============================================================================
 
-export type DisplayOrientation = 'landscape' | 'portrait' | 'landscape_flip' | 'portrait_flip';
+export type DisplayOrientation =
+  | "landscape"
+  | "portrait"
+  | "landscape_flip"
+  | "portrait_flip";
 
 export type ColorDepth = 16 | 18; // ST7796S supports 16-bit (RGB565) and 18-bit (RGB666)
 
@@ -125,14 +129,14 @@ export interface GlyfConfig {
 
 export const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
   brightness: 200,
-  orientation: 'landscape',
+  orientation: "landscape",
   colorDepth: 16,
   sleepAfterMs: 0,
 };
 
 export const DEFAULT_GLYF_CONFIG: GlyfConfig = {
-  version: '1.0.0',
-  name: 'default',
+  version: "1.0.0",
+  name: "default",
   display: DEFAULT_DISPLAY_CONFIG,
   touch: DEFAULT_TOUCH_CALIBRATION,
 };

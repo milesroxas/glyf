@@ -1,4 +1,7 @@
-import type { MatrixPosition, KeyEvent as SchemaKeyEvent } from '@glyf/keymap-schema';
+import type {
+  MatrixPosition,
+  KeyEvent as SchemaKeyEvent,
+} from "@glyf/keymap-schema";
 
 export type { MatrixPosition };
 
@@ -32,8 +35,18 @@ export interface PotEvent {
 // 7=[2,0] 8=[2,1] 9=[2,2] 10=[2,3]
 export const MATRIX_LAYOUT: (MatrixPosition | null)[][] = [
   [{ row: 0, col: 0 }, { row: 0, col: 1 }, { row: 0, col: 2 }, null],
-  [{ row: 1, col: 0 }, { row: 1, col: 1 }, { row: 1, col: 2 }, { row: 1, col: 3 }],
-  [{ row: 2, col: 0 }, { row: 2, col: 1 }, { row: 2, col: 2 }, { row: 2, col: 3 }],
+  [
+    { row: 1, col: 0 },
+    { row: 1, col: 1 },
+    { row: 1, col: 2 },
+    { row: 1, col: 3 },
+  ],
+  [
+    { row: 2, col: 0 },
+    { row: 2, col: 1 },
+    { row: 2, col: 2 },
+    { row: 2, col: 3 },
+  ],
 ];
 
 // Map matrix position to flat key index (0-10)

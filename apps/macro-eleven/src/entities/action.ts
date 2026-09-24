@@ -7,17 +7,17 @@ export type {
   ActionType,
   BaseAction,
   CycleLayerAction,
-  SwitchLayerAction,
-  LaunchAppAction,
-  ShortcutAction,
-  MacroAction,
-  PluginAction,
-  NoopAction,
-  MacroStep,
   KeyModifier,
-} from '@glyf/keymap-schema';
+  LaunchAppAction,
+  MacroAction,
+  MacroStep,
+  NoopAction,
+  PluginAction,
+  ShortcutAction,
+  SwitchLayerAction,
+} from "@glyf/keymap-schema";
 
-import type { Action, MatrixPosition } from '@glyf/keymap-schema';
+import type { Action, MatrixPosition } from "@glyf/keymap-schema";
 
 export interface ActionErrorEvent {
   position: MatrixPosition;
@@ -40,29 +40,29 @@ export function getActionLabel(action: Action): string {
   }
 
   switch (action.action) {
-    case 'cycle_layer':
-      return 'Cycle Layer';
+    case "cycle_layer":
+      return "Cycle Layer";
 
-    case 'switch_layer':
+    case "switch_layer":
       return `Layer ${action.layer}`;
 
-    case 'launch_app':
+    case "launch_app":
       return action.app;
 
-    case 'shortcut':
-      return action.keys.join(' + ');
+    case "shortcut":
+      return action.keys.join(" + ");
 
-    case 'macro':
-      return 'Macro';
+    case "macro":
+      return "Macro";
 
-    case 'plugin':
+    case "plugin":
       return `${action.pluginId}:${action.actionId}`;
 
-    case 'noop':
-      return '—';
+    case "noop":
+      return "—";
 
     default:
-      return 'Unknown';
+      return "Unknown";
   }
 }
 
@@ -71,26 +71,26 @@ export function getActionLabel(action: Action): string {
  */
 export function getActionIcon(action: Action): string {
   switch (action.action) {
-    case 'cycle_layer':
-    case 'switch_layer':
-      return 'layers';
+    case "cycle_layer":
+    case "switch_layer":
+      return "layers";
 
-    case 'launch_app':
-      return 'rocket';
+    case "launch_app":
+      return "rocket";
 
-    case 'shortcut':
-      return 'keyboard';
+    case "shortcut":
+      return "keyboard";
 
-    case 'macro':
-      return 'list-ordered';
+    case "macro":
+      return "list-ordered";
 
-    case 'plugin':
-      return 'puzzle';
+    case "plugin":
+      return "puzzle";
 
-    case 'noop':
-      return 'circle-off';
+    case "noop":
+      return "circle-off";
 
     default:
-      return 'help-circle';
+      return "help-circle";
   }
 }

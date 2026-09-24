@@ -55,6 +55,7 @@ glyf/
 | Tauri CLI v2 | App dev/build | `cargo install tauri-cli --version ^2` |
 | QMK CLI | Macropad R&D firmware | `brew install qmk/qmk/qmk && qmk setup` |
 | Pico SDK | Glyf display firmware | See [sdks/README.md](sdks/README.md) |
+| OpenOCD | Preferred SWD flashing/debug path | `brew install open-ocd` |
 | picotool | Optional USB flashing path | `brew install picotool` |
 
 ### Install JS dependencies (all workspaces)
@@ -120,6 +121,7 @@ export PICO_SDK_PATH=/path/to/pico-sdk   # or set in ~/.zshrc
 
 cd domains/glyf/display
 ./build.sh              # build only
+./flash-swd.sh          # preferred SWD / OpenOCD path
 ./flash-uf2.sh          # explicit BOOTSEL / mounted RPI-RP2 path
 ./flash-picotool.sh     # explicit picotool path
 ```
@@ -130,11 +132,19 @@ Recommended workflow:
 pnpm firmware                 # interactive TUI for build / flash / launch
 
 pnpm firmware:build
-pnpm firmware:flash:picotool   # preferred when your USB tool path is reliable
+pnpm firmware:flash:swd        # preferred daily dev path
+# or
+pnpm firmware:flash:picotool   # USB-only path
 # or
 pnpm firmware:flash:uf2        # explicit BOOTSEL recovery / bring-up path
 pnpm dev:glyf
 ```
+
+Recommended SWD hardware path:
+
+- Use a Raspberry Pi Debug Probe or any 3.3 V CMSIS-DAP probe.
+- Connect probe `SC` -> Pico `SWCLK`, probe `SD` -> Pico `SWDIO`, and probe `GND` -> Pico `GND`.
+- Power the Pico separately over USB or `VSYS`; the 3-pin Pico SWD header does not provide power.
 
 ---
 

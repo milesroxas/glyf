@@ -1,19 +1,14 @@
 use serde::{Deserialize, Serialize};
 
 /// Mirrors display-schema `DisplayOrientation`.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DisplayOrientation {
+    #[default]
     Landscape,
     Portrait,
     LandscapeFlip,
     PortraitFlip,
-}
-
-impl Default for DisplayOrientation {
-    fn default() -> Self {
-        Self::Landscape
-    }
 }
 
 /// Mirrors display-schema `DisplayConfig`.

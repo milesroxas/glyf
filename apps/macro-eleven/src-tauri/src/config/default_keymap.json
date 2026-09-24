@@ -17,13 +17,29 @@
       "description": "Layer 0: Select which app to control",
       "keys": {
         "0,0": { "action": "switch_layer", "layer": 0, "label": "Home" },
-        "0,1": { "action": "launch_app", "app": "Google Chrome", "label": "Chrome" },
+        "0,1": {
+          "action": "launch_app",
+          "app": "Google Chrome",
+          "label": "Chrome"
+        },
         "0,2": { "action": "launch_app", "app": "Figma", "label": "Figma" },
-        "1,0": { "action": "launch_app", "app": "Visual Studio Code", "label": "VSCode" },
+        "1,0": {
+          "action": "launch_app",
+          "app": "Visual Studio Code",
+          "label": "VSCode"
+        },
         "1,1": { "action": "launch_app", "app": "Slack", "label": "Slack" },
         "1,2": { "action": "launch_app", "app": "Spotify", "label": "Spotify" },
-        "1,3": { "action": "launch_app", "app": "Terminal", "label": "Terminal" },
-        "2,0": { "action": "launch_app", "app": "Messages", "label": "Messages" },
+        "1,3": {
+          "action": "launch_app",
+          "app": "Terminal",
+          "label": "Terminal"
+        },
+        "2,0": {
+          "action": "launch_app",
+          "app": "Messages",
+          "label": "Messages"
+        },
         "2,1": { "action": "launch_app", "app": "Notes", "label": "Notes" },
         "2,2": { "action": "launch_app", "app": "Music", "label": "Music" },
         "2,3": { "action": "launch_app", "app": "Finder", "label": "Finder" }
@@ -35,16 +51,48 @@
       "triggerApp": "Google Chrome",
       "keys": {
         "0,0": { "action": "switch_layer", "layer": 0, "label": "Back" },
-        "0,1": { "action": "shortcut", "keys": ["cmd", "t"], "label": "New Tab" },
-        "0,2": { "action": "shortcut", "keys": ["cmd", "w"], "label": "Close Tab" },
-        "1,0": { "action": "shortcut", "keys": ["cmd", "shift", "t"], "label": "Reopen" },
-        "1,1": { "action": "shortcut", "keys": ["cmd", "l"], "label": "Address Bar" },
-        "1,2": { "action": "shortcut", "keys": ["cmd", "r"], "label": "Reload" },
-        "1,3": { "action": "shortcut", "keys": ["cmd", "shift", "i"], "label": "DevTools" },
+        "0,1": {
+          "action": "shortcut",
+          "keys": ["cmd", "t"],
+          "label": "New Tab"
+        },
+        "0,2": {
+          "action": "shortcut",
+          "keys": ["cmd", "w"],
+          "label": "Close Tab"
+        },
+        "1,0": {
+          "action": "shortcut",
+          "keys": ["cmd", "shift", "t"],
+          "label": "Reopen"
+        },
+        "1,1": {
+          "action": "shortcut",
+          "keys": ["cmd", "l"],
+          "label": "Address Bar"
+        },
+        "1,2": {
+          "action": "shortcut",
+          "keys": ["cmd", "r"],
+          "label": "Reload"
+        },
+        "1,3": {
+          "action": "shortcut",
+          "keys": ["cmd", "shift", "i"],
+          "label": "DevTools"
+        },
         "2,0": { "action": "shortcut", "keys": ["cmd", "["], "label": "Back" },
-        "2,1": { "action": "shortcut", "keys": ["cmd", "]"], "label": "Forward" },
+        "2,1": {
+          "action": "shortcut",
+          "keys": ["cmd", "]"],
+          "label": "Forward"
+        },
         "2,2": { "action": "shortcut", "keys": ["cmd", "f"], "label": "Find" },
-        "2,3": { "action": "shortcut", "keys": ["cmd", "shift", "delete"], "label": "Clear Data" }
+        "2,3": {
+          "action": "shortcut",
+          "keys": ["cmd", "shift", "delete"],
+          "label": "Clear Data"
+        }
       }
     },
     "2": {
@@ -57,12 +105,28 @@
         "0,2": { "action": "shortcut", "keys": ["r"], "label": "Rectangle" },
         "1,0": { "action": "shortcut", "keys": ["t"], "label": "Text" },
         "1,1": { "action": "shortcut", "keys": ["v"], "label": "Move" },
-        "1,2": { "action": "shortcut", "keys": ["cmd", "d"], "label": "Duplicate" },
+        "1,2": {
+          "action": "shortcut",
+          "keys": ["cmd", "d"],
+          "label": "Duplicate"
+        },
         "1,3": { "action": "shortcut", "keys": ["cmd", "g"], "label": "Group" },
-        "2,0": { "action": "shortcut", "keys": ["cmd", "/"], "label": "Search" },
-        "2,1": { "action": "shortcut", "keys": ["shift", "a"], "label": "Auto Layout" },
+        "2,0": {
+          "action": "shortcut",
+          "keys": ["cmd", "/"],
+          "label": "Search"
+        },
+        "2,1": {
+          "action": "shortcut",
+          "keys": ["shift", "a"],
+          "label": "Auto Layout"
+        },
         "2,2": { "action": "shortcut", "keys": ["cmd", "\\"], "label": "UI" },
-        "2,3": { "action": "shortcut", "keys": ["shift", "r"], "label": "Ruler" }
+        "2,3": {
+          "action": "shortcut",
+          "keys": ["shift", "r"],
+          "label": "Ruler"
+        }
       }
     },
     "3": {
@@ -71,16 +135,56 @@
       "triggerApp": "Visual Studio Code",
       "keys": {
         "0,0": { "action": "switch_layer", "layer": 0, "label": "Back" },
-        "0,1": { "action": "shortcut", "keys": ["cmd", "p"], "label": "Quick Open" },
-        "0,2": { "action": "shortcut", "keys": ["cmd", "shift", "p"], "label": "Command" },
-        "1,0": { "action": "shortcut", "keys": ["cmd", "b"], "label": "Toggle Sidebar" },
-        "1,1": { "action": "shortcut", "keys": ["cmd", "shift", "f"], "label": "Search" },
-        "1,2": { "action": "shortcut", "keys": ["cmd", "`"], "label": "Terminal" },
-        "1,3": { "action": "shortcut", "keys": ["cmd", "shift", "d"], "label": "Debug" },
-        "2,0": { "action": "shortcut", "keys": ["cmd", "shift", "e"], "label": "Explorer" },
-        "2,1": { "action": "shortcut", "keys": ["cmd", "k", "cmd", "s"], "label": "Shortcuts" },
-        "2,2": { "action": "shortcut", "keys": ["cmd", "/"], "label": "Comment" },
-        "2,3": { "action": "shortcut", "keys": ["cmd", "shift", "k"], "label": "Delete Line" }
+        "0,1": {
+          "action": "shortcut",
+          "keys": ["cmd", "p"],
+          "label": "Quick Open"
+        },
+        "0,2": {
+          "action": "shortcut",
+          "keys": ["cmd", "shift", "p"],
+          "label": "Command"
+        },
+        "1,0": {
+          "action": "shortcut",
+          "keys": ["cmd", "b"],
+          "label": "Toggle Sidebar"
+        },
+        "1,1": {
+          "action": "shortcut",
+          "keys": ["cmd", "shift", "f"],
+          "label": "Search"
+        },
+        "1,2": {
+          "action": "shortcut",
+          "keys": ["cmd", "`"],
+          "label": "Terminal"
+        },
+        "1,3": {
+          "action": "shortcut",
+          "keys": ["cmd", "shift", "d"],
+          "label": "Debug"
+        },
+        "2,0": {
+          "action": "shortcut",
+          "keys": ["cmd", "shift", "e"],
+          "label": "Explorer"
+        },
+        "2,1": {
+          "action": "shortcut",
+          "keys": ["cmd", "k", "cmd", "s"],
+          "label": "Shortcuts"
+        },
+        "2,2": {
+          "action": "shortcut",
+          "keys": ["cmd", "/"],
+          "label": "Comment"
+        },
+        "2,3": {
+          "action": "shortcut",
+          "keys": ["cmd", "shift", "k"],
+          "label": "Delete Line"
+        }
       }
     }
   },

@@ -1,11 +1,12 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { DeviceProvider, useDevice } from "./providers";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { DebugPage } from "../pages/DebugPage";
+import { DisplayPage } from "../pages/DisplayPage";
+import { SettingsPage } from "../pages/SettingsPage";
+import { TouchMonitorPage } from "../pages/TouchMonitorPage";
+import { cn } from "../shared/lib/utils";
 import { NavBar } from "../shared/ui/NavBar";
 import { StatusBadge } from "../shared/ui/StatusBadge";
-import { DisplayPage } from "../pages/DisplayPage";
-import { TouchMonitorPage } from "../pages/TouchMonitorPage";
-import { SettingsPage } from "../pages/SettingsPage";
-import { cn } from "../shared/lib/utils";
+import { DeviceProvider, useDevice } from "./providers";
 import "./App.css";
 
 function AppHeader() {
@@ -24,11 +25,12 @@ function AppHeader() {
         </div>
         <div className="h-4 w-px bg-border mx-1 self-center" />
         <button
+          type="button"
           className={cn(
             "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-8 px-3 shadow-sm self-center",
             status === "connected"
               ? "border border-input bg-background hover:bg-accent hover:text-accent-foreground text-muted-foreground"
-              : "bg-primary text-primary-foreground hover:bg-primary/90 shadow"
+              : "bg-primary text-primary-foreground hover:bg-primary/90 shadow",
           )}
           disabled={status === "connecting"}
           onClick={status === "connected" ? disconnect : connect}
@@ -54,6 +56,7 @@ function MainApp() {
                   <Route path="/" element={<DisplayPage />} />
                   <Route path="/touch" element={<TouchMonitorPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/debug" element={<DebugPage />} />
                 </Routes>
               </div>
             </main>

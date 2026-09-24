@@ -1,16 +1,17 @@
+import type { UnlistenFn } from "@tauri-apps/api/event";
 import {
   createContext,
+  type ReactNode,
   useContext,
   useEffect,
   useState,
-  type ReactNode,
 } from "react";
 import type { ConnectionStatus } from "../entities/device";
 import {
   connectDevice,
   disconnectDevice,
-  getDisplayConfig,
   getDeviceConnectionSnapshot,
+  getDisplayConfig,
   onDeviceStatus,
   setDisplayBrightness,
 } from "../shared/lib/tauri";
@@ -39,16 +40,29 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
   const [statusDetail, setStatusDetail] = useState<string | null>(null);
 
   useEffect(() => {
-    const unlisten = onDeviceStatus((event) => {
+    let cleanup: UnlistenFn | null = null;
+    let disposed = false;
+
+    void onDeviceStatus((event) => {
       setStatus(event.connected ? "connected" : "disconnected");
       const d = event.detail;
-      setStatusDetail(
-        typeof d === "string" && d.length > 0 ? d : null
-      );
-    });
+      setStatusDetail(typeof d === "string" && d.length > 0 ? d : null);
+    })
+      .then((fn) => {
+        if (disposed) {
+          fn();
+          return;
+        }
+        cleanup = fn;
+      })
+      .catch((error) => {
+        console.error("Failed to subscribe to device status events", error);
+        setStatusDetail("Live device events unavailable");
+      });
 
     return () => {
-      unlisten.then((fn) => fn());
+      disposed = true;
+      cleanup?.();
     };
   }, []);
 
@@ -86,7 +100,9 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <DeviceContext.Provider value={{ status, statusDetail, connect, disconnect }}>
+    <DeviceContext.Provider
+      value={{ status, statusDetail, connect, disconnect }}
+    >
       {children}
     </DeviceContext.Provider>
   );

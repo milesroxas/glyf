@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/fallow/schema.json",
+  "entry": [
+    "apps/glyf/vitest.config.ts",
+    "apps/glyf/vitest.browser.config.ts",
+    "apps/glyf/src/test/setup.ts"
+  ],
+  "ignorePatterns": [
+    "sdks/**",
+    "target/**",
+    "**/src-tauri/target/**",
+    "**/src-tauri/gen/**",
+    "domains/**/firmware/**",
+    "shared/libs/LiquidCrystal_I2C/**",
+    "shared/libs/hotswap-sockets/**",
+    ".claude/**",
+    ".pnpm-store/**"
+  ],
+  "boundaries": {
+    "zones": [
+      {
+        "name": "app",
+        "patterns": ["apps/*/src/app/**", "apps/*/src/main.tsx"]
+      },
+      { "name": "pages", "patterns": ["apps/*/src/pages/**"] },
+      { "name": "features", "patterns": ["apps/*/src/features/**"] },
+      { "name": "entities", "patterns": ["apps/*/src/entities/**"] },
+      { "name": "shared", "patterns": ["apps/*/src/shared/**"] }
+    ],
+    "rules": [
+      { "from": "app", "allow": ["pages", "features", "entities", "shared"] },
+      { "from": "pages", "allow": ["features", "entities", "shared"] },
+      { "from": "features", "allow": ["entities", "shared"] },
+      { "from": "entities", "allow": ["shared"] },
+      { "from": "shared", "allow": [], "allowTypeOnly": ["entities"] }
+    ]
+  },
+  "rules": {
+    "boundary-violation": "warn",
+    "policy-violation": "off"
+  }
+}

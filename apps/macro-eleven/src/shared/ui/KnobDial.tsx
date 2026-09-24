@@ -80,7 +80,10 @@ export function KnobDial({
       let delta = ptrAngle - startPtrAngle;
       if (delta > 180) delta -= 360;
       if (delta < -180) delta += 360;
-      const next = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, startDialAngle + delta));
+      const next = Math.max(
+        MIN_ANGLE,
+        Math.min(MAX_ANGLE, startDialAngle + delta),
+      );
       setAngle(next);
       onChange?.((next - MIN_ANGLE) / ANGLE_SPAN);
     };
@@ -110,14 +113,23 @@ export function KnobDial({
   };
 
   return (
-    <div className={cn("knob__control", fluid && "knob__control--fluid", className)}>
-      {Array.from({ length: ticks }, (_, t) => (
-        <KnobDot
-          key={t}
-          angle={dotSectorAngle * t + dotSectorAngleOffset}
-          filled={t < tick - dotTickOffset}
-        />
-      ))}
+    <div
+      className={cn(
+        "knob__control",
+        fluid && "knob__control--fluid",
+        className,
+      )}
+    >
+      {Array.from({ length: ticks }, (_, t) => {
+        const angle = dotSectorAngle * t + dotSectorAngleOffset;
+        return (
+          <KnobDot
+            key={`dot-${angle}`}
+            angle={angle}
+            filled={t < tick - dotTickOffset}
+          />
+        );
+      })}
       <div className="knob__dial-wrap">
         <button
           className="knob__dial"

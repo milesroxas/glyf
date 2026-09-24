@@ -1,8 +1,8 @@
 export type {
-  TouchPoint,
-  TouchEvent,
-  TouchCalibration,
   RawTouchPoint,
+  TouchCalibration,
+  TouchEvent,
+  TouchPoint,
 } from "@glyf/display-schema";
 
 export {

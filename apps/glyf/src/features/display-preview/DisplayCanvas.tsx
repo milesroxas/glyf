@@ -1,4 +1,4 @@
-import { DISPLAY_WIDTH, DISPLAY_HEIGHT } from "../../entities/display";
+import { DISPLAY_HEIGHT, DISPLAY_WIDTH } from "../../entities/display";
 
 interface DisplayCanvasProps {
   /** Scale factor (1 = actual 480×320, 0.5 = 240×160, etc.) */

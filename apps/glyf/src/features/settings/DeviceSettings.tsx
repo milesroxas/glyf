@@ -1,22 +1,22 @@
+import { RotateCcw, Save } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  getDisplayConfig,
-  saveDisplayConfig,
-  resetDisplayConfig,
-  setDisplayBrightness,
-} from "../../shared/lib/tauri";
+import { useDevice } from "../../app/providers";
 import type { DisplayConfig, DisplayOrientation } from "../../entities/display";
 import { DEFAULT_DISPLAY_CONFIG } from "../../entities/display";
-import { Card, CardContent, CardHeader, CardTitle } from "../../shared/ui/card";
+import {
+  getDisplayConfig,
+  resetDisplayConfig,
+  saveDisplayConfig,
+  setDisplayBrightness,
+} from "../../shared/lib/tauri";
 import { Button } from "../../shared/ui/button";
-import { RotateCcw, Save } from "lucide-react";
-import { useDevice } from "../../app/providers";
+import { Card, CardContent, CardHeader, CardTitle } from "../../shared/ui/card";
 
 const ORIENTATIONS: { value: DisplayOrientation; label: string }[] = [
-  { value: "landscape",      label: "Landscape (480×320)" },
-  { value: "portrait",       label: "Portrait (320×480)" },
+  { value: "landscape", label: "Landscape (480×320)" },
+  { value: "portrait", label: "Portrait (320×480)" },
   { value: "landscape_flip", label: "Landscape Flipped" },
-  { value: "portrait_flip",  label: "Portrait Flipped" },
+  { value: "portrait_flip", label: "Portrait Flipped" },
 ];
 
 export function DeviceSettings() {
@@ -66,11 +66,17 @@ export function DeviceSettings() {
         <CardContent>
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">Orientation</label>
+              <label
+                htmlFor="display-orientation"
+                className="text-sm font-medium"
+              >
+                Orientation
+              </label>
               <p className="text-xs text-muted-foreground">
                 Saved locally only. Firmware support is not wired through yet.
               </p>
               <select
+                id="display-orientation"
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                 value={config.orientation}
                 onChange={(e) =>
@@ -90,12 +96,15 @@ export function DeviceSettings() {
 
             <div className="flex flex-col gap-1.5">
               <div className="flex justify-between text-sm">
-                <label className="font-medium">Default Brightness</label>
+                <label htmlFor="display-brightness" className="font-medium">
+                  Default Brightness
+                </label>
                 <span className="tabular-nums text-muted-foreground">
                   {config.brightness}
                 </span>
               </div>
               <input
+                id="display-brightness"
                 type="range"
                 min={0}
                 max={255}
@@ -106,11 +115,18 @@ export function DeviceSettings() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">Sleep After</label>
+              <label
+                htmlFor="display-sleep-after"
+                className="text-sm font-medium"
+              >
+                Sleep After
+              </label>
               <p className="text-xs text-muted-foreground">
-                Saved locally only. The device does not currently apply idle sleep.
+                Saved locally only. The device does not currently apply idle
+                sleep.
               </p>
               <select
+                id="display-sleep-after"
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                 value={config.sleepAfterMs}
                 onChange={(e) =>

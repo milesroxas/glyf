@@ -1,5 +1,5 @@
-import { cn } from "../lib/utils";
 import type { ConnectionStatus } from "../../entities/device";
+import { cn } from "../lib/utils";
 
 const STATUS_CONFIG: Record<
   ConnectionStatus,
@@ -28,7 +28,7 @@ export function StatusBadge({ status }: { status: ConnectionStatus }) {
     <span
       className={cn(
         "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium",
-        config.badge
+        config.badge,
       )}
     >
       <span className={cn("size-2 rounded-full shrink-0", config.dot)} />

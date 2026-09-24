@@ -27,6 +27,7 @@ dist-ssr/
 *.tsbuildinfo
 .eslintcache
 coverage/
+.fallow/
 .nyc_output/
 
 # ── Environment & secrets (never commit) ──────────────────────────────────────

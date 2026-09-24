@@ -1,116 +1,112 @@
 .knob__control {
-  position: relative;
-  width: 10em;
-  height: 10em;
+    position: relative;
+    width: 10em;
+    height: 10em;
 }
 
 /* Fills a container-type:size cell while staying square */
 .knob__control--fluid {
-  width: min(100cqw, 100cqh);
-  height: min(100cqw, 100cqh);
+    width: min(100cqw, 100cqh);
+    height: min(100cqw, 100cqh);
 }
 
 /* ── Gradient-border bevel (light / dark) ────────────────── */
 .knob__dial-wrap {
-  --_knob-top: oklch(0.88 0 0);
-  --_knob-btm: oklch(0.72 0 0);
+    --_knob-top: oklch(0.88 0 0);
+    --_knob-btm: oklch(0.72 0 0);
 }
 
 :is(.dark *) .knob__dial-wrap {
-  --_knob-top: oklch(0.38 0 0);
-  --_knob-btm: oklch(0.14 0 0);
+    --_knob-top: oklch(0.38 0 0);
+    --_knob-btm: oklch(0.14 0 0);
 }
 
 /* ── Dial wrap ───────────────────────────────────────────── */
 .knob__dial-wrap {
-  position: absolute;
-  border-radius: 100%;
-  /* Layer 1: solid inner fill clipped to padding-box
+    position: absolute;
+    border-radius: 100%;
+    /* Layer 1: solid inner fill clipped to padding-box
      Layer 2: bevel gradient fills the transparent border */
-  background-clip: padding-box, border-box;
-  background-image:
-    radial-gradient(
-      100% 100% at center,
-      var(--card) 43%,
-      transparent 45%
-    ),
-    linear-gradient(var(--_knob-top), var(--_knob-btm));
-  background-origin: border-box;
-  border: 0.25em solid transparent;
-  box-shadow: 0 0.5em 1em oklch(0 0 0 / 0.5);
-  inset: 12.5%;
-  width: 75%;
-  height: 75%;
+    background-clip: padding-box, border-box;
+    background-image:
+        radial-gradient(100% 100% at center, var(--card) 43%, transparent 45%),
+        linear-gradient(to bottom, var(--_knob-top), var(--_knob-btm));
+    background-origin: border-box;
+    border: 0.25em solid transparent;
+    box-shadow: 0 0.5em 1em oklch(0 0 0 / 0.5);
+    inset: 12.5%;
+    width: 75%;
+    height: 75%;
 }
 
 /* ── Dial button ─────────────────────────────────────────── */
 .knob__dial {
-  position: absolute;
-  border-radius: 100%;
-  background-color: transparent;
-  border: none;
-  outline: none;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  appearance: none;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  touch-action: none;
-  cursor: default;
+    position: absolute;
+    border-radius: 100%;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    touch-action: none;
+    cursor: default;
 }
 
 .knob__dial[data-interactive] {
-  cursor: grab;
+    cursor: grab;
 }
 
 .knob__dial[data-interactive]:active {
-  cursor: grabbing;
+    cursor: grabbing;
 }
 
 /* Indicator dot on dial face */
 .knob__dial::before {
-  content: "";
-  display: block;
-  position: absolute;
-  background-color: var(--primary);
-  border-radius: 100%;
-  top: 12%;
-  left: 46.5%;
-  width: 7%;
-  height: 7%;
+    content: "";
+    display: block;
+    position: absolute;
+    background-color: var(--primary);
+    border-radius: 100%;
+    top: 12%;
+    left: 46.5%;
+    width: 7%;
+    height: 7%;
 }
 
 /* Visually-hidden label */
 .knob__dial-label {
-  overflow: hidden;
-  position: absolute;
-  width: 1px;
-  height: 1px;
+    overflow: hidden;
+    position: absolute;
+    width: 1px;
+    height: 1px;
 }
 
 /* ── Tick dots ───────────────────────────────────────────── */
 .knob__dot {
-  position: absolute;
-  top: 0;
-  left: 49%;
-  width: 2%;
-  height: 50%;
-  transform-origin: 50% 100%;
+    position: absolute;
+    top: 0;
+    left: 49%;
+    width: 2%;
+    height: 50%;
+    transform-origin: 50% 100%;
 }
 
 .knob__dot::before {
-  aspect-ratio: 1;
-  background-color: var(--border);
-  border-radius: 50%;
-  content: "";
-  display: block;
-  width: 100%;
-  height: auto;
-  transition: background-color 0.15s;
+    aspect-ratio: 1;
+    background-color: var(--border);
+    border-radius: 50%;
+    content: "";
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: background-color 0.15s;
 }
 
 .knob__dot--filled::before {
-  background-color: var(--primary);
+    background-color: var(--primary);
 }

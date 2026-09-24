@@ -33,7 +33,7 @@ describe("display schema domain constants", () => {
     expect(DEFAULT_DISPLAY_CONFIG.brightness).toBeGreaterThanOrEqual(0);
     expect(DEFAULT_DISPLAY_CONFIG.brightness).toBeLessThanOrEqual(255);
     expect(DEFAULT_TOUCH_CALIBRATION.xMin).toBeLessThan(
-      DEFAULT_TOUCH_CALIBRATION.xMax
+      DEFAULT_TOUCH_CALIBRATION.xMax,
     );
     expect(DEFAULT_GLYF_CONFIG.display).toEqual(DEFAULT_DISPLAY_CONFIG);
     expect(DEFAULT_GLYF_CONFIG.touch).toEqual(DEFAULT_TOUCH_CALIBRATION);

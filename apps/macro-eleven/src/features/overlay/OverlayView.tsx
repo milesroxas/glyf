@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { MacropadGrid } from "../../shared/ui/MacropadGrid";
-import { KnobDial } from "../../shared/ui/KnobDial";
-import { Badge } from "../../shared/ui/badge";
-import { Separator } from "../../shared/ui/separator";
+import { getKeyForDisplay } from "../../entities/layer";
 import { keycodeToLabel } from "../../shared/lib/keycode-labels";
+import { onDeviceStatus } from "../../shared/lib/tauri";
 import { useKeyEvents } from "../../shared/lib/useKeyEvents";
 import { useLayerData } from "../../shared/lib/useLayerData";
-import { getKeyForDisplay } from "../../entities/layer";
 import { usePotValue } from "../../shared/lib/usePotValue";
-import { onDeviceStatus } from "../../shared/lib/tauri";
 import { cn } from "../../shared/lib/utils";
+import { Badge } from "../../shared/ui/badge";
+import { KnobDial } from "../../shared/ui/KnobDial";
+import { MacropadGrid } from "../../shared/ui/MacropadGrid";
+import { Separator } from "../../shared/ui/separator";
 import "./OverlayKeyCell.css";
 
 function OverlayKeyCell({
@@ -25,7 +25,7 @@ function OverlayKeyCell({
       className={cn(
         "overlay-key-cell flex h-full w-full items-center justify-center overflow-hidden rounded-lg px-1 py-0.5 transition-all duration-100",
         "text-foreground",
-        pressed && "text-primary"
+        pressed && "text-primary",
       )}
       title={keycode}
       data-pressed={pressed}
@@ -93,7 +93,7 @@ export function OverlayView() {
             "h-2 w-2 shrink-0 rounded-full",
             connected
               ? "bg-chart-2 ring-2 ring-chart-2/50"
-              : "bg-muted-foreground"
+              : "bg-muted-foreground",
           )}
           title={connected ? "Connected" : "Disconnected"}
         />

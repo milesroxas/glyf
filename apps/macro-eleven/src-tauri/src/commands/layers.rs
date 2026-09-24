@@ -46,7 +46,7 @@ fn convert_keymap_to_layers(keymap: &Keymap) -> Vec<LayerData> {
                 let label = layer
                     .keys
                     .get(&pos)
-                    .map(|action| action_label(action))
+                    .map(action_label)
                     .unwrap_or_else(|| "—".to_string());
                 keys.push(label);
             }

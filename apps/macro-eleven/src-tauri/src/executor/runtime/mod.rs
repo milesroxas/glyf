@@ -7,6 +7,7 @@ mod macos;
 #[cfg(target_os = "windows")]
 mod windows;
 
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 mod noop;
 
 /// Platform-specific runtime that knows how to launch apps and synthesize input.
@@ -23,13 +24,13 @@ pub trait PlatformRuntime: Send + Sync {
 pub fn create_runtime() -> Result<Box<dyn PlatformRuntime>, String> {
     #[cfg(target_os = "macos")]
     {
-        return macos::MacRuntime::new().map(|runtime| Box::new(runtime) as Box<dyn PlatformRuntime>);
+        macos::MacRuntime::new().map(|runtime| Box::new(runtime) as Box<dyn PlatformRuntime>)
     }
 
     #[cfg(target_os = "windows")]
     {
-        return windows::WindowsRuntime::new()
-            .map(|runtime| Box::new(runtime) as Box<dyn PlatformRuntime>);
+        windows::WindowsRuntime::new()
+            .map(|runtime| Box::new(runtime) as Box<dyn PlatformRuntime>)
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]

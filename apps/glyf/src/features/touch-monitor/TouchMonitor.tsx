@@ -1,9 +1,9 @@
-import { useTouchEvents } from "../../shared/lib/useTouchEvents";
-import { TouchPointDot } from "./TouchPoint";
-import { DISPLAY_WIDTH, DISPLAY_HEIGHT } from "../../entities/display";
-import { Card, CardContent, CardHeader, CardTitle } from "../../shared/ui/card";
-import { Button } from "../../shared/ui/button";
 import { Trash2 } from "lucide-react";
+import { DISPLAY_HEIGHT, DISPLAY_WIDTH } from "../../entities/display";
+import { useTouchEvents } from "../../shared/lib/useTouchEvents";
+import { Button } from "../../shared/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../shared/ui/card";
+import { TouchPointDot } from "./TouchPoint";
 
 const SCALE = 0.5;
 const CANVAS_W = DISPLAY_WIDTH * SCALE;
@@ -29,6 +29,8 @@ export function TouchMonitor() {
             <svg
               width={CANVAS_W}
               height={CANVAS_H}
+              role="img"
+              aria-label="Touch history"
               style={{
                 background: "#000",
                 border: "1px solid hsl(var(--border))",
@@ -36,8 +38,13 @@ export function TouchMonitor() {
                 display: "block",
               }}
             >
-              {history.map((pt, i) => (
-                <TouchPointDot key={i} event={pt} scale={SCALE} />
+              <title>Touch history</title>
+              {history.map((pt) => (
+                <TouchPointDot
+                  key={`${pt.timestamp}-${pt.x}-${pt.y}`}
+                  event={pt}
+                  scale={SCALE}
+                />
               ))}
               {lastTouch?.pressed && (
                 <circle

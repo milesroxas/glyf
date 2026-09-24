@@ -1,14 +1,14 @@
 export type {
+  ColorDepth,
   DisplayConfig,
+  DisplayOrientation,
   DisplayState,
   DisplayStateEvent,
-  DisplayOrientation,
-  ColorDepth,
   GlyfConfig,
 } from "@glyf/display-schema";
 
 export {
-  DISPLAY_WIDTH,
-  DISPLAY_HEIGHT,
   DEFAULT_DISPLAY_CONFIG,
+  DISPLAY_HEIGHT,
+  DISPLAY_WIDTH,
 } from "@glyf/display-schema";

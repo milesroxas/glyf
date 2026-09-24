@@ -39,8 +39,8 @@ pub fn parse_state_response(buf: &[u8; RAW_HID_REPORT_SIZE]) -> Option<DeviceSta
 
     let key_bits = (buf[1] as u16) | ((buf[2] as u16) << 8);
     let mut keys = [false; 11];
-    for i in 0..11 {
-        keys[i] = (key_bits >> i) & 1 == 1;
+    for (i, key) in keys.iter_mut().enumerate() {
+        *key = (key_bits >> i) & 1 == 1;
     }
 
     let pot_value = (buf[3] as u16) | ((buf[4] as u16) << 8);

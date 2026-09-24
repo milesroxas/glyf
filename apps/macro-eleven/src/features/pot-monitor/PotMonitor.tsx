@@ -1,5 +1,5 @@
-import { PotGauge } from "./PotGauge";
 import { usePotValue } from "../../shared/lib/usePotValue";
+import { PotGauge } from "./PotGauge";
 
 const LAYER_POT_FUNCTIONS: Record<number, string> = {
   0: "Volume Control",
@@ -22,8 +22,12 @@ export function PotMonitor() {
       <div className="grid gap-6 md:grid-cols-2">
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
           <div className="flex flex-col space-y-1.5 p-6">
-            <h3 className="font-semibold leading-none tracking-tight">Real-time Value</h3>
-            <p className="text-sm text-muted-foreground">Current analog reading (0-1023)</p>
+            <h3 className="font-semibold leading-none tracking-tight">
+              Real-time Value
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Current analog reading (0-1023)
+            </p>
           </div>
           <div className="p-6 pt-0 flex justify-center items-center min-h-[200px]">
             <PotGauge value={value} />
@@ -32,8 +36,12 @@ export function PotMonitor() {
 
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
           <div className="flex flex-col space-y-1.5 p-6">
-            <h3 className="font-semibold leading-none tracking-tight">Function Assignment</h3>
-            <p className="text-sm text-muted-foreground">Behavior for current layer</p>
+            <h3 className="font-semibold leading-none tracking-tight">
+              Function Assignment
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Behavior for current layer
+            </p>
           </div>
           <div className="p-6 pt-0">
             <div className="rounded-lg border bg-muted/40 p-6 flex flex-col items-center justify-center gap-2 text-center h-[200px]">

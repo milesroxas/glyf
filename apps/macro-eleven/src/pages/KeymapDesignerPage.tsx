@@ -9,12 +9,16 @@ export function KeymapDesignerPage() {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Keymap Designer</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Keymap Designer
+            </h2>
             <p className="text-sm text-muted-foreground">
-              Select a launch pad slot to configure apps, shortcuts, or macro actions.
+              Select a launch pad slot to configure apps, shortcuts, or macro
+              actions.
             </p>
           </div>
           <button
+            type="button"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
             onClick={refresh}
             disabled={loading}
@@ -59,14 +63,16 @@ export function KeymapDesignerPage() {
               </div>
               <div className="flex gap-2">
                 <button
+                  type="button"
                   className={cn(
                     "inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm transition-colors",
-                    "hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    "hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
                   )}
                 >
                   Edit Actions
                 </button>
                 <button
+                  type="button"
                   className="inline-flex items-center justify-center rounded-md border border-muted bg-muted/40 px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm"
                   disabled
                 >

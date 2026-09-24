@@ -163,7 +163,7 @@ impl MatrixPosition {
     }
 
     /// Format as "row,col" string for keymap lookup
-    pub fn to_key(&self) -> String {
+    pub fn to_key(self) -> String {
         format!("{},{}", self.row, self.col)
     }
 

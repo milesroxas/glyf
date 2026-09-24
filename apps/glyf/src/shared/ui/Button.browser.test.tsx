@@ -7,9 +7,14 @@ describe("Button (browser)", () => {
   it("invokes onClick in a real browser context", async () => {
     let clicks = 0;
     render(
-      <Button type="button" onClick={() => { clicks += 1; }}>
+      <Button
+        type="button"
+        onClick={() => {
+          clicks += 1;
+        }}
+      >
         Tap
-      </Button>
+      </Button>,
     );
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Tap" }));

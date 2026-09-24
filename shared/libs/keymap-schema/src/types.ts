@@ -27,13 +27,13 @@ export type MatrixPositionKey = `${number},${number}`;
 // ============================================================================
 
 export type ActionType =
-  | 'cycle_layer'
-  | 'switch_layer'
-  | 'launch_app'
-  | 'shortcut'
-  | 'macro'
-  | 'plugin'
-  | 'noop';
+  | "cycle_layer"
+  | "switch_layer"
+  | "launch_app"
+  | "shortcut"
+  | "macro"
+  | "plugin"
+  | "noop";
 
 /**
  * Base action interface
@@ -48,14 +48,14 @@ export interface BaseAction {
  * Cycle through layers sequentially
  */
 export interface CycleLayerAction extends BaseAction {
-  action: 'cycle_layer';
+  action: "cycle_layer";
 }
 
 /**
  * Switch to a specific layer
  */
 export interface SwitchLayerAction extends BaseAction {
-  action: 'switch_layer';
+  action: "switch_layer";
   layer: number;
 }
 
@@ -63,7 +63,7 @@ export interface SwitchLayerAction extends BaseAction {
  * Launch an application by name or path
  */
 export interface LaunchAppAction extends BaseAction {
-  action: 'launch_app';
+  action: "launch_app";
   app: string; // Application name or bundle identifier
   focusIfRunning?: boolean; // Default true
 }
@@ -72,7 +72,7 @@ export interface LaunchAppAction extends BaseAction {
  * Send keyboard shortcut
  */
 export interface ShortcutAction extends BaseAction {
-  action: 'shortcut';
+  action: "shortcut";
   keys: string[]; // e.g., ["cmd", "shift", "p"]
   modifiers?: KeyModifier[];
 }
@@ -81,7 +81,7 @@ export interface ShortcutAction extends BaseAction {
  * Execute a sequence of actions with timing
  */
 export interface MacroAction extends BaseAction {
-  action: 'macro';
+  action: "macro";
   sequence: MacroStep[];
 }
 
@@ -89,7 +89,7 @@ export interface MacroAction extends BaseAction {
  * Execute a plugin action
  */
 export interface PluginAction extends BaseAction {
-  action: 'plugin';
+  action: "plugin";
   pluginId: string;
   actionId: string;
   params?: Record<string, unknown>;
@@ -99,7 +99,7 @@ export interface PluginAction extends BaseAction {
  * No operation (unassigned key)
  */
 export interface NoopAction extends BaseAction {
-  action: 'noop';
+  action: "noop";
 }
 
 export type Action =
@@ -116,14 +116,14 @@ export type Action =
 // ============================================================================
 
 export type MacroStep =
-  | { type: 'keydown'; key: string }
-  | { type: 'keyup'; key: string }
-  | { type: 'keypress'; key: string }
-  | { type: 'shortcut'; keys: string[] }
-  | { type: 'text'; text: string }
-  | { type: 'wait'; ms: number };
+  | { type: "keydown"; key: string }
+  | { type: "keyup"; key: string }
+  | { type: "keypress"; key: string }
+  | { type: "shortcut"; keys: string[] }
+  | { type: "text"; text: string }
+  | { type: "wait"; ms: number };
 
-export type KeyModifier = 'cmd' | 'ctrl' | 'alt' | 'shift' | 'fn';
+export type KeyModifier = "cmd" | "ctrl" | "alt" | "shift" | "fn";
 
 // ============================================================================
 // Layer Types

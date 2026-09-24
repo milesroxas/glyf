@@ -101,21 +101,46 @@ Report size: **32 bytes**, usage page `0xFF60`.
 
 ## Firmware Build
 
-Prerequisites: [Pico SDK](https://github.com/raspberrypi/pico-sdk) v1.5+ and CMake.
+Prerequisites: [Pico SDK](https://github.com/raspberrypi/pico-sdk) v1.5+, CMake, and OpenOCD for the preferred SWD path.
 
 ```bash
 export PICO_SDK_PATH=/path/to/pico-sdk
 
 cd domains/glyf/display
 bash build.sh
+bash flash-swd.sh        # preferred SWD / OpenOCD path
+# or
 bash flash-picotool.sh   # explicit USB tool path
 # or
 bash flash-uf2.sh        # explicit BOOTSEL / mounted RPI-RP2 path
 ```
 
 Best-practice note: keep artifact generation (`build.sh`) separate from flash
-transport (`flash-picotool.sh` or `flash-uf2.sh`). Use the BOOTSEL mass-storage
-path for recovery / early bring-up, not as the default daily workflow.
+transport (`flash-swd.sh`, `flash-picotool.sh`, or `flash-uf2.sh`). Use SWD as
+the default daily workflow; use the BOOTSEL mass-storage path for recovery /
+early bring-up.
+
+## SWD Wiring
+
+Recommended probe: Raspberry Pi Debug Probe or another 3.3 V CMSIS-DAP probe.
+
+For Raspberry Pi Pico boards, connect:
+
+| Probe signal | Pico target |
+|--------------|-------------|
+| `SC` / `SWCLK` | `SWCLK` |
+| `SD` / `SWDIO` | `SWDIO` |
+| `GND` | `GND` |
+
+Power the Pico separately over USB or `VSYS`; the Pico SWD header does not
+provide target power.
+
+By default, `flash-swd.sh` uses OpenOCD's `interface/cmsis-dap.cfg` and
+`target/rp2040.cfg`. Override them only when using a different probe:
+
+```bash
+GLYF_OPENOCD_INTERFACE_CFG=interface/picoprobe.cfg bash flash-swd.sh
+```
 
 ---
 

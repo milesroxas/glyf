@@ -8,7 +8,12 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "keywords": ["display", "tft", "touch", "schema"],
+  "keywords": [
+    "display",
+    "tft",
+    "touch",
+    "schema"
+  ],
   "author": "Miles Roxas",
   "license": "MIT"
 }

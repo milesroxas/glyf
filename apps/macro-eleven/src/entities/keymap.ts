@@ -5,35 +5,29 @@
  */
 
 import type {
+  Action,
+  ActiveContext,
   Keymap,
   Layer,
-  Action,
   MatrixPositionKey,
-  ActiveContext,
-} from '@glyf/keymap-schema';
+} from "@glyf/keymap-schema";
 
 import {
-  validateKeymap,
-  parseMatrixPosition,
   formatMatrixPosition,
   MACRO_ELEVEN_DEFAULT_KEYMAP,
-} from '@glyf/keymap-schema';
+  parseMatrixPosition,
+  validateKeymap,
+} from "@glyf/keymap-schema";
 
 // Re-export types
-export type {
-  Keymap,
-  Layer,
-  Action,
-  MatrixPositionKey,
-  ActiveContext,
-};
+export type { Action, ActiveContext, Keymap, Layer, MatrixPositionKey };
 
 // Re-export utilities
 export {
-  validateKeymap,
-  parseMatrixPosition,
   formatMatrixPosition,
   MACRO_ELEVEN_DEFAULT_KEYMAP,
+  parseMatrixPosition,
+  validateKeymap,
 };
 
 export interface LaunchBinding {
@@ -52,7 +46,7 @@ export function getActionForKey(
   keymap: Keymap,
   layer: number,
   row: number,
-  col: number
+  col: number,
 ): Action | null {
   const layerData = keymap.layers[layer];
   if (!layerData) return null;
@@ -66,7 +60,7 @@ export function getActionForKey(
  */
 export function determineActiveLayer(
   keymap: Keymap,
-  context: ActiveContext
+  context: ActiveContext,
 ): number {
   // If auto-switching is disabled, use current layer
   if (!keymap.settings?.autoSwitchLayers) {

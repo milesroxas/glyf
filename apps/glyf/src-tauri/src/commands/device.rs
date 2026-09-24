@@ -2,7 +2,7 @@ use std::sync::Mutex;
 use log::debug;
 use tauri::{AppHandle, State};
 
-use crate::hid::connection::{detect_device, HidConnection};
+use crate::hid::connection::{detect_device, HidConnection, HidDebugSnapshot};
 
 #[tauri::command]
 pub fn detect_device_cmd() -> bool {
@@ -31,6 +31,13 @@ pub fn disconnect_device(connection: State<'_, Mutex<HidConnection>>) {
 #[tauri::command]
 pub fn get_device_connection_snapshot(connection: State<'_, Mutex<HidConnection>>) -> bool {
     connection.lock().unwrap().is_host_connected()
+}
+
+#[tauri::command]
+pub fn get_device_debug_snapshot(
+    connection: State<'_, Mutex<HidConnection>>,
+) -> HidDebugSnapshot {
+    connection.lock().unwrap().debug_snapshot()
 }
 
 #[tauri::command]

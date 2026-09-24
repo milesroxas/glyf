@@ -1,16 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   Keyboard,
   Layers,
+  type LucideIcon,
   PlayCircle,
   Power,
-  type LucideIcon,
 } from "lucide-react";
-import { MacropadGrid } from "../../shared/ui/MacropadGrid";
-import { KeyCell } from "./KeyCell";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getActionLabel } from "../../entities/action";
-import { useKeyEvents } from "../../shared/lib/useKeyEvents";
 import {
   onActionError,
   onActionExecuted,
@@ -19,7 +16,10 @@ import {
   onTestModeChange,
   setTestMode,
 } from "../../shared/lib/tauri";
+import { useKeyEvents } from "../../shared/lib/useKeyEvents";
 import { cn } from "../../shared/lib/utils";
+import { MacropadGrid } from "../../shared/ui/MacropadGrid";
+import { KeyCell } from "./KeyCell";
 
 type DebugEventType = "key" | "layer" | "action" | "error" | "mode";
 
@@ -152,7 +152,9 @@ export function KeyTester() {
         });
       }),
       onKeyEvent((event) => {
-        const signature = event.keys.map((pressed) => (pressed ? "1" : "0")).join("");
+        const signature = event.keys
+          .map((pressed) => (pressed ? "1" : "0"))
+          .join("");
         if (signature === lastKeySignatureRef.current) {
           return;
         }
@@ -201,7 +203,9 @@ export function KeyTester() {
     .map((pressed, index) => (pressed ? index : null))
     .filter((value): value is number => value !== null)
     .map((index) => `${indexToMatrixLabel(index)} (#${index})`);
-  const activeKeySummary = pressedLabels.length ? pressedLabels.join(", ") : "None";
+  const activeKeySummary = pressedLabels.length
+    ? pressedLabels.join(", ")
+    : "None";
   const hostLayerDisplay = hostLayer ?? "—";
   const debugStats = [
     { label: "Firmware Layer", value: firmwareLayer },
@@ -224,31 +228,32 @@ export function KeyTester() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 rounded-md border bg-card px-3 py-1 text-sm shadow-sm">
-                <span className="text-muted-foreground">Current Layer:</span>
-                <span className="font-mono font-medium">{layer}</span>
-            </div>
-            <label className="flex items-center gap-2 cursor-pointer">
+          <div className="flex items-center gap-2 rounded-md border bg-card px-3 py-1 text-sm shadow-sm">
+            <span className="text-muted-foreground">Current Layer:</span>
+            <span className="font-mono font-medium">{layer}</span>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer">
             <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                Host keymap mode
+              Host keymap mode
             </span>
             <button
-                role="switch"
-                aria-checked={hostMode}
-                onClick={handleToggleHostMode}
-                className={cn(
+              type="button"
+              role="switch"
+              aria-checked={hostMode}
+              onClick={handleToggleHostMode}
+              className={cn(
                 "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
-                hostMode ? "bg-primary" : "bg-input"
-                )}
+                hostMode ? "bg-primary" : "bg-input",
+              )}
             >
-                <span
+              <span
                 className={cn(
-                    "pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform",
-                    hostMode ? "translate-x-4" : "translate-x-0"
+                  "pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform",
+                  hostMode ? "translate-x-4" : "translate-x-0",
                 )}
-                />
+              />
             </button>
-            </label>
+          </label>
         </div>
       </div>
 
@@ -256,7 +261,8 @@ export function KeyTester() {
         <div className="space-y-3 p-4 border-b bg-muted/20">
           {!hostMode && (
             <div className="rounded-md border border-amber-500/40 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-              Host keymap mode is off. Turn it on to run app-specific launchers and shortcuts from
+              Host keymap mode is off. Turn it on to run app-specific launchers
+              and shortcuts from
               <code className="mx-1 font-mono text-xs">user-custom.json</code>.
             </div>
           )}
@@ -264,6 +270,7 @@ export function KeyTester() {
             <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive flex items-start justify-between gap-3">
               <span>{actionError}</span>
               <button
+                type="button"
                 className="text-xs font-medium underline underline-offset-4"
                 onClick={() => setActionError(null)}
               >
@@ -274,18 +281,18 @@ export function KeyTester() {
         </div>
 
         <div className="p-10 flex justify-center bg-muted/20">
-            <MacropadGrid
-                renderKey={(index) => (
-                <KeyCell index={index} pressed={keys[index] ?? false} />
-                )}
-            />
+          <MacropadGrid
+            renderKey={(index) => (
+              <KeyCell index={index} pressed={keys[index] ?? false} />
+            )}
+          />
         </div>
         <div className="flex items-center p-4 border-t bg-muted/40">
-            <p className="text-xs text-muted-foreground">
-                {hostMode 
-                    ? "Host keymap is active. App launches and shortcuts come from your JSON config." 
-                    : "Host keymap is disabled. Firmware macros run directly from the device."}
-            </p>
+          <p className="text-xs text-muted-foreground">
+            {hostMode
+              ? "Host keymap is active. App launches and shortcuts come from your JSON config."
+              : "Host keymap is disabled. Firmware macros run directly from the device."}
+          </p>
         </div>
       </div>
 
@@ -298,6 +305,7 @@ export function KeyTester() {
             </p>
           </div>
           <button
+            type="button"
             className="inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
             onClick={handleClearEvents}
           >
@@ -306,7 +314,10 @@ export function KeyTester() {
         </div>
         <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
           {debugStats.map((stat) => (
-            <div key={stat.label} className="rounded-lg border bg-background/60 p-3 shadow-sm">
+            <div
+              key={stat.label}
+              className="rounded-lg border bg-background/60 p-3 shadow-sm"
+            >
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {stat.label}
               </p>
@@ -332,7 +343,7 @@ export function KeyTester() {
                     <span
                       className={cn(
                         "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium",
-                        meta.badgeClass
+                        meta.badgeClass,
                       )}
                     >
                       <Icon className="h-3.5 w-3.5" />
@@ -340,12 +351,16 @@ export function KeyTester() {
                     </span>
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-medium leading-tight">{event.title}</p>
+                        <p className="text-sm font-medium leading-tight">
+                          {event.title}
+                        </p>
                         <span className="text-xs text-muted-foreground">
                           {formatTimestamp(event.timestamp)}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground">{event.detail}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {event.detail}
+                      </p>
                     </div>
                   </div>
                 );

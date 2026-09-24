@@ -30,6 +30,7 @@ pub fn run() {
             commands::device::connect_device,
             commands::device::disconnect_device,
             commands::device::get_device_connection_snapshot,
+            commands::device::get_device_debug_snapshot,
             commands::device::set_display_brightness,
             commands::device::set_display_power,
             commands::device::fill_display,

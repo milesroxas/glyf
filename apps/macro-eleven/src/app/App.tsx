@@ -1,14 +1,14 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { DeviceProvider, useDevice } from "./providers";
-import { NavBar } from "../shared/ui/NavBar";
-import { StatusBadge } from "../shared/ui/StatusBadge";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { OverlayView } from "../features/overlay/OverlayView";
+import { KeymapDesignerPage } from "../pages/KeymapDesignerPage";
 import { KeyTesterPage } from "../pages/KeyTesterPage";
 import { LayerViewerPage } from "../pages/LayerViewerPage";
 import { PotMonitorPage } from "../pages/PotMonitorPage";
-import { KeymapDesignerPage } from "../pages/KeymapDesignerPage";
-import { OverlayView } from "../features/overlay/OverlayView";
 import { openOverlayWindow } from "../shared/lib/tauri";
 import { cn } from "../shared/lib/utils";
+import { NavBar } from "../shared/ui/NavBar";
+import { StatusBadge } from "../shared/ui/StatusBadge";
+import { DeviceProvider, useDevice } from "./providers";
 import "./App.css";
 
 function AppHeader() {
@@ -20,6 +20,7 @@ function AppHeader() {
         <StatusBadge status={status} />
         <div className="h-4 w-px bg-border mx-1" />
         <button
+          type="button"
           className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 px-3"
           onClick={() => openOverlayWindow()}
           title="Open compact overlay"
@@ -27,11 +28,12 @@ function AppHeader() {
           Overlay
         </button>
         <button
+          type="button"
           className={cn(
             "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-8 px-3 shadow-sm",
             status === "connected"
               ? "border border-input bg-background hover:bg-accent hover:text-accent-foreground text-muted-foreground"
-              : "bg-primary text-primary-foreground hover:bg-primary/90 shadow"
+              : "bg-primary text-primary-foreground hover:bg-primary/90 shadow",
           )}
           onClick={status === "connected" ? disconnect : connect}
         >

@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
+import type { Keymap } from "./types";
 import {
-  KeymapValidationError,
   formatMatrixPosition,
   isValidAction,
   isValidMatrixPosition,
+  KeymapValidationError,
   parseMatrixPosition,
   validateKeymap,
 } from "./validation";
-import type { Keymap } from "./types";
 
 const minimalValidKeymap = (): Keymap => ({
   version: "1",
@@ -53,7 +53,7 @@ describe("keymap validation", () => {
         action: "plugin",
         pluginId: "p",
         actionId: "a",
-      })
+      }),
     ).toBe(true);
     expect(isValidAction({ action: "unknown" })).toBe(false);
   });

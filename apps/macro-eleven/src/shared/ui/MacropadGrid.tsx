@@ -1,5 +1,5 @@
-import { cn } from "../lib/utils";
 import { MATRIX_LAYOUT, matrixToIndex } from "../../entities/key";
+import { cn } from "../lib/utils";
 
 interface MacropadGridProps {
   renderKey: (index: number) => React.ReactNode;
@@ -9,37 +9,53 @@ interface MacropadGridProps {
   renderEmpty?: () => React.ReactNode;
 }
 
-export function MacropadGrid({ renderKey, fluid, renderEmpty }: MacropadGridProps) {
+export function MacropadGrid({
+  renderKey,
+  fluid,
+  renderEmpty,
+}: MacropadGridProps) {
   return (
-    <div className={cn("flex flex-col gap-1.5", fluid && "flex-1 min-h-0 min-w-0")}>
-      {MATRIX_LAYOUT.map((row, rowIdx) => (
-        <div key={rowIdx} className={cn("flex gap-1.5", fluid && "flex-1 min-h-0")}>
-          {row.map((pos, colIdx) => {
-            if (!pos) {
+    <div
+      className={cn("flex flex-col gap-1.5", fluid && "flex-1 min-h-0 min-w-0")}
+    >
+      {MATRIX_LAYOUT.map((row) => {
+        const rowKey = row
+          .map((pos) => (pos ? `${pos.row},${pos.col}` : "empty"))
+          .join("|");
+        return (
+          <div
+            key={rowKey}
+            className={cn("flex gap-1.5", fluid && "flex-1 min-h-0")}
+          >
+            {row.map((pos) => {
+              if (!pos) {
+                return (
+                  <div
+                    key={`${rowKey}-empty`}
+                    className={cn(
+                      fluid ? "flex-1 min-w-0 min-h-0" : "w-20 h-16",
+                      renderEmpty
+                        ? "flex items-center justify-center @container-[size]"
+                        : "invisible",
+                    )}
+                  >
+                    {renderEmpty?.()}
+                  </div>
+                );
+              }
+              const index = matrixToIndex(pos.row, pos.col);
               return (
                 <div
-                  key={colIdx}
-                  className={cn(
-                    fluid ? "flex-1 min-w-0 min-h-0" : "w-20 h-16",
-                    renderEmpty ? "flex items-center justify-center @container-[size]" : "invisible"
-                  )}
+                  key={`${pos.row},${pos.col}`}
+                  className={cn(fluid ? "flex-1 min-w-0 min-h-0" : "w-20 h-16")}
                 >
-                  {renderEmpty?.()}
+                  {renderKey(index)}
                 </div>
               );
-            }
-            const index = matrixToIndex(pos.row, pos.col);
-            return (
-              <div
-                key={colIdx}
-                className={cn(fluid ? "flex-1 min-w-0 min-h-0" : "w-20 h-16")}
-              >
-                {renderKey(index)}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+            })}
+          </div>
+        );
+      })}
     </div>
   );
 }
