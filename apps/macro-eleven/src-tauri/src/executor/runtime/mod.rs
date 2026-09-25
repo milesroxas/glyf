@@ -12,29 +12,33 @@ mod noop;
 
 /// Platform-specific runtime that knows how to launch apps and synthesize input.
 pub trait PlatformRuntime: Send + Sync {
-    fn launch_app(&self, app: &str, focus_if_running: bool) -> Result<(), String>;
+    /// Open `bundle_id` if given (falling back to `name`), else `name`.
+    /// `focus` brings the app to the front.
+    fn launch_app(&self, name: &str, bundle_id: Option<&str>, focus: bool) -> Result<(), String>;
     fn send_shortcut(&self, sequence: &ShortcutSequence) -> Result<(), String>;
     fn type_text(&self, text: &str) -> Result<(), String>;
     fn key_press(&self, key: &PrimaryKey) -> Result<(), String>;
+    fn key_down(&self, key: &PrimaryKey) -> Result<(), String>;
+    fn key_up(&self, key: &PrimaryKey) -> Result<(), String>;
+    /// Hold a modifier: it applies to every key event until `modifier_up`.
     fn modifier_down(&self, modifier: ModifierKey) -> Result<(), String>;
     fn modifier_up(&self, modifier: ModifierKey) -> Result<(), String>;
 }
 
 /// Factory that builds the correct runtime for the host platform.
-pub fn create_runtime() -> Result<Box<dyn PlatformRuntime>, String> {
+pub fn create_runtime() -> Box<dyn PlatformRuntime> {
     #[cfg(target_os = "macos")]
     {
-        macos::MacRuntime::new().map(|runtime| Box::new(runtime) as Box<dyn PlatformRuntime>)
+        Box::new(macos::MacRuntime::new())
     }
 
     #[cfg(target_os = "windows")]
     {
-        windows::WindowsRuntime::new()
-            .map(|runtime| Box::new(runtime) as Box<dyn PlatformRuntime>)
+        Box::new(windows::WindowsRuntime)
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
-        Ok(Box::new(noop::NoopRuntime::new()))
+        Box::new(noop::NoopRuntime)
     }
 }

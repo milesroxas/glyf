@@ -2,38 +2,40 @@ use super::{ModifierKey, PlatformRuntime, PrimaryKey, ShortcutSequence};
 
 pub struct NoopRuntime;
 
-impl NoopRuntime {
-    pub fn new() -> Self {
-        Self
-    }
-
-    fn not_supported(action: &str) -> Result<(), String> {
-        Err(format!("Action '{}' is not supported on this platform yet", action))
-    }
+fn not_supported(action: &str) -> Result<(), String> {
+    Err(format!("{action} is not supported on this platform yet"))
 }
 
 impl PlatformRuntime for NoopRuntime {
-    fn launch_app(&self, _app: &str, _focus_if_running: bool) -> Result<(), String> {
-        Self::not_supported("launch_app")
+    fn launch_app(&self, _name: &str, _bundle_id: Option<&str>, _focus: bool) -> Result<(), String> {
+        not_supported("Opening apps")
     }
 
     fn send_shortcut(&self, _sequence: &ShortcutSequence) -> Result<(), String> {
-        Self::not_supported("shortcut")
+        not_supported("Sending shortcuts")
     }
 
     fn type_text(&self, _text: &str) -> Result<(), String> {
-        Self::not_supported("type_text")
+        not_supported("Typing text")
     }
 
     fn key_press(&self, _key: &PrimaryKey) -> Result<(), String> {
-        Self::not_supported("key_press")
+        not_supported("Pressing keys")
+    }
+
+    fn key_down(&self, _key: &PrimaryKey) -> Result<(), String> {
+        not_supported("Pressing keys")
+    }
+
+    fn key_up(&self, _key: &PrimaryKey) -> Result<(), String> {
+        not_supported("Pressing keys")
     }
 
     fn modifier_down(&self, _modifier: ModifierKey) -> Result<(), String> {
-        Self::not_supported("modifier_down")
+        not_supported("Holding modifiers")
     }
 
     fn modifier_up(&self, _modifier: ModifierKey) -> Result<(), String> {
-        Self::not_supported("modifier_up")
+        not_supported("Holding modifiers")
     }
 }

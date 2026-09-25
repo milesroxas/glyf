@@ -8,11 +8,17 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
   "keywords": [
     "keymap",
     "macropad",
     "schema"
   ],
   "author": "Miles Roxas",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "25.5.0"
+  }
 }

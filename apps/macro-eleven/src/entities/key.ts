@@ -1,7 +1,4 @@
-import type {
-  MatrixPosition,
-  KeyEvent as SchemaKeyEvent,
-} from "@glyf/keymap-schema";
+import type { MatrixPosition } from "@glyf/keymap-schema";
 
 export type { MatrixPosition };
 
@@ -17,7 +14,7 @@ export interface KeyEvent {
 /**
  * Individual key press/release event
  */
-export interface KeyPressEvent extends SchemaKeyEvent {
+export interface KeyPressEvent {
   position: MatrixPosition;
   pressed: boolean;
   timestamp: number;

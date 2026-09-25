@@ -1,17 +1,23 @@
-/// Detect the active application on macOS
-///
-/// Returns the application name of the frontmost app
+use crate::config::keymap::FrontApp;
+
+/// The frontmost application, or None when it cannot be read.
 #[cfg(target_os = "macos")]
-pub fn get_active_app() -> Option<String> {
+pub fn front_app() -> Option<FrontApp> {
+    use objc2::rc::autoreleasepool;
     use objc2_app_kit::NSWorkspace;
 
-    let workspace = NSWorkspace::sharedWorkspace();
-    let app = workspace.frontmostApplication()?;
-    Some(app.localizedName()?.to_string())
+    // Runs on a background thread, which has no autorelease pool of its own
+    autoreleasepool(|_| {
+        let app = NSWorkspace::sharedWorkspace().frontmostApplication()?;
+        Some(FrontApp {
+            name: app.localizedName()?.to_string(),
+            bundle_id: app.bundleIdentifier().map(|id| id.to_string()),
+        })
+    })
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn get_active_app() -> Option<String> {
+pub fn front_app() -> Option<FrontApp> {
     None
 }
 
@@ -21,9 +27,8 @@ mod tests {
 
     #[test]
     #[cfg(target_os = "macos")]
-    fn test_get_active_app() {
-        let app = get_active_app();
-        assert!(app.is_some());
-        println!("Active app: {:?}", app);
+    #[ignore = "needs a GUI session"]
+    fn reads_the_front_app() {
+        assert!(front_app().is_some());
     }
 }

@@ -1,8 +1,12 @@
-import type { Action, Keymap, MatrixPositionKey } from "./types";
-
 /**
- * Validation utilities for keymap schema
+ * Keymap validation. The host runs the same checks before it saves or imports
+ * a keymap (`Keymap::validate` in the Rust app); `fixtures/` holds the cases
+ * both test suites run.
  */
+import { isDeviceKey, MACRO_ELEVEN } from "./device";
+import { isValidMatrixPosition, parseMatrixPosition } from "./position";
+import { isKnownToken, isValidShortcutKeys } from "./shortcut";
+import type { DeviceDescriptor, Keymap } from "./types";
 
 export class KeymapValidationError extends Error {
   constructor(message: string) {
@@ -11,133 +15,162 @@ export class KeymapValidationError extends Error {
   }
 }
 
-/**
- * Validate a keymap object
- */
-export function validateKeymap(keymap: unknown): keymap is Keymap {
-  if (typeof keymap !== "object" || keymap === null) {
-    throw new KeymapValidationError("Keymap must be an object");
-  }
+const MAX_LAYER_ID = 255;
+/** Longest single wait a macro may hold the action queue. */
+const MAX_WAIT_MS = 10_000;
 
-  const km = keymap as Partial<Keymap>;
+type Json = Record<string, unknown>;
 
-  // Required fields
-  if (!km.version || typeof km.version !== "string") {
-    throw new KeymapValidationError("Keymap must have a version string");
-  }
-
-  if (!km.name || typeof km.name !== "string") {
-    throw new KeymapValidationError("Keymap must have a name");
-  }
-
-  if (!km.layers || typeof km.layers !== "object") {
-    throw new KeymapValidationError("Keymap must have layers object");
-  }
-
-  // Validate layers
-  for (const [layerNum, layer] of Object.entries(km.layers)) {
-    if (Number.isNaN(Number(layerNum))) {
-      throw new KeymapValidationError(
-        `Layer key must be a number: ${layerNum}`,
-      );
-    }
-
-    if (!layer.name || typeof layer.name !== "string") {
-      throw new KeymapValidationError(`Layer ${layerNum} must have a name`);
-    }
-
-    if (!layer.keys || typeof layer.keys !== "object") {
-      throw new KeymapValidationError(
-        `Layer ${layerNum} must have keys object`,
-      );
-    }
-
-    // Validate matrix positions
-    for (const [pos, action] of Object.entries(layer.keys)) {
-      if (!isValidMatrixPosition(pos)) {
-        throw new KeymapValidationError(
-          `Invalid matrix position: ${pos} (must be "row,col")`,
-        );
-      }
-
-      if (!isValidAction(action)) {
-        throw new KeymapValidationError(
-          `Invalid action at ${pos} in layer ${layerNum}`,
-        );
-      }
-    }
-  }
-
-  return true;
+function isObject(value: unknown): value is Json {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/**
- * Validate matrix position format
- */
-export function isValidMatrixPosition(pos: string): pos is MatrixPositionKey {
-  const match = pos.match(/^(\d+),(\d+)$/);
-  return match !== null;
+function isString(value: unknown): value is string {
+  return typeof value === "string";
 }
 
-/**
- * Parse matrix position string to coordinates
- */
-export function parseMatrixPosition(pos: MatrixPositionKey): {
-  row: number;
-  col: number;
-} {
-  const [row, col] = pos.split(",").map(Number);
-  return { row, col };
+function isNonEmptyString(value: unknown): value is string {
+  return isString(value) && value.trim().length > 0;
 }
 
-/**
- * Format matrix position to string
- */
-export function formatMatrixPosition(
-  row: number,
-  col: number,
-): MatrixPositionKey {
-  return `${row},${col}`;
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(isString);
 }
 
-/**
- * Basic action validation
- */
-export function isValidAction(action: unknown): action is Action {
-  if (typeof action !== "object" || action === null) {
-    return false;
-  }
+function isLayerId(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= MAX_LAYER_ID
+  );
+}
 
-  const act = action as Record<string, unknown>;
-
-  if (!act.action || typeof act.action !== "string") {
-    return false;
-  }
-
-  // Type-specific validation
-  switch (act.action) {
-    case "launch_app":
-      return typeof act.app === "string";
-
+function macroStepProblem(step: unknown): string | null {
+  if (!isObject(step)) return "is not an object";
+  switch (step.type) {
+    case "keydown":
+    case "keyup":
+    case "keypress":
+      return isString(step.key) && isKnownToken(step.key)
+        ? null
+        : `has an unknown key "${String(step.key)}"`;
     case "shortcut":
-      return Array.isArray(act.keys);
+      return isStringArray(step.keys) && isValidShortcutKeys(step.keys)
+        ? null
+        : "has an invalid shortcut";
+    case "text":
+      return isString(step.text) ? null : "needs text";
+    case "wait":
+      return typeof step.ms === "number" &&
+        Number.isInteger(step.ms) &&
+        step.ms >= 0 &&
+        step.ms <= MAX_WAIT_MS
+        ? null
+        : `must wait 0-${MAX_WAIT_MS} ms`;
+    default:
+      return `has an unknown type "${String(step.type)}"`;
+  }
+}
 
-    case "macro":
-      return Array.isArray(act.sequence);
-
-    case "plugin":
-      return (
-        typeof act.pluginId === "string" && typeof act.actionId === "string"
-      );
-
+function actionProblem(action: unknown, layers: Set<number>): string | null {
+  if (!isObject(action)) return "is not an object";
+  if (action.label !== undefined && !isString(action.label)) {
+    return "has a label that is not text";
+  }
+  switch (action.action) {
     case "switch_layer":
-      return typeof act.layer === "number";
-
+      if (!isLayerId(action.layer)) return "switches to an invalid layer";
+      return layers.has(action.layer)
+        ? null
+        : `switches to layer ${action.layer}, which does not exist`;
+    case "launch_app":
+      if (!isNonEmptyString(action.app)) return "needs an app name";
+      return action.bundleId === undefined || isNonEmptyString(action.bundleId)
+        ? null
+        : "has an empty bundle ID";
+    case "shortcut":
+      return isStringArray(action.keys) && isValidShortcutKeys(action.keys)
+        ? null
+        : `has an invalid shortcut "${String(action.keys)}"`;
+    case "macro": {
+      if (!Array.isArray(action.sequence)) return "needs a step list";
+      for (const [index, step] of action.sequence.entries()) {
+        const problem = macroStepProblem(step);
+        if (problem) return `step ${index + 1} ${problem}`;
+      }
+      return null;
+    }
+    case "plugin":
+      return isNonEmptyString(action.pluginId) &&
+        isNonEmptyString(action.actionId)
+        ? null
+        : "needs a plugin and action ID";
     case "cycle_layer":
     case "noop":
-      return true;
-
+      return null;
     default:
-      return false;
+      return `has an unknown action "${String(action.action)}"`;
+  }
+}
+
+/**
+ * Throw a `KeymapValidationError` describing the first problem, or narrow
+ * `keymap` to `Keymap`.
+ */
+export function assertKeymap(
+  keymap: unknown,
+  device: DeviceDescriptor = MACRO_ELEVEN,
+): asserts keymap is Keymap {
+  const fail = (message: string): never => {
+    throw new KeymapValidationError(message);
+  };
+
+  if (!isObject(keymap)) fail("Keymap must be an object");
+  const km = keymap as Json;
+  if (!isNonEmptyString(km.version)) fail("Keymap needs a version");
+  if (!isNonEmptyString(km.name)) fail("Keymap needs a name");
+  if (!isObject(km.layers)) fail("Keymap needs layers");
+
+  const entries = Object.entries(km.layers as Json);
+  const ids = new Set<number>();
+  for (const [id] of entries) {
+    const layer = Number(id);
+    if (!/^\d+$/.test(id) || !isLayerId(layer)) {
+      fail(`Layer ID "${id}" must be a whole number from 0 to ${MAX_LAYER_ID}`);
+    }
+    ids.add(layer);
+  }
+  if (!ids.has(0)) fail("Keymap needs layer 0");
+
+  for (const [id, layer] of entries) {
+    if (!isObject(layer)) fail(`Layer ${id} must be an object`);
+    const { name, keys, triggerApp } = layer as Json;
+    if (!isString(name)) fail(`Layer ${id} needs a name`);
+    if (triggerApp !== undefined && !isNonEmptyString(triggerApp)) {
+      fail(`Layer ${id} has an empty trigger app`);
+    }
+    if (!isObject(keys)) fail(`Layer ${id} needs keys`);
+
+    for (const [pos, action] of Object.entries(keys as Json)) {
+      if (
+        !isValidMatrixPosition(pos) ||
+        !isDeviceKey(device, parseMatrixPosition(pos))
+      ) {
+        fail(
+          `Layer ${id} has a key at ${pos}, which ${device.name} does not have`,
+        );
+      }
+      const problem = actionProblem(action, ids);
+      if (problem) fail(`Key ${pos} on layer ${id} ${problem}`);
+    }
+  }
+
+  if (km.settings !== undefined) {
+    if (!isObject(km.settings)) fail("Settings must be an object");
+    const { defaultLayer } = km.settings as Json;
+    if (defaultLayer !== undefined && !ids.has(defaultLayer as number)) {
+      fail(`Default layer ${String(defaultLayer)} does not exist`);
+    }
   }
 }

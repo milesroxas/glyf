@@ -197,37 +197,37 @@ Order matters within a phase. Each task is one commit. Prefix commit messages wi
 
 ### Phase A: foundations
 
-- [ ] **KD-01 Shared token table and shortcut helpers**
+- [x] **KD-01 Shared token table and shortcut helpers**
   - Files: `shared/libs/keymap-schema/src/{tokens.json,shortcut.ts,types.ts,index.ts}`, `src-tauri/src/executor/runtime/shortcuts.rs`.
   - Change: as in 4.1. Add the Rust parity test.
   - Accept: `pnpm test` covers `formatShortcut(["cmd","shift","t"])` → `⌘⇧T` and `codeToToken` for letters, digits, punctuation, arrows, and F-keys. `cargo test` parity test passes.
 
-- [ ] **KD-02 Edit operations and stricter validation**
+- [x] **KD-02 Edit operations and stricter validation**
   - Files: `shared/libs/keymap-schema/src/{edit.ts,validation.ts,edit.test.ts,validation.test.ts}`.
   - Change: as in 4.1. `deleteLayer` returns dangling `switch_layer` references; `assertKeymap` rejects them.
   - Accept: every op has a test. `assertKeymap` rejects a `switch_layer` to a missing layer, a key at `3,0`, and a shortcut containing `fn`.
 
-- [ ] **KD-03 One default keymap, schema fields**
+- [x] **KD-03 One default keymap, schema fields**
   - Files: `shared/libs/keymap-schema/src/macro-eleven.default.json`, delete `defaults.ts` and `src-tauri/src/config/default_keymap.json`, `types.ts`, `config/keymap.rs`.
   - Change: ME-15.1 plus `icon` and `bundleId`. Add bundle IDs to the default's `launch_app` actions (`com.google.Chrome`, `com.figma.Desktop`, `com.microsoft.VSCode`, `com.tinyspeck.slackmacgap`, `com.spotify.client`, `com.apple.Terminal`, `com.apple.MobileSMS`, `com.apple.Notes`, `com.apple.Music`, `com.apple.finder`).
   - Accept: a Vitest test asserts the JSON passes `assertKeymap`; a Rust test deserializes it.
 
-- [ ] **KD-04 Profile storage**
+- [x] **KD-04 Profile storage**
   - Files: `src-tauri/src/config/{storage.rs,profiles.rs,settings.rs}`, `src-tauri/src/lib.rs`.
   - Change: as in 4.2 storage. Migration runs in `setup`.
   - Accept: `tempfile` tests for atomic save, name validation, migration from the old directory, and round-trip of a keymap with an unknown field.
 
-- [ ] **KD-05 Profile and engine commands**
+- [x] **KD-05 Profile and engine commands**
   - Files: `src-tauri/src/commands/{profiles.rs,engine.rs}`, delete `commands/keymap_commands.rs` and `commands/layers.rs`, delete `src-tauri/src/keymap/`, `lib.rs`, `shared/lib/tauri.ts`, `entities/keymap.ts`.
   - Change: the command table in 4.2 except apps, permissions, and `run_action`. `save_profile` hot-reloads. Remove the `regex` dependency.
   - Accept: `cargo tree -p macro-eleven | grep regex` is empty. Saving the active profile changes what a physical press does without a restart (simulator or hardware, noted in the PR).
 
-- [ ] **KD-06 Installed apps**
+- [x] **KD-06 Installed apps**
   - Files: `src-tauri/src/apps/{mod.rs,macos.rs,icons.rs}`, `commands/apps.rs`, `tauri.conf.json` (asset scope), `entities/app.ts`, `shared/lib/tauri.ts`.
   - Change: as in 4.2 installed apps. Non-macOS returns an empty list.
   - Accept: `list_installed_apps` returns Finder and Safari with non-empty `iconUrl` on macOS. Second call returns from cache in under 5 ms.
 
-- [ ] **KD-07 Permissions and `run_action`**
+- [x] **KD-07 Permissions and `run_action`**
   - Files: `src-tauri/src/executor/permissions.rs`, `commands/engine.rs`, `executor/runtime/macos.rs`.
   - Change: `AXIsProcessTrusted`, the settings deep link, `open -b`, and `run_action` on the worker (depends on ME-02; if ME-02 is not done yet, run `run_action` on a fresh thread and note the follow-up).
   - Accept: with Accessibility revoked, `run_action` for a shortcut returns an error naming the permission.

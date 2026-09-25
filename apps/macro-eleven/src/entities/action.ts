@@ -5,7 +5,6 @@
 export type {
   Action,
   ActionType,
-  BaseAction,
   CycleLayerAction,
   KeyModifier,
   LaunchAppAction,

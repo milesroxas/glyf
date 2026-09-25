@@ -6,7 +6,6 @@
 
 import type {
   Action,
-  ActiveContext,
   Keymap,
   Layer,
   MatrixPositionKey,
@@ -16,18 +15,16 @@ import {
   formatMatrixPosition,
   MACRO_ELEVEN_DEFAULT_KEYMAP,
   parseMatrixPosition,
-  validateKeymap,
 } from "@glyf/keymap-schema";
 
 // Re-export types
-export type { Action, ActiveContext, Keymap, Layer, MatrixPositionKey };
+export type { Action, Keymap, Layer, MatrixPositionKey };
 
 // Re-export utilities
 export {
   formatMatrixPosition,
   MACRO_ELEVEN_DEFAULT_KEYMAP,
   parseMatrixPosition,
-  validateKeymap,
 };
 
 export interface LaunchBinding {
@@ -51,33 +48,8 @@ export function getActionForKey(
   const layerData = keymap.layers[layer];
   if (!layerData) return null;
 
-  const posKey = formatMatrixPosition(row, col);
+  const posKey = formatMatrixPosition({ row, col });
   return layerData.keys[posKey] || null;
-}
-
-/**
- * Determine which layer should be active based on context
- */
-export function determineActiveLayer(
-  keymap: Keymap,
-  context: ActiveContext,
-): number {
-  // If auto-switching is disabled, use current layer
-  if (!keymap.settings?.autoSwitchLayers) {
-    return context.currentLayer;
-  }
-
-  // Check if any layer matches the active app
-  if (context.activeApp) {
-    for (const [layerNum, layer] of Object.entries(keymap.layers)) {
-      if (layer.triggerApp === context.activeApp) {
-        return Number(layerNum);
-      }
-    }
-  }
-
-  // Fall back to default layer or current layer
-  return keymap.settings?.defaultLayer ?? context.currentLayer;
 }
 
 /**

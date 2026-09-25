@@ -1,91 +1,75 @@
-use super::keymap::Keymap;
-use std::fs;
+//! File helpers for app data.
+
+use serde::Serialize;
+use std::fs::{self, File};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
-/// Get the keymaps directory path (~/.config/macro-eleven/keymaps/)
-pub fn get_keymaps_dir() -> Result<PathBuf, String> {
-    let home = dirs::home_dir().ok_or("Could not find home directory")?;
-    let config_dir = home.join(".config").join("macro-eleven").join("keymaps");
+/// Write `bytes` to `path` so a crash leaves either the old file or the new
+/// one, never a partial file: write a sibling temp file, flush it to disk,
+/// then rename it over the target.
+pub fn write_atomic(path: &Path, bytes: &[u8]) -> Result<(), String> {
+    let parent = path
+        .parent()
+        .ok_or_else(|| format!("{} has no parent folder", path.display()))?;
+    fs::create_dir_all(parent).map_err(|e| format!("Could not create {}: {e}", parent.display()))?;
 
-    // Create directory if it doesn't exist
-    if !config_dir.exists() {
-        fs::create_dir_all(&config_dir)
-            .map_err(|e| format!("Failed to create keymaps directory: {}", e))?;
+    let mut tmp_name = path.as_os_str().to_owned();
+    tmp_name.push(".tmp");
+    let tmp = PathBuf::from(tmp_name);
+
+    let result = File::create(&tmp)
+        .and_then(|mut file| {
+            file.write_all(bytes)?;
+            file.sync_all()
+        })
+        .and_then(|()| fs::rename(&tmp, path));
+    if let Err(e) = result {
+        let _ = fs::remove_file(&tmp);
+        return Err(format!("Could not save {}: {e}", path.display()));
     }
-
-    Ok(config_dir)
-}
-
-/// Load a keymap from a JSON file
-pub fn load_keymap<P: AsRef<Path>>(path: P) -> Result<Keymap, String> {
-    let json =
-        fs::read_to_string(path).map_err(|e| format!("Failed to read keymap file: {}", e))?;
-
-    let keymap: Keymap =
-        serde_json::from_str(&json).map_err(|e| format!("Failed to parse keymap JSON: {}", e))?;
-
-    Ok(keymap)
-}
-
-/// Save a keymap to a JSON file
-pub fn save_keymap<P: AsRef<Path>>(path: P, keymap: &Keymap) -> Result<(), String> {
-    let json = serde_json::to_string_pretty(keymap)
-        .map_err(|e| format!("Failed to serialize keymap: {}", e))?;
-
-    fs::write(path, json).map_err(|e| format!("Failed to write keymap file: {}", e))?;
-
     Ok(())
 }
 
-/// Get the active keymap file path
-/// Priority: user-custom.json > default.json
-pub fn get_active_keymap_path() -> Result<PathBuf, String> {
-    let dir = get_keymaps_dir()?;
-
-    let custom_path = dir.join("user-custom.json");
-    if custom_path.exists() {
-        return Ok(custom_path);
-    }
-
-    let default_path = dir.join("default.json");
-    Ok(default_path)
+/// Pretty JSON with a trailing newline, written atomically.
+pub fn write_json_atomic<T: Serialize>(path: &Path, value: &T) -> Result<(), String> {
+    let mut json =
+        serde_json::to_string_pretty(value).map_err(|e| format!("Could not encode JSON: {e}"))?;
+    json.push('\n');
+    write_atomic(path, json.as_bytes())
 }
 
-/// Initialize default keymap if it doesn't exist
-pub fn ensure_default_keymap() -> Result<(), String> {
-    let dir = get_keymaps_dir()?;
-    let default_path = dir.join("default.json");
-
-    if !default_path.exists() {
-        // Write default keymap JSON
-        // This is embedded as a const string to avoid needing the TypeScript package at runtime
-        let default_json = include_str!("default_keymap.json");
-        fs::write(&default_path, default_json)
-            .map_err(|e| format!("Failed to write default keymap: {}", e))?;
-    }
-
-    Ok(())
+/// Where keymaps lived before profiles: `~/.config/macro-eleven/keymaps`.
+pub fn legacy_keymaps_dir() -> Option<PathBuf> {
+    dirs::home_dir().map(|home| home.join(".config").join("macro-eleven").join("keymaps"))
 }
 
-/// List all available keymaps in the keymaps directory
-pub fn list_keymaps() -> Result<Vec<String>, String> {
-    let dir = get_keymaps_dir()?;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let entries =
-        fs::read_dir(dir).map_err(|e| format!("Failed to read keymaps directory: {}", e))?;
-
-    let mut keymaps = Vec::new();
-    for entry in entries {
-        let entry = entry.map_err(|e| e.to_string())?;
-        let path = entry.path();
-
-        if path.extension().and_then(|s| s.to_str()) == Some("json") {
-            if let Some(name) = path.file_stem().and_then(|s| s.to_str()) {
-                keymaps.push(name.to_string());
-            }
-        }
+    #[test]
+    fn replaces_the_file_and_leaves_no_temp_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("nested").join("a.json");
+        write_atomic(&path, b"one").unwrap();
+        write_atomic(&path, b"two").unwrap();
+        assert_eq!(fs::read_to_string(&path).unwrap(), "two");
+        let names: Vec<_> = fs::read_dir(path.parent().unwrap())
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect();
+        assert_eq!(names, vec!["a.json"]);
     }
 
-    keymaps.sort();
-    Ok(keymaps)
+    #[test]
+    fn keeps_the_old_file_when_the_write_fails() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("a.json");
+        write_atomic(&path, b"old").unwrap();
+        // A directory where the temp file should go makes the write fail
+        fs::create_dir(dir.path().join("a.json.tmp")).unwrap();
+        assert!(write_atomic(&path, b"new").is_err());
+        assert_eq!(fs::read_to_string(&path).unwrap(), "old");
+    }
 }

@@ -1,21 +1,20 @@
-use std::fmt;
+//! Shortcut token parsing. The vocabulary is `tokens.json` in
+//! `@glyf/keymap-schema`; the parity test below keeps this parser in step.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModifierKey {
     Command,
     Control,
-    Alt,
     Option,
     Shift,
 }
 
 impl ModifierKey {
     pub fn from_token(token: &str) -> Option<Self> {
-        match token.to_lowercase().as_str() {
+        match token.trim().to_lowercase().as_str() {
             "cmd" | "command" | "meta" | "super" => Some(Self::Command),
             "ctrl" | "control" => Some(Self::Control),
-            "alt" => Some(Self::Alt),
-            "option" | "opt" => Some(Self::Option),
+            "option" | "opt" | "alt" => Some(Self::Option),
             "shift" => Some(Self::Shift),
             _ => None,
         }
@@ -49,7 +48,8 @@ pub enum PrimaryKey {
 
 impl PrimaryKey {
     pub fn from_token(token: &str) -> Result<Self, String> {
-        if token.trim().is_empty() {
+        let token = token.trim();
+        if token.is_empty() {
             return Err("Shortcut key cannot be empty".to_string());
         }
 
@@ -74,14 +74,11 @@ impl PrimaryKey {
             "pageup" | "pgup" => SpecialKey::PageUp,
             "pagedown" | "pgdn" => SpecialKey::PageDown,
             _ => {
-                if let Some(number) = lower.strip_prefix('f') {
-                    let value: u8 = number
-                        .parse()
-                        .map_err(|_| format!("Unknown function key: {}", token))?;
-                    SpecialKey::Function(value)
-                } else {
-                    return Err(format!("Unknown key token: {}", token));
-                }
+                let number = lower
+                    .strip_prefix('f')
+                    .and_then(|n| n.parse::<u8>().ok())
+                    .ok_or_else(|| format!("Unknown key token: {token}"))?;
+                SpecialKey::Function(number)
             }
         };
 
@@ -101,6 +98,8 @@ pub struct ShortcutSequence {
 }
 
 impl ShortcutSequence {
+    /// Modifiers followed by one key make a chord; several chords make a
+    /// sequence (`cmd k cmd s` is ⌘K then ⌘S).
     pub fn from_keys(keys: &[String]) -> Result<Self, String> {
         let mut chords = Vec::new();
         let mut pending_modifiers: Vec<ModifierKey> = Vec::new();
@@ -118,10 +117,9 @@ impl ShortcutSequence {
 
             let primary = PrimaryKey::from_token(token)?;
             chords.push(KeyChord {
-                modifiers: pending_modifiers.clone(),
+                modifiers: std::mem::take(&mut pending_modifiers),
                 primary,
             });
-            pending_modifiers.clear();
         }
 
         if chords.is_empty() {
@@ -136,38 +134,63 @@ impl ShortcutSequence {
     }
 }
 
-impl fmt::Display for ShortcutSequence {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let parts: Vec<String> = self
-            .chords
-            .iter()
-            .map(|chord| {
-                let mods: Vec<&'static str> = chord
-                    .modifiers
-                    .iter()
-                    .map(|modifier| match modifier {
-                        ModifierKey::Command => "cmd",
-                        ModifierKey::Control => "ctrl",
-                        ModifierKey::Alt => "alt",
-                        ModifierKey::Option => "opt",
-                        ModifierKey::Shift => "shift",
-                    })
-                    .collect();
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::tokens;
 
-                let primary = match &chord.primary {
-                    PrimaryKey::Character(ch) => ch.clone(),
-                    PrimaryKey::Special(SpecialKey::Function(n)) => format!("F{}", n),
-                    PrimaryKey::Special(other) => format!("{:?}", other),
-                };
+    fn keys(tokens: &[&str]) -> Vec<String> {
+        tokens.iter().map(|t| t.to_string()).collect()
+    }
 
-                if mods.is_empty() {
-                    primary
-                } else {
-                    format!("{}+{}", mods.join("+"), primary)
-                }
-            })
-            .collect();
+    #[test]
+    fn accepts_every_shared_token() {
+        let table = tokens::table();
+        for name in table.modifier_names() {
+            assert!(ModifierKey::from_token(name).is_some(), "modifier {name}");
+        }
+        for name in table.key_names() {
+            assert!(ModifierKey::from_token(name).is_none(), "{name} is not a modifier");
+            assert!(PrimaryKey::from_token(name).is_ok(), "key {name}");
+        }
+    }
 
-        write!(f, "{}", parts.join(" → "))
+    #[test]
+    fn groups_modifiers_into_chords() {
+        let sequence = ShortcutSequence::from_keys(&keys(&["cmd", "k", "shift", "cmd", "s"])).unwrap();
+        assert_eq!(
+            sequence.chords,
+            vec![
+                KeyChord {
+                    modifiers: vec![ModifierKey::Command],
+                    primary: PrimaryKey::Character("k".into()),
+                },
+                KeyChord {
+                    modifiers: vec![ModifierKey::Shift, ModifierKey::Command],
+                    primary: PrimaryKey::Character("s".into()),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn parses_function_and_named_keys() {
+        assert_eq!(
+            PrimaryKey::from_token("F12"),
+            Ok(PrimaryKey::Special(SpecialKey::Function(12)))
+        );
+        assert_eq!(
+            PrimaryKey::from_token("Return"),
+            Ok(PrimaryKey::Special(SpecialKey::Enter))
+        );
+        assert!(PrimaryKey::from_token("hyper").is_err());
+        assert!(PrimaryKey::from_token("f").is_ok(), "a single letter is a character");
+    }
+
+    #[test]
+    fn rejects_incomplete_shortcuts() {
+        assert!(ShortcutSequence::from_keys(&[]).is_err());
+        assert!(ShortcutSequence::from_keys(&keys(&["cmd"])).is_err());
+        assert!(ShortcutSequence::from_keys(&keys(&["cmd", "k", "cmd"])).is_err());
     }
 }

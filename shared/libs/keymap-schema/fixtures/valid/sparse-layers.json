@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "name": "Fixture",
+  "layers": {
+    "0": {
+      "name": "Base",
+      "keys": {
+        "0,0": {
+          "action": "switch_layer",
+          "layer": 5,
+          "label": "Five"
+        },
+        "0,1": {
+          "action": "cycle_layer"
+        }
+      }
+    },
+    "1": {
+      "name": "One",
+      "keys": {}
+    },
+    "5": {
+      "name": "Five",
+      "keys": {
+        "2,3": {
+          "action": "switch_layer",
+          "layer": 0
+        }
+      },
+      "triggerApp": "com.apple.Notes"
+    }
+  },
+  "settings": {
+    "defaultLayer": 0,
+    "autoSwitchLayers": false
+  }
+}

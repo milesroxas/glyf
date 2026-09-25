@@ -1,4 +1,5 @@
 use std::process::Command;
+use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
 
@@ -8,8 +9,63 @@ use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
 use super::{
     shortcuts::SpecialKey, KeyChord, ModifierKey, PlatformRuntime, PrimaryKey, ShortcutSequence,
 };
+use crate::executor::permissions::{accessibility_trusted, ACCESSIBILITY_REQUIRED};
 
-pub struct MacRuntime;
+/// Pause between chords of a sequence, so apps see them as separate presses.
+const CHORD_GAP: Duration = Duration::from_millis(35);
+
+/// US ANSI virtual keycodes: (character, shifted character, keycode).
+const CHARACTER_KEYS: &[(char, char, CGKeyCode)] = &[
+    ('a', 'A', 0),
+    ('s', 'S', 1),
+    ('d', 'D', 2),
+    ('f', 'F', 3),
+    ('h', 'H', 4),
+    ('g', 'G', 5),
+    ('z', 'Z', 6),
+    ('x', 'X', 7),
+    ('c', 'C', 8),
+    ('v', 'V', 9),
+    ('b', 'B', 11),
+    ('q', 'Q', 12),
+    ('w', 'W', 13),
+    ('e', 'E', 14),
+    ('r', 'R', 15),
+    ('y', 'Y', 16),
+    ('t', 'T', 17),
+    ('1', '!', 18),
+    ('2', '@', 19),
+    ('3', '#', 20),
+    ('4', '$', 21),
+    ('6', '^', 22),
+    ('5', '%', 23),
+    ('=', '+', 24),
+    ('9', '(', 25),
+    ('7', '&', 26),
+    ('-', '_', 27),
+    ('8', '*', 28),
+    ('0', ')', 29),
+    (']', '}', 30),
+    ('o', 'O', 31),
+    ('u', 'U', 32),
+    ('[', '{', 33),
+    ('i', 'I', 34),
+    ('p', 'P', 35),
+    ('l', 'L', 37),
+    ('j', 'J', 38),
+    ('\'', '"', 39),
+    ('k', 'K', 40),
+    (';', ':', 41),
+    ('\\', '|', 42),
+    (',', '<', 43),
+    ('/', '?', 44),
+    ('n', 'N', 45),
+    ('m', 'M', 46),
+    ('.', '>', 47),
+    ('`', '~', 50),
+];
+
+const FUNCTION_KEYS: [CGKeyCode; 12] = [122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111];
 
 #[derive(Clone, Copy)]
 struct KeyMapping {
@@ -17,260 +73,100 @@ struct KeyMapping {
     requires_shift: bool,
 }
 
+pub struct MacRuntime {
+    /// Modifiers held by a macro's `keydown` steps. Every posted event
+    /// carries them, so `keydown cmd` + `keypress c` sends ⌘C.
+    held: Mutex<CGEventFlags>,
+}
+
 impl MacRuntime {
-    pub fn new() -> Result<Self, String> {
-        Ok(Self)
+    pub fn new() -> Self {
+        Self {
+            held: Mutex::new(CGEventFlags::empty()),
+        }
     }
 
-    fn run_osascript(script: &str) -> Result<(), String> {
-        let output = Command::new("osascript")
-            .arg("-e")
-            .arg(script)
-            .output()
-            .map_err(|e| format!("Failed to execute osascript: {}", e))?;
+    fn held(&self) -> CGEventFlags {
+        *self.held.lock().unwrap_or_else(|p| p.into_inner())
+    }
 
-        if output.status.success() {
+    /// macOS drops synthetic key events from untrusted apps without an error,
+    /// so check first and say what to do.
+    fn require_accessibility() -> Result<(), String> {
+        if accessibility_trusted() {
             Ok(())
         } else {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            let trimmed = stderr.trim();
-            if trimmed.contains("Not authorized to send Apple events") {
-                return Err(
-                    "macOS blocked Macro Eleven from launching apps. Enable Macro Eleven under System Settings → Privacy & Security → Automation (System Events) and try again."
-                        .to_string(),
-                );
-            }
-            Err(format!("AppleScript error: {}", trimmed))
+            Err(ACCESSIBILITY_REQUIRED.to_string())
         }
     }
 
-    fn new_source() -> Result<CGEventSource, String> {
-        CGEventSource::new(CGEventSourceStateID::CombinedSessionState)
-            .map_err(|e| format!("Failed to create CGEventSource: {:?}", e))
+    fn post(keycode: CGKeyCode, down: bool, flags: CGEventFlags) -> Result<(), String> {
+        Self::post_with(keycode, down, flags, |_| {})
     }
 
-    fn dispatch_sequence(&self, sequence: &ShortcutSequence) -> Result<(), String> {
-        for chord in &sequence.chords {
-            self.send_chord(chord)?;
-            thread::sleep(Duration::from_millis(35));
-        }
+    fn post_with(
+        keycode: CGKeyCode,
+        down: bool,
+        flags: CGEventFlags,
+        configure: impl FnOnce(&CGEvent),
+    ) -> Result<(), String> {
+        let source = CGEventSource::new(CGEventSourceStateID::CombinedSessionState)
+            .map_err(|_| "Could not create a keyboard event source".to_string())?;
+        let event = CGEvent::new_keyboard_event(source, keycode, down)
+            .map_err(|_| "Could not create a keyboard event".to_string())?;
+        event.set_flags(flags);
+        configure(&event);
+        event.post(CGEventTapLocation::HID);
         Ok(())
+    }
+
+    fn key_flags(&self, mapping: KeyMapping, chord: CGEventFlags) -> CGEventFlags {
+        let mut flags = self.held() | chord;
+        if mapping.requires_shift {
+            flags.insert(CGEventFlags::CGEventFlagShift);
+        }
+        flags
     }
 
     fn send_chord(&self, chord: &KeyChord) -> Result<(), String> {
         let mapping = Self::mapping_for_primary(&chord.primary)?;
-        let source = Self::new_source()?;
-        let mut flags = CGEventFlags::empty();
-        for modifier in &chord.modifiers {
-            flags |= Self::flag_for_modifier(*modifier);
-        }
-        if mapping.requires_shift {
-            flags.insert(CGEventFlags::CGEventFlagShift);
-        }
-        Self::post_key_event(&source, mapping.keycode, true, flags)?;
-        Self::post_key_event(&source, mapping.keycode, false, flags)?;
-        Ok(())
+        let chord_flags = chord
+            .modifiers
+            .iter()
+            .fold(CGEventFlags::empty(), |flags, m| flags | Self::flag_for_modifier(*m));
+        let flags = self.key_flags(mapping, chord_flags);
+        Self::post(mapping.keycode, true, flags)?;
+        Self::post(mapping.keycode, false, flags)
     }
 
-    fn post_key_event(
-        source: &CGEventSource,
-        keycode: CGKeyCode,
-        key_down: bool,
-        flags: CGEventFlags,
-    ) -> Result<(), String> {
-        let event = CGEvent::new_keyboard_event(source.clone(), keycode, key_down)
-            .map_err(|_| "Failed to create keyboard event".to_string())?;
-        event.set_flags(flags);
-        event.post(CGEventTapLocation::HID);
-        Ok(())
+    fn post_key(&self, key: &PrimaryKey, down: bool) -> Result<(), String> {
+        Self::require_accessibility()?;
+        let mapping = Self::mapping_for_primary(key)?;
+        Self::post(mapping.keycode, down, self.key_flags(mapping, CGEventFlags::empty()))
     }
 
     fn mapping_for_primary(primary: &PrimaryKey) -> Result<KeyMapping, String> {
         match primary {
             PrimaryKey::Character(value) => {
-                if value.chars().count() != 1 {
-                    return Err("Shortcut keys must be a single character".to_string());
+                let mut chars = value.chars();
+                match (chars.next(), chars.next()) {
+                    (Some(ch), None) => Self::mapping_for_char(ch),
+                    _ => Err("Shortcut keys must be a single character".to_string()),
                 }
-                let ch = value.chars().next().unwrap();
-                Self::mapping_for_char(ch)
             }
             PrimaryKey::Special(special) => Self::mapping_for_special(*special),
         }
     }
 
     fn mapping_for_char(ch: char) -> Result<KeyMapping, String> {
-        fn entry(code: CGKeyCode) -> KeyMapping {
-            KeyMapping {
-                keycode: code,
-                requires_shift: false,
-            }
-        }
-
-        fn shifted(code: CGKeyCode) -> KeyMapping {
-            KeyMapping {
-                keycode: code,
-                requires_shift: true,
-            }
-        }
-
-        let mapping = match ch {
-            'a' | 'A' => KeyMapping {
-                keycode: 0,
-                requires_shift: ch.is_uppercase(),
-            },
-            'b' | 'B' => KeyMapping {
-                keycode: 11,
-                requires_shift: ch.is_uppercase(),
-            },
-            'c' | 'C' => KeyMapping {
-                keycode: 8,
-                requires_shift: ch.is_uppercase(),
-            },
-            'd' | 'D' => KeyMapping {
-                keycode: 2,
-                requires_shift: ch.is_uppercase(),
-            },
-            'e' | 'E' => KeyMapping {
-                keycode: 14,
-                requires_shift: ch.is_uppercase(),
-            },
-            'f' | 'F' => KeyMapping {
-                keycode: 3,
-                requires_shift: ch.is_uppercase(),
-            },
-            'g' | 'G' => KeyMapping {
-                keycode: 5,
-                requires_shift: ch.is_uppercase(),
-            },
-            'h' | 'H' => KeyMapping {
-                keycode: 4,
-                requires_shift: ch.is_uppercase(),
-            },
-            'i' | 'I' => KeyMapping {
-                keycode: 34,
-                requires_shift: ch.is_uppercase(),
-            },
-            'j' | 'J' => KeyMapping {
-                keycode: 38,
-                requires_shift: ch.is_uppercase(),
-            },
-            'k' | 'K' => KeyMapping {
-                keycode: 40,
-                requires_shift: ch.is_uppercase(),
-            },
-            'l' | 'L' => KeyMapping {
-                keycode: 37,
-                requires_shift: ch.is_uppercase(),
-            },
-            'm' | 'M' => KeyMapping {
-                keycode: 46,
-                requires_shift: ch.is_uppercase(),
-            },
-            'n' | 'N' => KeyMapping {
-                keycode: 45,
-                requires_shift: ch.is_uppercase(),
-            },
-            'o' | 'O' => KeyMapping {
-                keycode: 31,
-                requires_shift: ch.is_uppercase(),
-            },
-            'p' | 'P' => KeyMapping {
-                keycode: 35,
-                requires_shift: ch.is_uppercase(),
-            },
-            'q' | 'Q' => KeyMapping {
-                keycode: 12,
-                requires_shift: ch.is_uppercase(),
-            },
-            'r' | 'R' => KeyMapping {
-                keycode: 15,
-                requires_shift: ch.is_uppercase(),
-            },
-            's' | 'S' => KeyMapping {
-                keycode: 1,
-                requires_shift: ch.is_uppercase(),
-            },
-            't' | 'T' => KeyMapping {
-                keycode: 17,
-                requires_shift: ch.is_uppercase(),
-            },
-            'u' | 'U' => KeyMapping {
-                keycode: 32,
-                requires_shift: ch.is_uppercase(),
-            },
-            'v' | 'V' => KeyMapping {
-                keycode: 9,
-                requires_shift: ch.is_uppercase(),
-            },
-            'w' | 'W' => KeyMapping {
-                keycode: 13,
-                requires_shift: ch.is_uppercase(),
-            },
-            'x' | 'X' => KeyMapping {
-                keycode: 7,
-                requires_shift: ch.is_uppercase(),
-            },
-            'y' | 'Y' => KeyMapping {
-                keycode: 16,
-                requires_shift: ch.is_uppercase(),
-            },
-            'z' | 'Z' => KeyMapping {
-                keycode: 6,
-                requires_shift: ch.is_uppercase(),
-            },
-            '1' => entry(18),
-            '2' => entry(19),
-            '3' => entry(20),
-            '4' => entry(21),
-            '5' => entry(23),
-            '6' => entry(22),
-            '7' => entry(26),
-            '8' => entry(28),
-            '9' => entry(25),
-            '0' => entry(29),
-            '!' => shifted(18),
-            '@' => shifted(19),
-            '#' => shifted(20),
-            '$' => shifted(21),
-            '%' => shifted(23),
-            '^' => shifted(22),
-            '&' => shifted(26),
-            '*' => shifted(28),
-            '(' => shifted(25),
-            ')' => shifted(29),
-            '-' => entry(27),
-            '_' => shifted(27),
-            '=' => entry(24),
-            '+' => shifted(24),
-            '[' => entry(33),
-            '{' => shifted(33),
-            ']' => entry(30),
-            '}' => shifted(30),
-            '\\' => entry(42),
-            '|' => shifted(42),
-            ';' => entry(41),
-            ':' => shifted(41),
-            '\'' => entry(39),
-            '"' => shifted(39),
-            ',' => entry(43),
-            '<' => shifted(43),
-            '.' => entry(47),
-            '>' => shifted(47),
-            '/' => entry(44),
-            '?' => shifted(44),
-            '`' => entry(50),
-            '~' => shifted(50),
-            ' ' => entry(49),
-            '\n' => entry(36),
-            '\t' => entry(48),
-            _ => {
-                return Err(format!(
-                    "Unsupported character '{}' in shortcut or text",
-                    ch
-                ))
-            }
-        };
-        Ok(mapping)
+        CHARACTER_KEYS
+            .iter()
+            .find(|(plain, shifted, _)| *plain == ch || *shifted == ch)
+            .map(|&(_, shifted, keycode)| KeyMapping {
+                keycode,
+                requires_shift: ch == shifted,
+            })
+            .ok_or_else(|| format!("Unsupported key '{ch}' in shortcut"))
     }
 
     fn mapping_for_special(key: SpecialKey) -> Result<KeyMapping, String> {
@@ -289,23 +185,10 @@ impl MacRuntime {
             SpecialKey::End => 119,
             SpecialKey::PageUp => 116,
             SpecialKey::PageDown => 121,
-            SpecialKey::Function(n) => match n {
-                1 => 122,
-                2 => 120,
-                3 => 99,
-                4 => 118,
-                5 => 96,
-                6 => 97,
-                7 => 98,
-                8 => 100,
-                9 => 101,
-                10 => 109,
-                11 => 103,
-                12 => 111,
-                _ => {
-                    return Err(format!("Unsupported function key: F{}", n));
-                }
-            },
+            SpecialKey::Function(n) => *n
+                .checked_sub(1)
+                .and_then(|i| FUNCTION_KEYS.get(usize::from(i)))
+                .ok_or_else(|| format!("Unsupported function key: F{n}"))?,
         };
         Ok(KeyMapping {
             keycode,
@@ -317,7 +200,7 @@ impl MacRuntime {
         match modifier {
             ModifierKey::Command => CGEventFlags::CGEventFlagCommand,
             ModifierKey::Control => CGEventFlags::CGEventFlagControl,
-            ModifierKey::Alt | ModifierKey::Option => CGEventFlags::CGEventFlagAlternate,
+            ModifierKey::Option => CGEventFlags::CGEventFlagAlternate,
             ModifierKey::Shift => CGEventFlags::CGEventFlagShift,
         }
     }
@@ -326,63 +209,109 @@ impl MacRuntime {
         match modifier {
             ModifierKey::Command => 55,
             ModifierKey::Control => 59,
-            ModifierKey::Alt | ModifierKey::Option => 58,
+            ModifierKey::Option => 58,
             ModifierKey::Shift => 56,
         }
+    }
+
+    fn set_modifier(&self, modifier: ModifierKey, down: bool) -> Result<(), String> {
+        Self::require_accessibility()?;
+        let flags = {
+            let mut held = self.held.lock().unwrap_or_else(|p| p.into_inner());
+            held.set(Self::flag_for_modifier(modifier), down);
+            *held
+        };
+        Self::post(Self::modifier_keycode(modifier), down, flags)
+    }
+
+    fn open(args: &[&str]) -> bool {
+        Command::new("open")
+            .args(args)
+            .output()
+            .is_ok_and(|output| output.status.success())
     }
 }
 
 impl PlatformRuntime for MacRuntime {
-    fn launch_app(&self, app: &str, focus_if_running: bool) -> Result<(), String> {
-        let script = if focus_if_running {
-            format!(r#"tell application "{}" to activate"#, app.replace('"', "\\\""))
+    fn launch_app(&self, name: &str, bundle_id: Option<&str>, focus: bool) -> Result<(), String> {
+        // `open` needs no Automation permission, unlike AppleScript. `-g`
+        // opens the app without bringing it to the front.
+        let background: &[&str] = if focus { &[] } else { &["-g"] };
+        let opened = bundle_id.is_some_and(|id| Self::open(&[background, &["-b", id]].concat()))
+            || Self::open(&[background, &["-a", name]].concat());
+        if opened {
+            Ok(())
         } else {
-            format!(r#"tell application "{}" to launch"#, app.replace('"', "\\\""))
-        };
-        Self::run_osascript(&script)
+            Err(format!("Could not open {name}. Check that it is installed."))
+        }
     }
 
     fn send_shortcut(&self, sequence: &ShortcutSequence) -> Result<(), String> {
-        self.dispatch_sequence(sequence)
+        Self::require_accessibility()?;
+        for (i, chord) in sequence.chords.iter().enumerate() {
+            if i > 0 {
+                thread::sleep(CHORD_GAP);
+            }
+            self.send_chord(chord)?;
+        }
+        Ok(())
     }
 
+    /// Types each character as a Unicode string event, so text does not
+    /// depend on the keyboard layout and non-ASCII characters work.
     fn type_text(&self, text: &str) -> Result<(), String> {
+        Self::require_accessibility()?;
+        let flags = self.held();
+        let mut buf = [0u8; 4];
         for ch in text.chars() {
-            let mapping = Self::mapping_for_char(ch)?;
-            let source = Self::new_source()?;
-            let mut flags = CGEventFlags::empty();
-            if mapping.requires_shift {
-                flags.insert(CGEventFlags::CGEventFlagShift);
+            let s: &str = ch.encode_utf8(&mut buf);
+            for down in [true, false] {
+                Self::post_with(0, down, flags, |event| event.set_string(s))?;
             }
-            Self::post_key_event(&source, mapping.keycode, true, flags)?;
-            Self::post_key_event(&source, mapping.keycode, false, flags)?;
         }
         Ok(())
     }
 
     fn key_press(&self, key: &PrimaryKey) -> Result<(), String> {
-        let mapping = Self::mapping_for_primary(key)?;
-        let source = Self::new_source()?;
-        let mut flags = CGEventFlags::empty();
-        if mapping.requires_shift {
-            flags.insert(CGEventFlags::CGEventFlagShift);
-        }
-        Self::post_key_event(&source, mapping.keycode, true, flags)?;
-        Self::post_key_event(&source, mapping.keycode, false, flags)?;
-        Ok(())
+        self.post_key(key, true)?;
+        self.post_key(key, false)
+    }
+
+    fn key_down(&self, key: &PrimaryKey) -> Result<(), String> {
+        self.post_key(key, true)
+    }
+
+    fn key_up(&self, key: &PrimaryKey) -> Result<(), String> {
+        self.post_key(key, false)
     }
 
     fn modifier_down(&self, modifier: ModifierKey) -> Result<(), String> {
-        let source = Self::new_source()?;
-        let flags = Self::flag_for_modifier(modifier);
-        let keycode = Self::modifier_keycode(modifier);
-        Self::post_key_event(&source, keycode, true, flags)
+        self.set_modifier(modifier, true)
     }
 
     fn modifier_up(&self, modifier: ModifierKey) -> Result<(), String> {
-        let source = Self::new_source()?;
-        let flags = Self::flag_for_modifier(modifier);
-        let keycode = Self::modifier_keycode(modifier);
-        Self::post_key_event(&source, keycode, false, flags)
+        self.set_modifier(modifier, false)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::tokens;
+
+    #[test]
+    fn maps_every_shared_key_token() {
+        for name in tokens::table().key_names() {
+            let key = PrimaryKey::from_token(name).unwrap();
+            assert!(MacRuntime::mapping_for_primary(&key).is_ok(), "no keycode for {name}");
+        }
+    }
+
+    #[test]
+    fn shifted_characters_add_shift() {
+        let plus = MacRuntime::mapping_for_char('+').unwrap();
+        assert_eq!(plus.keycode, 24);
+        assert!(plus.requires_shift);
+        assert!(!MacRuntime::mapping_for_char('=').unwrap().requires_shift);
     }
 }

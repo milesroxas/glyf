@@ -6,10 +6,9 @@ use std::thread;
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter};
 
-use super::keymap_engine::KeymapEngine;
 use super::protocol::{
     build_info_request, build_state_request, build_test_mode_command, parse_info_response,
-    parse_state_response, FirmwareInfo, RAW_HID_REPORT_SIZE,
+    parse_state_response, FirmwareInfo, KEY_COUNT, RAW_HID_REPORT_SIZE,
 };
 
 const VID: u16 = 0x4653;
@@ -23,10 +22,15 @@ const RELEASE_TIMEOUT: Duration = Duration::from_secs(3);
 const INFO_READ_ATTEMPTS: usize = 3;
 const INFO_READ_TIMEOUT_MS: i32 = 100;
 
+/// Receives every key-state report (the keymap engine).
+pub trait KeyStateSink: Send + Sync {
+    /// `host_control`: the host runs actions; the firmware's keycodes are off.
+    fn process_keys(&self, keys: &[bool; KEY_COUNT], host_control: bool);
+}
+
 pub struct HidConnection {
     running: Arc<AtomicBool>,
     device: Arc<Mutex<Option<HidDevice>>>,
-    keymap_engine: Arc<Mutex<Option<Arc<KeymapEngine>>>>,
     desired_test_mode: Arc<AtomicBool>,
     firmware_info: Arc<Mutex<Option<FirmwareInfo>>>,
     /// Set while a firmware update owns the device.
@@ -63,12 +67,17 @@ impl Drop for PollSuspension {
     }
 }
 
+impl Default for HidConnection {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HidConnection {
     pub fn new() -> Self {
         Self {
             running: Arc::new(AtomicBool::new(false)),
             device: Arc::new(Mutex::new(None)),
-            keymap_engine: Arc::new(Mutex::new(None)),
             desired_test_mode: Arc::new(AtomicBool::new(true)),
             firmware_info: Arc::new(Mutex::new(None)),
             paused: Arc::new(AtomicBool::new(false)),
@@ -90,7 +99,12 @@ impl HidConnection {
         result
     }
 
-    pub fn start(&self, app: AppHandle) {
+    /// Whether the host runs actions (the firmware's own keycodes are off).
+    pub fn host_control(&self) -> bool {
+        self.desired_test_mode.load(Ordering::SeqCst)
+    }
+
+    pub fn start(&self, app: AppHandle, engine: Arc<dyn KeyStateSink>) {
         if self.running.load(Ordering::SeqCst) {
             return;
         }
@@ -98,7 +112,6 @@ impl HidConnection {
         self.parked.store(false, Ordering::SeqCst);
         let running = self.running.clone();
         let device = self.device.clone();
-        let keymap_engine = self.keymap_engine.clone();
         let desired_test_mode = self.desired_test_mode.clone();
         let firmware_info = self.firmware_info.clone();
         let paused = self.paused.clone();
@@ -109,7 +122,7 @@ impl HidConnection {
                 app,
                 running,
                 device,
-                keymap_engine,
+                engine,
                 desired_test_mode,
                 firmware_info,
                 paused,
@@ -147,28 +160,12 @@ impl HidConnection {
         app: AppHandle,
         running: Arc<AtomicBool>,
         shared_device: Arc<Mutex<Option<HidDevice>>>,
-        shared_engine: Arc<Mutex<Option<Arc<KeymapEngine>>>>,
+        engine: Arc<dyn KeyStateSink>,
         desired_test_mode: Arc<AtomicBool>,
         firmware_info: Arc<Mutex<Option<FirmwareInfo>>>,
         paused: Arc<AtomicBool>,
         parked: Arc<AtomicBool>,
     ) {
-        // Initialize keymap engine
-        let keymap_engine = match KeymapEngine::new(app.clone()) {
-            Ok(engine) => {
-                let engine = Arc::new(engine);
-                {
-                    let mut guard = shared_engine.lock().unwrap();
-                    *guard = Some(engine.clone());
-                }
-                Some(engine)
-            }
-            Err(e) => {
-                eprintln!("Failed to initialize keymap engine: {}", e);
-                None
-            }
-        };
-
         // Last status sent to the frontend; windows ask for the current
         // status on mount, so only changes need an event
         let mut announced = None;
@@ -226,6 +223,8 @@ impl HidConnection {
 
             // Poll loop
             let request = build_state_request();
+            let mut last_report = None;
+            let mut last_pot = None;
             while running.load(Ordering::SeqCst) && !paused.load(Ordering::SeqCst) {
                 let write_result = {
                     let dev_lock = shared_device.lock().unwrap();
@@ -253,33 +252,24 @@ impl HidConnection {
                 match read_result {
                     Ok(n) if n > 0 => {
                         if let Some(state) = parse_state_response(&buf) {
-                            let key_state = state.keys;
-                            let layer = state.layer;
-                            let pot_value = state.pot_value;
-
-                            // Emit legacy events before running host-side actions so UI feedback stays responsive
-                            let key_snapshot: Vec<bool> = key_state.to_vec();
-                            let _ = app.emit(
-                                "macro11:key-event",
-                                serde_json::json!({
-                                    "keys": key_snapshot,
-                                    "layer": layer
-                                }),
-                            );
-
-                            let _ = app.emit(
-                                "macro11:pot-value",
-                                serde_json::json!({
-                                    "value": pot_value,
-                                    "layer": layer
-                                }),
-                            );
-
-                            // Process keys through keymap engine if available
-                            if let Some(engine) = &keymap_engine {
-                                let host_actions_enabled = desired_test_mode.load(Ordering::SeqCst);
-                                engine.process_key_state(&key_state, layer, host_actions_enabled);
+                            // Only changes go to the UI; the pad reports at ~60 Hz
+                            let report = (state.keys, state.layer);
+                            if last_report != Some(report) {
+                                last_report = Some(report);
+                                let _ = app.emit(
+                                    "macro11:key-event",
+                                    json!({ "keys": state.keys, "layer": state.layer }),
+                                );
                             }
+                            if last_pot != Some((state.pot_value, state.layer)) {
+                                last_pot = Some((state.pot_value, state.layer));
+                                let _ = app.emit(
+                                    "macro11:pot-value",
+                                    json!({ "value": state.pot_value, "layer": state.layer }),
+                                );
+                            }
+                            let host_actions_enabled = desired_test_mode.load(Ordering::SeqCst);
+                            engine.process_keys(&state.keys, host_actions_enabled);
                         }
                     }
                     Ok(_) => {}      // timeout, no data
@@ -289,7 +279,9 @@ impl HidConnection {
                 thread::sleep(POLL_INTERVAL);
             }
 
-            // Device disconnected (or released for a firmware update)
+            // Device disconnected (or released for a firmware update):
+            // release any key that was down so nothing looks held
+            engine.process_keys(&[false; KEY_COUNT], false);
             {
                 let mut dev_lock = shared_device.lock().unwrap();
                 *dev_lock = None;
@@ -302,19 +294,6 @@ impl HidConnection {
         }
 
         parked.store(true, Ordering::SeqCst);
-
-        // Clear shared engine when loop exits
-        let mut guard = shared_engine.lock().unwrap();
-        *guard = None;
-    }
-
-    pub fn reload_keymap(&self) -> Result<(), String> {
-        let guard = self.keymap_engine.lock().map_err(|e| e.to_string())?;
-        if let Some(engine) = guard.as_ref() {
-            engine.reload_keymap()
-        } else {
-            Err("Keymap engine not initialized. Connect the device first.".to_string())
-        }
     }
 
     fn apply_test_mode(device: &HidDevice, enable: bool) -> Result<(), String> {

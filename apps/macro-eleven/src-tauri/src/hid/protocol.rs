@@ -3,6 +3,8 @@ use serde::Serialize;
 use crate::firmware::version::Version;
 
 pub const RAW_HID_REPORT_SIZE: usize = 32;
+/// Keys in the state report's bitmask (see the device layout).
+pub const KEY_COUNT: usize = 11;
 pub const RAW_HID_WRITE_SIZE: usize = 33; // macOS hidapi needs report ID prefix
 pub const CMD_REPORT_STATE: u8 = 0x01;
 pub const CMD_SET_TEST_MODE: u8 = 0x02;
@@ -20,7 +22,7 @@ pub struct FirmwareInfo {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct DeviceState {
-    pub keys: [bool; 11],
+    pub keys: [bool; KEY_COUNT],
     pub pot_value: u16,
     pub layer: u8,
     pub test_mode: bool,
@@ -51,7 +53,7 @@ pub fn parse_state_response(buf: &[u8; RAW_HID_REPORT_SIZE]) -> Option<DeviceSta
     }
 
     let key_bits = (buf[1] as u16) | ((buf[2] as u16) << 8);
-    let mut keys = [false; 11];
+    let mut keys = [false; KEY_COUNT];
     for (i, key) in keys.iter_mut().enumerate() {
         *key = (key_bits >> i) & 1 == 1;
     }

@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "name": "Fixture",
+  "layers": {
+    "0": {
+      "name": "Base",
+      "keys": {
+        "1,1": {
+          "action": "shortcut",
+          "keys": ["cmd", "shift", "t"],
+          "label": "Reopen",
+          "color": "teal"
+        }
+      },
+      "accent": "blue"
+    }
+  },
+  "futureField": {
+    "nested": true
+  }
+}

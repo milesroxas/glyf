@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "name": "Fixture",
+  "layers": {
+    "0": {
+      "name": "Base",
+      "keys": {
+        "0,0": {
+          "action": "switch_layer",
+          "layer": 3
+        }
+      }
+    }
+  }
+}

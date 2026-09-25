@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "name": "Fixture",
+  "layers": {
+    "0": {
+      "name": "Base",
+      "keys": {}
+    }
+  },
+  "settings": {
+    "defaultLayer": 2
+  }
+}

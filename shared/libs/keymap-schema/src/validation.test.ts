@@ -1,60 +1,52 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { Keymap } from "./types";
-import {
-  formatMatrixPosition,
-  isValidAction,
-  isValidMatrixPosition,
-  KeymapValidationError,
-  parseMatrixPosition,
-  validateKeymap,
-} from "./validation";
+import { MACRO_ELEVEN_DEFAULT_KEYMAP } from "./defaults";
+import { assertKeymap, KeymapValidationError } from "./validation";
 
-const minimalValidKeymap = (): Keymap => ({
-  version: "1",
-  name: "test",
-  layers: {
-    0: {
-      name: "base",
-      keys: {
-        "0,0": { action: "noop" },
-      },
-    },
-  },
-});
+/** Shared with the Rust host's validation tests. */
+const FIXTURES = join(import.meta.dirname, "..", "fixtures");
 
-describe("keymap validation", () => {
-  it("accepts a minimal valid keymap", () => {
-    expect(validateKeymap(minimalValidKeymap())).toBe(true);
+function fixtures(kind: "valid" | "invalid") {
+  const dir = join(FIXTURES, kind);
+  return readdirSync(dir)
+    .filter((file) => file.endsWith(".json"))
+    .map((file) => [
+      file,
+      JSON.parse(readFileSync(join(dir, file), "utf8")) as unknown,
+    ]);
+}
+
+describe("assertKeymap", () => {
+  it("accepts the bundled default keymap", () => {
+    expect(() => assertKeymap(MACRO_ELEVEN_DEFAULT_KEYMAP)).not.toThrow();
+  });
+
+  it.each(fixtures("valid"))("accepts %s", (_file, keymap) => {
+    expect(() => assertKeymap(keymap)).not.toThrow();
+  });
+
+  it.each(fixtures("invalid"))("rejects %s", (_file, keymap) => {
+    expect(() => assertKeymap(keymap)).toThrow(KeymapValidationError);
   });
 
   it("rejects non-objects", () => {
-    expect(() => validateKeymap(null)).toThrow(KeymapValidationError);
-    expect(() => validateKeymap(undefined)).toThrow(KeymapValidationError);
+    expect(() => assertKeymap(null)).toThrow(KeymapValidationError);
+    expect(() => assertKeymap([])).toThrow(KeymapValidationError);
   });
 
-  it("validates matrix position format", () => {
-    expect(isValidMatrixPosition("1,2")).toBe(true);
-    expect(isValidMatrixPosition("bad")).toBe(false);
-  });
-
-  it("parses and formats matrix positions", () => {
-    expect(parseMatrixPosition("2,3")).toEqual({ row: 2, col: 3 });
-    expect(formatMatrixPosition(4, 5)).toBe("4,5");
-  });
-
-  it("validates known action shapes", () => {
-    expect(isValidAction({ action: "noop" })).toBe(true);
-    expect(isValidAction({ action: "switch_layer", layer: 1 })).toBe(true);
-    expect(isValidAction({ action: "launch_app", app: "Notes" })).toBe(true);
-    expect(isValidAction({ action: "shortcut", keys: ["a"] })).toBe(true);
-    expect(isValidAction({ action: "macro", sequence: [] })).toBe(true);
-    expect(
-      isValidAction({
-        action: "plugin",
-        pluginId: "p",
-        actionId: "a",
+  it("names the key and layer in the message", () => {
+    expect(() =>
+      assertKeymap({
+        version: "1",
+        name: "x",
+        layers: {
+          0: {
+            name: "Base",
+            keys: { "0,0": { action: "switch_layer", layer: 4 } },
+          },
+        },
       }),
-    ).toBe(true);
-    expect(isValidAction({ action: "unknown" })).toBe(false);
+    ).toThrow("Key 0,0 on layer 0 switches to layer 4, which does not exist");
   });
 });

@@ -1,10 +1,15 @@
 /**
  * @glyf/keymap-schema
  *
- * Shared keymap schema for all macropad projects in the monorepo.
- * Single source of truth for keymap structure, validation, and defaults.
+ * Single source of truth for the macropad keymap format: types, the shortcut
+ * token vocabulary, device layouts, the default keymap, pure edit operations,
+ * and validation.
  */
 
 export * from "./defaults";
+export * from "./device";
+export * from "./edit";
+export * from "./position";
+export * from "./shortcut";
 export * from "./types";
 export * from "./validation";

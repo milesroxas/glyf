@@ -1,0 +1,68 @@
+{
+  "version": "1.0.0",
+  "name": "Fixture",
+  "layers": {
+    "0": {
+      "name": "Base",
+      "keys": {
+        "0,0": {
+          "action": "launch_app",
+          "app": "Notes",
+          "bundleId": "com.apple.Notes",
+          "focusIfRunning": false,
+          "icon": "notebook"
+        },
+        "0,1": {
+          "action": "shortcut",
+          "keys": ["cmd", "k", "cmd", "s"]
+        },
+        "0,2": {
+          "action": "macro",
+          "sequence": [
+            {
+              "type": "shortcut",
+              "keys": ["cmd", "l"]
+            },
+            {
+              "type": "wait",
+              "ms": 100
+            },
+            {
+              "type": "text",
+              "text": "github.com"
+            },
+            {
+              "type": "keypress",
+              "key": "enter"
+            },
+            {
+              "type": "keydown",
+              "key": "shift"
+            },
+            {
+              "type": "keyup",
+              "key": "shift"
+            }
+          ]
+        },
+        "1,0": {
+          "action": "plugin",
+          "pluginId": "spotify",
+          "actionId": "play"
+        },
+        "1,1": {
+          "action": "noop",
+          "label": "Spacer"
+        },
+        "1,2": {
+          "action": "shortcut",
+          "keys": ["option", "f12"]
+        },
+        "1,3": {
+          "action": "shortcut",
+          "keys": ["ctrl", "alt", "delete"]
+        }
+      }
+    }
+  }
+}
