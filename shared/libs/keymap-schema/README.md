@@ -60,7 +60,7 @@ formatShortcut(["cmd", "k", "cmd", "s"]); // ["⌘K", "⌘S"]
 ```
 
 - Layer IDs are whole numbers 0–255, and layer 0 must exist.
-- Keys are `"row,col"` positions the device has.
+- Keys are `"row,col"` positions inside the device's matrix. A cell without a switch (Macro Eleven's `0,3`) is allowed; its key never fires.
 - A shortcut's `keys` are modifiers followed by one key; several chords make a sequence (`["cmd", "k", "cmd", "s"]` is ⌘K then ⌘S).
 - `triggerApp` is a bundle ID or an app name. The host uses the lowest layer whose trigger matches the front app.
 - Action types: `launch_app`, `shortcut`, `macro` (steps `shortcut`, `text`, `wait`, `keydown`, `keyup`, `keypress`), `switch_layer`, `cycle_layer`, `noop`, and `plugin` (reserved).

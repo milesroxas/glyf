@@ -10,8 +10,15 @@ const MACRO_ELEVEN_JSON: &str =
     include_str!("../../../../../shared/libs/keymap-schema/src/macro-eleven.device.json");
 
 #[derive(Debug, Deserialize)]
+struct Matrix {
+    rows: u8,
+    cols: u8,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct DeviceLayout {
     pub name: String,
+    matrix: Matrix,
     /// Every physical key as `[row, col]`, in firmware bit order.
     keys: Vec<(u8, u8)>,
 }
@@ -32,8 +39,15 @@ impl DeviceLayout {
             .map(|&(row, col)| MatrixPosition::new(row, col))
     }
 
-    pub fn contains(&self, pos: MatrixPosition) -> bool {
-        self.keys.contains(&(pos.row, pos.col))
+    /// Inside the matrix. Cells without a switch (Macro Eleven's [0,3])
+    /// count: a key there never fires, but older keymaps that set one load.
+    pub fn in_matrix(&self, pos: MatrixPosition) -> bool {
+        pos.row < self.matrix.rows && pos.col < self.matrix.cols
+    }
+
+    /// "3 × 4", for messages.
+    pub fn matrix_size(&self) -> String {
+        format!("{} × {}", self.matrix.rows, self.matrix.cols)
     }
 }
 
@@ -50,6 +64,7 @@ mod tests {
         assert_eq!(layout.position(0), Some(MatrixPosition::new(0, 0)));
         assert_eq!(layout.position(3), Some(MatrixPosition::new(1, 0)));
         assert_eq!(layout.position(10), Some(MatrixPosition::new(2, 3)));
-        assert!(!layout.contains(MatrixPosition::new(0, 3)));
+        assert!(layout.in_matrix(MatrixPosition::new(0, 3)), "the knob cell");
+        assert!(!layout.in_matrix(MatrixPosition::new(3, 0)));
     }
 }

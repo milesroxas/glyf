@@ -3,7 +3,7 @@
  * a keymap (`Keymap::validate` in the Rust app); `fixtures/` holds the cases
  * both test suites run.
  */
-import { isDeviceKey, MACRO_ELEVEN } from "./device";
+import { isInMatrix, MACRO_ELEVEN } from "./device";
 import { isValidMatrixPosition, parseMatrixPosition } from "./position";
 import { isKnownToken, isValidShortcutKeys } from "./shortcut";
 import type { DeviceDescriptor, Keymap } from "./types";
@@ -176,10 +176,11 @@ function assertLayer(
   for (const [pos, action] of Object.entries(keys as Json)) {
     if (
       !isValidMatrixPosition(pos) ||
-      !isDeviceKey(device, parseMatrixPosition(pos))
+      !isInMatrix(device, parseMatrixPosition(pos))
     ) {
+      const { rows, cols } = device.matrix;
       fail(
-        `Layer ${id} has a key at ${pos}, which ${device.name} does not have`,
+        `Layer ${id} has a key at ${pos}, outside ${device.name}'s ${rows} × ${cols} matrix`,
       );
     }
     const problem = actionProblem(action, ids);

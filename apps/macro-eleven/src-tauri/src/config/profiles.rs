@@ -318,6 +318,10 @@ impl ProfileStore {
 
     /// Move the pre-profiles `user-custom.json` into a profile, once: only
     /// when the profiles folder does not exist yet. Returns whether it did.
+    ///
+    /// A keymap that no longer passes validation is still copied, as is, but
+    /// not made active: nothing is lost, and opening the profile names the
+    /// problem so it can be fixed.
     pub fn migrate_legacy(&self, legacy_dir: &Path) -> Result<bool, String> {
         let _guard = self.guard();
         let dir = self.profiles_dir();
@@ -330,11 +334,18 @@ impl ProfileStore {
         let Ok(json) = fs::read_to_string(&legacy) else {
             return Ok(false);
         };
-        let mut keymap = Keymap::parse(&json, macro_eleven())
-            .map_err(|e| format!("Could not migrate {}: {e}", legacy.display()))?;
-        keymap.name = MIGRATED_PROFILE.to_owned();
-        write_json_atomic(&self.path(MIGRATED_PROFILE), &keymap)?;
-        self.write_active(MIGRATED_PROFILE)?;
+        let target = self.path(MIGRATED_PROFILE);
+        match Keymap::parse(&json, macro_eleven()) {
+            Ok(mut keymap) => {
+                keymap.name = MIGRATED_PROFILE.to_owned();
+                write_json_atomic(&target, &keymap)?;
+                self.write_active(MIGRATED_PROFILE)?;
+            }
+            Err(e) => {
+                write_atomic(&target, json.as_bytes())?;
+                eprintln!("Copied {} without activating it: {e}", legacy.display());
+            }
+        }
         Ok(true)
     }
 }
@@ -471,6 +482,22 @@ mod tests {
         store.delete(MIGRATED_PROFILE).unwrap();
         assert!(!store.migrate_legacy(&legacy).unwrap(), "runs only once");
         assert_eq!(names(&store), ["Default"]);
+    }
+
+    #[test]
+    fn keeps_a_legacy_keymap_that_no_longer_validates() {
+        let (dir, store) = store();
+        let legacy = dir.path().join("legacy");
+        fs::create_dir_all(&legacy).unwrap();
+        let json = r#"{ "version": "1", "name": "Old", "layers": { "0": { "name": "Base", "keys": { "0,0": { "action": "shortcut", "keys": ["fn", "f"] } } } } }"#;
+        fs::write(legacy.join("user-custom.json"), json).unwrap();
+
+        assert!(store.migrate_legacy(&legacy).unwrap());
+        assert_eq!(fs::read_to_string(store.path(MIGRATED_PROFILE)).unwrap(), json);
+        assert_eq!(store.active(), DEFAULT_PROFILE, "not activated");
+        assert_eq!(names(&store), ["Default", MIGRATED_PROFILE]);
+        let error = store.get(MIGRATED_PROFILE).unwrap_err();
+        assert!(error.contains("invalid shortcut"), "{error}");
     }
 
     #[test]

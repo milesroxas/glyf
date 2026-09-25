@@ -280,10 +280,11 @@ impl Keymap {
                 return Err(format!("Layer {id} has an empty trigger app"));
             }
             for (pos, action) in &layer.keys {
-                if !MatrixPosition::from_key(pos).is_some_and(|p| device.contains(p)) {
+                if !MatrixPosition::from_key(pos).is_some_and(|p| device.in_matrix(p)) {
                     return Err(format!(
-                        "Layer {id} has a key at {pos}, which {} does not have",
-                        device.name
+                        "Layer {id} has a key at {pos}, outside {}'s {} matrix",
+                        device.name,
+                        device.matrix_size()
                     ));
                 }
                 if let Some(problem) = action.problem(self) {

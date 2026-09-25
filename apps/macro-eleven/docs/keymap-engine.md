@@ -43,7 +43,7 @@ A profile is one keymap, in the [`@glyf/keymap-schema`](../../../shared/libs/key
 - **Default** is the bundled keymap. It is read-only and never written to disk. Editing it offers to duplicate it first.
 - Saves are atomic (write a temporary file, then rename), validated, and keep fields the app does not know.
 - Saving or switching the active profile swaps the engine's keymap at once and emits `macro11:keymap-changed`.
-- On first launch, a keymap from the old location (`~/.config/macro-eleven/keymaps/user-custom.json`) becomes the profile "My keymap".
+- On first launch, a keymap from the old location (`~/.config/macro-eleven/keymaps/user-custom.json`) becomes the active profile "My keymap". If it no longer passes validation, it is copied unchanged and left inactive; switching to it names the problem.
 - Profile names use letters, numbers, spaces, `-` and `_` (1–48 characters).
 
 ## Layer selection

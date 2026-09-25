@@ -9,9 +9,14 @@ export function deviceKeys(device: DeviceDescriptor): MatrixPosition[] {
   return device.keys.map(([row, col]) => ({ row, col }));
 }
 
-export function isDeviceKey(
-  device: DeviceDescriptor,
+/**
+ * Whether a position is inside the device's matrix. Cells without a switch
+ * (Macro Eleven's [0,3]) are inside: a key there never fires, but keeping it
+ * is harmless, so older keymaps that set one still load.
+ */
+export function isInMatrix(
+  { matrix }: DeviceDescriptor,
   { row, col }: MatrixPosition,
 ): boolean {
-  return device.keys.some(([r, c]) => r === row && c === col);
+  return row < matrix.rows && col < matrix.cols;
 }
