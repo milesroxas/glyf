@@ -39,7 +39,7 @@ The physical layout is defined once in `key.ts` (`MATRIX_LAYOUT`) and shared via
 
 - **DRY** — Physical layout defined once (`MATRIX_LAYOUT`), rendered via `MacropadGrid`. Keycode-to-label mapping centralized in `keycode-labels.ts`.
 - **Full type safety** — All Tauri commands have typed wrappers in `shared/lib/tauri.ts`. Rust structs derive `Serialize`. No `any` types.
-- **Separation of concerns** — Hooks handle subscriptions (`useKeyEvents`, `usePotValue`, `useLayerData`), components handle rendering.
+- **Separation of concerns** — Hooks handle subscriptions (`useDeviceStatus`, `useKeyEvents`, `usePotValue`, `useLayerData`), components handle rendering.
 - **Minimal dependencies** — No state management library. React context + hooks suffice for device state.
 
 ## Rust Backend Structure
@@ -49,7 +49,7 @@ src-tauri/src/
 ├── lib.rs              # Tauri setup, command registration, HidConnection state
 ├── main.rs             # Desktop entry point
 ├── commands/
-│   ├── device.rs       # detect_device_cmd, connect_device, disconnect_device
+│   ├── device.rs       # detect_device_cmd, get_device_status
 │   └── layers.rs       # get_layer_data (parses keymap.c, default path hardcoded)
 ├── firmware/           # Device firmware updates (see "Firmware Updates")
 │   ├── bundle.rs       # Loads + checksums firmware/manifest.json and the bundled UF2
@@ -59,7 +59,7 @@ src-tauri/src/
 │   ├── uf2.rs          # UF2 parser -> 4 KB flash sectors
 │   └── version.rs      # major.minor.patch
 ├── hid/
-│   ├── connection.rs   # HidConnection: background polling thread at ~60Hz, auto-reconnect,
+│   ├── connection.rs   # HidConnection: polling thread at ~60Hz, started at launch, auto-reconnect,
 │   │                   # suspend() hands the device to the updater
 │   └── protocol.rs     # 32-byte message format, build_state_request / parse_state_response
 └── keymap/

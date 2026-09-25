@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { getKeyForDisplay } from "../../entities/layer";
 import { keycodeToLabel } from "../../shared/lib/keycode-labels";
-import { onDeviceStatus } from "../../shared/lib/tauri";
+import { useDeviceStatus } from "../../shared/lib/useDeviceStatus";
 import { useKeyEvents } from "../../shared/lib/useKeyEvents";
 import { useLayerData } from "../../shared/lib/useLayerData";
 import { usePotValue } from "../../shared/lib/usePotValue";
@@ -62,16 +62,7 @@ export function OverlayView() {
   const { keys, layer } = useKeyEvents();
   const { layers, loading, error } = useLayerData();
   const { value: potValue } = usePotValue();
-  const [connected, setConnected] = useState(false);
-
-  useEffect(() => {
-    const unlisten = onDeviceStatus((event) => {
-      setConnected(event.connected);
-    });
-    return () => {
-      unlisten.then((fn) => fn());
-    };
-  }, []);
+  const connected = useDeviceStatus() === "connected";
 
   const currentLayer = layers.find((l) => l.index === layer) ?? layers[0];
 
@@ -95,7 +86,7 @@ export function OverlayView() {
               ? "bg-chart-2 ring-2 ring-chart-2/50"
               : "bg-muted-foreground",
           )}
-          title={connected ? "Connected" : "Disconnected"}
+          title={connected ? "Connected" : "Not connected"}
         />
       )}
     </div>
@@ -127,7 +118,7 @@ export function OverlayView() {
       <div className="flex flex-1 min-h-0 flex-col gap-2 px-5 py-3">
         {!connected && (
           <p className="text-xs text-muted-foreground shrink-0">
-            Connect device to see key feedback
+            Plug in Macro Eleven to see key feedback
           </p>
         )}
         <div className="flex flex-1 min-h-0">

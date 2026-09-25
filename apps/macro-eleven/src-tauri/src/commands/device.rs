@@ -8,20 +8,12 @@ pub fn detect_device_cmd() -> bool {
     detect_device()
 }
 
+/// Whether the app is connected to the device. The app connects on its own
+/// at launch and on replug; this gives windows the state on mount.
 #[tauri::command]
-pub fn connect_device(app: AppHandle, connection: State<'_, Mutex<HidConnection>>) -> bool {
+pub fn get_device_status(connection: State<'_, Mutex<HidConnection>>) -> bool {
     let conn = connection.lock().unwrap();
-    if conn.is_running() {
-        return true;
-    }
-    conn.start(app);
-    true
-}
-
-#[tauri::command]
-pub fn disconnect_device(connection: State<'_, Mutex<HidConnection>>) {
-    let conn = connection.lock().unwrap();
-    conn.stop();
+    conn.is_connected()
 }
 
 #[tauri::command]

@@ -118,14 +118,6 @@ impl HidConnection {
         });
     }
 
-    pub fn stop(&self) {
-        self.running.store(false, Ordering::SeqCst);
-    }
-
-    pub fn is_running(&self) -> bool {
-        self.running.load(Ordering::SeqCst)
-    }
-
     /// Firmware info of the device the poll thread is connected to.
     pub fn connected_firmware(&self) -> Option<Option<FirmwareInfo>> {
         // Holding the device lock keeps the pair consistent: the poll thread
@@ -133,6 +125,10 @@ impl HidConnection {
         let device = self.device.lock().ok()?;
         device.as_ref()?;
         Some(self.firmware_info.lock().ok().and_then(|info| *info))
+    }
+
+    pub fn is_connected(&self) -> bool {
+        self.connected_firmware().is_some()
     }
 
     /// Ask the poll thread to release the device. Call `wait_for_release` on
@@ -173,6 +169,10 @@ impl HidConnection {
             }
         };
 
+        // Last status sent to the frontend; windows ask for the current
+        // status on mount, so only changes need an event
+        let mut announced = None;
+
         while running.load(Ordering::SeqCst) {
             // Stay off the device while a firmware update runs
             if paused.load(Ordering::SeqCst) {
@@ -194,10 +194,7 @@ impl HidConnection {
             let hid_device = match open_device(&api) {
                 Some(d) => d,
                 None => {
-                    let _ = app.emit(
-                        "macro11:device-status",
-                        serde_json::json!({ "connected": false }),
-                    );
+                    announce_status(&app, &mut announced, false);
                     thread::sleep(RECONNECT_INTERVAL);
                     continue;
                 }
@@ -225,10 +222,7 @@ impl HidConnection {
                 *dev_lock = Some(hid_device);
             }
 
-            let _ = app.emit(
-                "macro11:device-status",
-                serde_json::json!({ "connected": true }),
-            );
+            announce_status(&app, &mut announced, true);
 
             // Poll loop
             let request = build_state_request();
@@ -301,10 +295,7 @@ impl HidConnection {
                 *dev_lock = None;
             }
             *firmware_info.lock().unwrap() = None;
-            let _ = app.emit(
-                "macro11:device-status",
-                serde_json::json!({ "connected": false }),
-            );
+            announce_status(&app, &mut announced, false);
             if !paused.load(Ordering::SeqCst) {
                 thread::sleep(RECONNECT_INTERVAL);
             }
@@ -330,6 +321,14 @@ impl HidConnection {
         let cmd = build_test_mode_command(enable);
         device.write(&cmd).map_err(|e| e.to_string())?;
         Ok(())
+    }
+}
+
+/// Emit `macro11:device-status` when the connection state changes.
+fn announce_status(app: &AppHandle, announced: &mut Option<bool>, connected: bool) {
+    if *announced != Some(connected) {
+        *announced = Some(connected);
+        let _ = app.emit("macro11:device-status", json!({ "connected": connected }));
     }
 }
 

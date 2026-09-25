@@ -1,4 +1,4 @@
-export type ConnectionStatus = "connected" | "disconnected" | "connecting";
+export type ConnectionStatus = "connected" | "disconnected";
 
 export interface DeviceInfo {
   connected: boolean;

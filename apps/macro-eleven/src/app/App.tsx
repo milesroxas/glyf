@@ -8,14 +8,13 @@ import { KeyTesterPage } from "../pages/KeyTesterPage";
 import { LayerViewerPage } from "../pages/LayerViewerPage";
 import { PotMonitorPage } from "../pages/PotMonitorPage";
 import { openOverlayWindow } from "../shared/lib/tauri";
-import { cn } from "../shared/lib/utils";
 import { NavBar } from "../shared/ui/NavBar";
 import { StatusBadge } from "../shared/ui/StatusBadge";
 import { DeviceProvider, useDevice } from "./providers";
 import "./App.css";
 
 function AppHeader() {
-  const { status, connect, disconnect } = useDevice();
+  const { status } = useDevice();
 
   return (
     <header className="shrink-0 flex items-center justify-end px-6 h-14 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -30,18 +29,6 @@ function AppHeader() {
           title="Open compact overlay"
         >
           Overlay
-        </button>
-        <button
-          type="button"
-          className={cn(
-            "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-8 px-3 shadow-sm",
-            status === "connected"
-              ? "border border-input bg-background hover:bg-accent hover:text-accent-foreground text-muted-foreground"
-              : "bg-primary text-primary-foreground hover:bg-primary/90 shadow",
-          )}
-          onClick={status === "connected" ? disconnect : connect}
-        >
-          {status === "connected" ? "Disconnect" : "Connect Device"}
         </button>
       </div>
     </header>

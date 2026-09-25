@@ -1,4 +1,3 @@
-use hidapi::HidApi;
 use serde::Serialize;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
@@ -7,7 +6,7 @@ use tauri::{AppHandle, Emitter, State};
 use crate::firmware::bundle;
 use crate::firmware::updater::{self, Stage};
 use crate::firmware::version::Version;
-use crate::hid::connection::{open_device, query_firmware_info, HidConnection};
+use crate::hid::connection::HidConnection;
 use crate::hid::protocol::FirmwareInfo;
 
 static UPDATE_RUNNING: AtomicBool = AtomicBool::new(false);
@@ -78,20 +77,11 @@ pub fn get_firmware_status(
         return Ok(status(DeviceMode::Updating, None));
     }
 
-    let (running, connected) = {
-        let conn = connection.lock().map_err(|e| e.to_string())?;
-        (conn.is_running(), conn.connected_firmware())
-    };
-    let firmware = match connected {
-        Some(info) => Some(info),
-        // The poll thread owns the device while it runs, so only open it
-        // directly when polling is off.
-        None if !running => HidApi::new()
-            .ok()
-            .and_then(|api| open_device(&api))
-            .map(|device| query_firmware_info(&device)),
-        None => None,
-    };
+    // The poll thread owns the device and caches its firmware info
+    let firmware = connection
+        .lock()
+        .map_err(|e| e.to_string())?
+        .connected_firmware();
 
     Ok(match firmware {
         Some(info) => status(DeviceMode::Ready, info.map(|i| i.version)),

@@ -18,12 +18,9 @@ export async function detectDevice(): Promise<boolean> {
   return invoke<boolean>("detect_device_cmd");
 }
 
-export async function connectDevice(): Promise<boolean> {
-  return invoke<boolean>("connect_device");
-}
-
-export async function disconnectDevice(): Promise<void> {
-  return invoke<void>("disconnect_device");
+/** Whether the app is connected. It connects on its own at launch and on replug. */
+export async function getDeviceStatus(): Promise<boolean> {
+  return invoke<boolean>("get_device_status");
 }
 
 export async function setTestMode(enable: boolean): Promise<void> {
