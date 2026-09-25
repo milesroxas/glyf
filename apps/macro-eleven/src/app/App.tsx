@@ -1,5 +1,8 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { FirmwareUpdateIndicator } from "../features/firmware-update/FirmwareUpdateIndicator";
+import { FirmwareUpdateProvider } from "../features/firmware-update/FirmwareUpdateProvider";
 import { OverlayView } from "../features/overlay/OverlayView";
+import { FirmwarePage } from "../pages/FirmwarePage";
 import { KeymapDesignerPage } from "../pages/KeymapDesignerPage";
 import { KeyTesterPage } from "../pages/KeyTesterPage";
 import { LayerViewerPage } from "../pages/LayerViewerPage";
@@ -17,6 +20,7 @@ function AppHeader() {
   return (
     <header className="shrink-0 flex items-center justify-end px-6 h-14 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center gap-3">
+        <FirmwareUpdateIndicator />
         <StatusBadge status={status} />
         <div className="h-4 w-px bg-border mx-1" />
         <button
@@ -48,22 +52,25 @@ function MainApp() {
   return (
     <BrowserRouter>
       <DeviceProvider>
-        <div className="flex h-screen w-full bg-background">
-          <NavBar />
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <AppHeader />
-            <main className="flex-1 overflow-y-auto">
-              <div className="container max-w-screen-lg mx-auto py-8 px-6 space-y-8">
-                <Routes>
-                  <Route path="/" element={<KeyTesterPage />} />
-                  <Route path="/layers" element={<LayerViewerPage />} />
-                  <Route path="/pot" element={<PotMonitorPage />} />
-                  <Route path="/designer" element={<KeymapDesignerPage />} />
-                </Routes>
-              </div>
-            </main>
+        <FirmwareUpdateProvider>
+          <div className="flex h-screen w-full bg-background">
+            <NavBar />
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <AppHeader />
+              <main className="flex-1 overflow-y-auto">
+                <div className="container max-w-screen-lg mx-auto py-8 px-6 space-y-8">
+                  <Routes>
+                    <Route path="/" element={<KeyTesterPage />} />
+                    <Route path="/layers" element={<LayerViewerPage />} />
+                    <Route path="/pot" element={<PotMonitorPage />} />
+                    <Route path="/designer" element={<KeymapDesignerPage />} />
+                    <Route path="/firmware" element={<FirmwarePage />} />
+                  </Routes>
+                </div>
+              </main>
+            </div>
           </div>
-        </div>
+        </FirmwareUpdateProvider>
       </DeviceProvider>
     </BrowserRouter>
   );

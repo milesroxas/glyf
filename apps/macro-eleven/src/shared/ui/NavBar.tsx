@@ -1,4 +1,10 @@
-import { Activity, Cpu, LayoutGrid, NotebookPen } from "lucide-react";
+import {
+  Activity,
+  CircuitBoard,
+  Cpu,
+  LayoutGrid,
+  NotebookPen,
+} from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "../lib/utils";
 
@@ -7,6 +13,7 @@ const NAV_ITEMS = [
   { to: "/layers", label: "Layer Viewer", icon: LayoutGrid },
   { to: "/pot", label: "Pot Monitor", icon: Activity },
   { to: "/designer", label: "Keymap Designer", icon: NotebookPen },
+  { to: "/firmware", label: "Firmware", icon: CircuitBoard },
 ];
 
 export function NavBar() {

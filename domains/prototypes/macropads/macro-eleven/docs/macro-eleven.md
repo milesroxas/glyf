@@ -59,7 +59,9 @@ Firmware source lives in `firmware/`. The build script syncs it to `~/qmk_firmwa
 | `halconf.h` | ChibiOS HAL config: enables ADC subsystem |
 | `mcuconf.h` | ChibiOS MCU config: enables RP2040 ADC1 peripheral |
 | `rules.mk` | Build rules (analog driver for potentiometer) |
-| `macro_eleven.c` | Keyboard-level logic: QK_BOOT 2-second hold for bootloader |
+| `macro_eleven.c` | Keyboard-level logic: Raw HID system commands (firmware info, enter bootloader), QK_BOOT 2-second hold |
+| `macro_eleven.h` | Raw HID system command IDs, `raw_hid_receive_keymap()` hook for keymaps |
+| `version.h` | Firmware version reported to the companion app |
 | `via.json` | VIA app configuration for remapping keys |
 | `keymaps/apps/keymap.c` | Primary keymap: app launcher + per-app shortcuts |
 | `keymaps/via/keymap.c` | VIA-compatible keymap for GUI remapping |
@@ -143,7 +145,9 @@ cd macro-eleven         # or your path to the project
 ./build.sh apps flash   # build and flash immediately
 ```
 
-Put the Pico in bootloader mode first: hold the top-left key for 2 seconds (or hold BOOTSEL when plugging in). Then run the command. `picotool` will flash the firmware.
+Firmware 1.1.0 and later reboots into the bootloader when the host sends the Raw HID `ENTER_BOOTLOADER` command, so no button press is needed. The command runs `cargo run --example flash` from the companion app, which uses the same update code as the app's Firmware page. Close the companion app first, because macOS lets only one process open the device.
+
+With older firmware, the command asks you to hold the top-left key for 2 seconds.
 
 ### Watch mode
 
@@ -157,6 +161,19 @@ Watches for the Pico to enter bootloader mode (hold top-left key 2s), then prese
 
 1. Hold the top-left key for 2 seconds to enter bootloader (or hold BOOTSEL when plugging in)
 2. Drag the `.uf2` file to the RPI-RP2 drive
+
+### Firmware updates from the companion app
+
+The companion app bundles a release build of the `apps` keymap (`apps/macro-eleven/src-tauri/firmware/`). It offers that build to any device that reports an older version. To release an update, bump `firmware/version.h`, run `./bundle-firmware.sh`, and commit the two generated files.
+
+The update sequence:
+
+1. The app sends `GET_INFO` (`0x03`) to read the installed version. Firmware before 1.1.0 doesn't answer.
+2. The app sends `ENTER_BOOTLOADER` (`[0x04, 'B', 'O', 'O', 'T', flags]`). The firmware answers, then calls `reset_usb_boot()`. Flag bit 0 hides the RPI-RP2 drive (macOS and Linux) because the app flashes over PICOBOOT, the USB interface `picotool` uses.
+3. The app erases and writes flash sector by sector, then reads it back to verify. Sector 0 (boot2) is erased first and written last. If the update is interrupted, the device stays in the bootloader and the app can finish the update.
+4. The device reboots. The app waits for it to report the new version.
+
+On Windows, PICOBOOT needs a WinUSB driver, so the drive stays visible and the app copies the UF2 to it. On Linux, the app needs udev access to `2e8a:0003` (bootloader) and `4653:0002` (Raw HID).
 
 ### Direct QMK compile
 
@@ -236,7 +253,7 @@ Edit `keyboard.json`:
 
 ### Bootloader hold timing
 
-The 2-second hold duration is set in two places:
+The companion app normally enters the bootloader over Raw HID. The key hold is the manual fallback. The 2-second hold duration is set in two places:
 - `macro_eleven.c` — `housekeeping_task_kb()` (for QK_BOOT keycode)
 - `keymaps/apps/keymap.c` — `matrix_scan_user()` (for BACK_HOME key)
 

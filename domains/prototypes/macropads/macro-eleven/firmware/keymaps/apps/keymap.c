@@ -344,10 +344,11 @@ void matrix_scan_user(void) {
 }
 
 // Raw HID handler for companion app communication
+// (system commands 0x03-0x04 are handled in macro_eleven.c)
 // Request:  [0x01, ...] - poll state
 //           [0x02, enable] - set test mode (0=disable, 1=enable)
 // Response: [0x01, key_lo, key_hi, pot_lo, pot_hi, layer, test_mode, ...]
-void raw_hid_receive(uint8_t *data, uint8_t length) {
+void raw_hid_receive_keymap(uint8_t *data, uint8_t length) {
     // Command 0x02: Set test mode
     if (data[0] == 0x02) {
         test_mode_active = data[1] != 0;

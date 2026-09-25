@@ -1,7 +1,8 @@
 mod commands;
 mod config; // New keymap config system
 mod executor;
-mod hid;
+pub mod firmware;
+pub mod hid;
 mod keymap; // Legacy keymap parser (will be deprecated) // Action executor
 
 use std::sync::Mutex;
@@ -19,6 +20,8 @@ pub fn run() {
             commands::device::disconnect_device,
             commands::device::set_test_mode,
             commands::device::reload_keymap,
+            commands::firmware::get_firmware_status,
+            commands::firmware::update_firmware,
             commands::layers::get_layer_data,
             commands::overlay::open_overlay_window,
             commands::keymap_commands::get_active_keymap,

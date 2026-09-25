@@ -5,6 +5,8 @@
 
 # ── Firmware / embedded ──────────────────────────────────────────────────────
 *.uf2
+# Release firmware the Macro Eleven app ships and flashes (bundle-firmware.sh)
+!apps/macro-eleven/src-tauri/firmware/*.uf2
 *.hex
 *.bin
 *.elf

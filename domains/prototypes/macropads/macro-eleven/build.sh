@@ -12,6 +12,7 @@ FLASH="${2:-}"      # Pass 'flash' as second argument to auto-flash
 QMK_DIR="${QMK_DIR:-$HOME/qmk_firmware}"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 KEYBOARD_DIR="$QMK_DIR/keyboards/handwired/macro_eleven"
+APP_MANIFEST="$PROJECT_DIR/../../../../apps/macro-eleven/src-tauri/Cargo.toml"
 
 # Use user's Python qmk installation
 export PATH="$HOME/Library/Python/3.13/bin:$PATH"
@@ -39,33 +40,24 @@ if [ -f "$UF2_FILE" ]; then
     echo ""
 
     if [ "$FLASH" = "flash" ]; then
-        echo "Attempting to flash..."
-
-        # Try to reboot into bootloader if device is connected (running firmware)
-        if picotool info &>/dev/null; then
-            echo "Detected Pico, rebooting to bootloader..."
-            picotool reboot -f -u || true
-            sleep 1
-        fi
-
-        # Flash the firmware (device must be in bootloader: hold top-left key 2s, or BOOTSEL when plugging in)
-        if picotool load "$PROJECT_DIR/$UF2_FILE" -f; then
+        # Same path as the companion app's update button: firmware 1.1.0+
+        # reboots itself into the bootloader over Raw HID. Older firmware
+        # needs the top-left key held for 2s when prompted.
+        echo "Flashing..."
+        if cargo run --quiet --manifest-path "$APP_MANIFEST" --example flash -- "$PROJECT_DIR/$UF2_FILE"; then
             echo "✓ Flashed successfully!"
-
-            # Reboot to run the new firmware
-            picotool reboot -f || true
         else
             echo "✗ Flash failed"
-            echo "Put Pico in bootloader mode: hold top-left key for 2 seconds, or hold BOOTSEL when plugging in"
+            echo "Recovery: hold BOOTSEL while plugging in, then run this command again"
             exit 1
         fi
     else
+        echo "To flash (no button press needed on firmware 1.1.0+):"
+        echo "  ./build.sh $KEYMAP flash"
+        echo ""
         echo "To flash manually:"
         echo "1. Hold top-left key 2s (or BOOTSEL when plugging in) to enter bootloader"
         echo "2. Drag $UF2_FILE to RPI-RP2 drive"
-        echo ""
-        echo "To flash automatically:"
-        echo "  ./build.sh $KEYMAP flash"
         echo ""
         echo "Or use the watch-and-flash script for an interactive menu:"
         echo "  ./watch-and-flash.sh"

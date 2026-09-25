@@ -5,6 +5,11 @@ import type {
   ActionExecutedEvent,
 } from "../../entities/action";
 import type { DeviceStatusEvent } from "../../entities/device";
+import type {
+  FirmwareInfo,
+  FirmwareProgressEvent,
+  FirmwareStatus,
+} from "../../entities/firmware";
 import type { KeyEvent, PotEvent } from "../../entities/key";
 import type { LaunchBinding } from "../../entities/keymap";
 import type { LayerChangeEvent, LayerData } from "../../entities/layer";
@@ -27,6 +32,22 @@ export async function setTestMode(enable: boolean): Promise<void> {
 
 export async function reloadKeymap(): Promise<void> {
   return invoke<void>("reload_keymap");
+}
+
+export async function getFirmwareStatus(): Promise<FirmwareStatus> {
+  return invoke<FirmwareStatus>("get_firmware_status");
+}
+
+export async function updateFirmware(): Promise<FirmwareInfo> {
+  return invoke<FirmwareInfo>("update_firmware");
+}
+
+export function onFirmwareProgress(
+  callback: (event: FirmwareProgressEvent) => void,
+): Promise<UnlistenFn> {
+  return listen<FirmwareProgressEvent>("macro11:firmware-progress", (e) =>
+    callback(e.payload),
+  );
 }
 
 export async function openKeymapFile(): Promise<void> {

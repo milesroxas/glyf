@@ -1,7 +1,6 @@
 {
   "keyboard_name": "Macro Eleven",
   "manufacturer": "Handwired",
-  "url": "",
   "maintainer": "qmk",
   "usb": {
     "vid": "0x4653",
