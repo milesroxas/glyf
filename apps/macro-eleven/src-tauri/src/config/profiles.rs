@@ -206,19 +206,19 @@ impl ProfileStore {
 
     /// Create a profile: a copy of `from`, or an empty layer 0.
     pub fn create(&self, name: &str, from: Option<&str>) -> Result<(), String> {
+        let _guard = self.guard();
         let mut keymap = match from {
             Some(source) => self.get(source)?,
             None => Keymap::empty(),
         };
-        let _guard = self.guard();
         self.claim(name)?;
         keymap.name = name.to_owned();
         write_json_atomic(&self.path(name), &keymap)
     }
 
     pub fn rename(&self, from: &str, to: &str) -> Result<(), String> {
-        let mut keymap = self.get(from)?;
         let _guard = self.guard();
+        let mut keymap = self.get(from)?;
         let from = self.require(from)?;
         if is_default(&from) {
             return Err("The Default profile cannot be renamed".into());
@@ -267,11 +267,14 @@ impl ProfileStore {
         Ok(())
     }
 
-    pub fn set_active(&self, name: &str) -> Result<String, String> {
+    /// Make `name` the active profile and return it with its keymap. A
+    /// profile that does not load is not made active.
+    pub fn set_active(&self, name: &str) -> Result<(String, Keymap), String> {
         let _guard = self.guard();
         let name = self.require(name)?;
+        let keymap = self.get(&name)?;
         self.write_active(&name)?;
-        Ok(name)
+        Ok((name, keymap))
     }
 
     /// Import a keymap file as a new profile named after the keymap, with a
@@ -328,23 +331,34 @@ impl ProfileStore {
         if dir.exists() {
             return Ok(false);
         }
-        fs::create_dir_all(&dir).map_err(|e| format!("Could not create {}: {e}", dir.display()))?;
-
+        let create = || {
+            fs::create_dir_all(&dir).map_err(|e| format!("Could not create {}: {e}", dir.display()))
+        };
         let legacy = legacy_dir.join("user-custom.json");
         let Ok(json) = fs::read_to_string(&legacy) else {
+            create()?;
             return Ok(false);
         };
+
+        // The profiles folder marks the migration done, so it exists only
+        // once the keymap is safely copied; a failed copy is tried again
         let target = self.path(MIGRATED_PROFILE);
-        match Keymap::parse(&json, macro_eleven()) {
-            Ok(mut keymap) => {
+        let parsed = Keymap::parse(&json, macro_eleven());
+        let copied = match &parsed {
+            Ok(keymap) => {
+                let mut keymap = keymap.clone();
                 keymap.name = MIGRATED_PROFILE.to_owned();
-                write_json_atomic(&target, &keymap)?;
-                self.write_active(MIGRATED_PROFILE)?;
+                write_json_atomic(&target, &keymap)
             }
-            Err(e) => {
-                write_atomic(&target, json.as_bytes())?;
-                eprintln!("Copied {} without activating it: {e}", legacy.display());
-            }
+            Err(_) => write_atomic(&target, json.as_bytes()),
+        };
+        if let Err(e) = copied {
+            let _ = fs::remove_dir(&dir);
+            return Err(e);
+        }
+        match parsed {
+            Ok(_) => self.write_active(MIGRATED_PROFILE)?,
+            Err(e) => eprintln!("Copied {} without activating it: {e}", legacy.display()),
         }
         Ok(true)
     }
@@ -398,7 +412,8 @@ mod tests {
         assert!(store.create("work", None).is_err(), "names are case-insensitive");
         assert!(store.create("default", None).is_err());
 
-        store.set_active("Work").unwrap();
+        let (active, keymap) = store.set_active("Work").unwrap();
+        assert_eq!((active.as_str(), keymap.name.as_str()), ("Work", "Work"));
         store.rename("Work", "work").unwrap();
         assert_eq!(names(&store), ["Default", "Blank", "work"]);
         store.rename("work", "Office").unwrap();
@@ -498,6 +513,8 @@ mod tests {
         assert_eq!(names(&store), ["Default", MIGRATED_PROFILE]);
         let error = store.get(MIGRATED_PROFILE).unwrap_err();
         assert!(error.contains("invalid shortcut"), "{error}");
+        assert!(store.set_active(MIGRATED_PROFILE).is_err(), "never activated broken");
+        assert_eq!(store.active(), DEFAULT_PROFILE);
     }
 
     #[test]

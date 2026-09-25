@@ -69,6 +69,32 @@ describe("KeymapProvider", () => {
     expect(getAction(backend.saves[1].keymap, 0, "0,1")?.label).toBe("Chrome");
   });
 
+  it("writes nothing when an edit is undone before it saves", async () => {
+    await mount();
+    vi.useFakeTimers();
+    act(label("Changed"));
+    act(() => designer.undo());
+    await act(() => vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS * 2));
+    expect(backend.saves).toHaveLength(0);
+    expect(backend.keymap("Work")).toEqual(designer.keymap);
+  });
+
+  it("keeps unsaved edits and stays put when a save fails", async () => {
+    backend.reset({ Other: backend.keymap("Default") });
+    await mount();
+    backend.saveError = "disk full";
+    act(label("Unsaved"));
+    await expect(designer.switchProfile("Other")).rejects.toThrow("disk full");
+    expect(backend.active).toBe("Work");
+    expect(designer.profile?.name).toBe("Work");
+    expect(chromeLabel()).toBe("Unsaved");
+
+    backend.saveError = null;
+    await act(() => designer.switchProfile("Other"));
+    expect(backend.active).toBe("Other");
+    expect(getAction(backend.keymap("Work"), 0, "0,1")?.label).toBe("Unsaved");
+  });
+
   it("returns to the edited key on undo", async () => {
     await mount();
     act(() => {

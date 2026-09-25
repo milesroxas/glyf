@@ -64,8 +64,9 @@ pub fn save_profile(
     engine: Engine<'_>,
 ) -> Result<(), String> {
     store.save(&name, &keymap)?;
-    if store.active().eq_ignore_ascii_case(&name) {
-        engine.set_keymap(store.active(), keymap);
+    let active = store.active();
+    if active.eq_ignore_ascii_case(&name) {
+        engine.set_keymap(active, keymap);
         announce(window.app_handle(), &name, Some(&window));
     }
     Ok(())
@@ -114,8 +115,11 @@ pub fn set_active_profile(
     store: Store<'_>,
     engine: Engine<'_>,
 ) -> Result<(), String> {
-    store.set_active(&name)?;
-    activate(window.app_handle(), &store, &engine, Some(&window)).map(|_| ())
+    // Loads the profile first: one that does not load is not made active
+    let (name, keymap) = store.set_active(&name)?;
+    engine.set_keymap(name.clone(), keymap);
+    announce(window.app_handle(), &name, Some(&window));
+    Ok(())
 }
 
 #[tauri::command(async)]

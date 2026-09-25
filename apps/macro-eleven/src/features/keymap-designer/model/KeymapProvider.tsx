@@ -135,8 +135,21 @@ export function KeymapProvider({ children }: { children: ReactNode }) {
     ipc.saveProfile,
   );
   const { markSaved, flush } = autosave;
-  const retrySave = useCallback(() => void flush(), [flush]);
+  const retrySave = useCallback(() => {
+    flush().catch(() => {}); // the error shows in the save status
+  }, [flush]);
   useActionToasts(keymap);
+
+  // Leaving the designer writes pending edits. A failure there has no status
+  // bar left to show it, so it gets a toast that stays.
+  useEffect(
+    () => () => {
+      flush().catch((error: Error) =>
+        toast.error(error.message, { duration: Number.POSITIVE_INFINITY }),
+      );
+    },
+    [flush],
+  );
 
   const load = useCallback(async () => {
     try {
@@ -226,7 +239,10 @@ export function KeymapProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  /** Save pending edits, run a profile change, then load the result. */
+  /**
+   * Save pending edits, run a profile change, then load the result. A save
+   * that fails stops the change, so edits are never dropped.
+   */
   const changeProfile = useCallback(
     async (work: () => Promise<unknown>) => {
       await flush();

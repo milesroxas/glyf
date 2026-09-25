@@ -201,17 +201,22 @@ impl KeymapEngine {
         self.dispatch(effects);
     }
 
-    /// Swap in a keymap without a restart (profile saved or switched).
+    /// Swap in a keymap without a restart (profile saved or switched). A
+    /// layer picked with a layer key holds across saves of the same profile,
+    /// as long as that layer still exists.
     pub fn set_keymap(&self, profile: String, keymap: Keymap) {
         let mut effects = Vec::new();
         {
             let mut state = self.lock();
             let before = state.layer;
+            let same_profile = state.profile == profile;
             state.profile = profile;
             state.keymap = keymap;
-            state.manual_override = false;
             if !state.keymap.layers.contains_key(&state.layer) {
                 state.layer = 0;
+                state.manual_override = false;
+            } else if !same_profile {
+                state.manual_override = false;
             }
             state.follow_front_app();
             if state.layer != before {
@@ -416,6 +421,26 @@ mod tests {
             bundle_id: Some("com.apple.Notes".into()),
         }));
         assert_eq!(engine.snapshot().layer, 5, "a new front app clears it");
+    }
+
+    #[test]
+    fn saving_the_same_profile_keeps_a_manual_layer() {
+        let (engine, _recorder, _heard) = engine(Duration::ZERO);
+        engine.set_front_app(Some(FrontApp {
+            name: "Mail".into(),
+            bundle_id: None,
+        }));
+        tap(&engine, 1); // switch to 5 by hand
+        engine.set_keymap("Test".into(), keymap());
+        assert_eq!(engine.snapshot().layer, 5, "a save keeps the layer");
+
+        let mut defaulted = keymap();
+        defaulted.settings = Some(crate::config::keymap::KeymapSettings {
+            default_layer: Some(0),
+            ..Default::default()
+        });
+        engine.set_keymap("Other".into(), defaulted);
+        assert_eq!(engine.snapshot().layer, 0, "a new profile follows the front app");
     }
 
     #[test]

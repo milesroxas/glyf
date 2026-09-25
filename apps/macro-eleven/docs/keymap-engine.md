@@ -49,7 +49,7 @@ A profile is one keymap, in the [`@glyf/keymap-schema`](../../../shared/libs/key
 ## Layer selection
 
 - `switch_layer` goes to that layer; a layer that does not exist is an error. `cycle_layer` goes to the next layer ID, wrapping to the first.
-- Both set a manual override. The override ends when the front app changes, when a `launch_app` key runs, or when the keymap is saved.
+- Both set a manual override. The override ends when the front app changes, when a `launch_app` key runs, or when another profile becomes active. Saving the active profile keeps it, unless its layer was deleted.
 - Without an override, and with `settings.autoSwitchLayers` on (the default), the engine picks the lowest layer whose `triggerApp` matches the front app's bundle ID or name. With no match it uses `settings.defaultLayer` if set, else stays put.
 
 ## Actions

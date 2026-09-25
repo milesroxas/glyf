@@ -43,11 +43,16 @@ fn layer_map<'de, D: Deserializer<'de>>(deserializer: D) -> Result<BTreeMap<u8, 
     BTreeMap::<String, Layer>::deserialize(deserializer)?
         .into_iter()
         .map(|(id, layer)| {
-            id.parse::<u8>().map(|id| (id, layer)).map_err(|_| {
-                serde::de::Error::custom(format!(
-                    "layer ID \"{id}\" must be a whole number from 0 to 255"
-                ))
-            })
+            // Canonical decimal only, so "1" and "01" cannot both name layer 1
+            id.parse::<u8>()
+                .ok()
+                .filter(|parsed| parsed.to_string() == id)
+                .map(|parsed| (parsed, layer))
+                .ok_or_else(|| {
+                    serde::de::Error::custom(format!(
+                        "layer ID \"{id}\" must be a whole number from 0 to 255"
+                    ))
+                })
         })
         .collect()
 }

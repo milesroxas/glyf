@@ -17,8 +17,10 @@ class FakeBackend {
   active = "Work";
   hostLayer = 0;
   profiles = new Map<string, Keymap>();
-  /** Every `save_profile`, in order. */
+  /** Every `save_profile` that succeeded, in order. */
   saves: { name: string; keymap: Keymap }[] = [];
+  /** When set, `save_profile` fails with this message. */
+  saveError: string | null = null;
 
   /** Start over with a "Work" profile (a copy of Default) plus `profiles`. */
   reset(profiles: Record<string, Keymap> = {}, active = "Work") {
@@ -31,6 +33,7 @@ class FakeBackend {
     this.active = active;
     this.hostLayer = 0;
     this.saves = [];
+    this.saveError = null;
     mockWindows("main");
     mockIPC((cmd, args) => this.handle(cmd, (args ?? {}) as Args), {
       shouldMockEvents: true,
@@ -80,6 +83,7 @@ class FakeBackend {
       case "get_profile":
         return this.keymap(name);
       case "save_profile": {
+        if (this.saveError) throw new Error(this.saveError);
         const keymap = clone(args.keymap as Keymap);
         this.profiles.set(name, keymap);
         this.saves.push({ name, keymap });

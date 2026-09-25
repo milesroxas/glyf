@@ -108,7 +108,7 @@ impl AppCatalog {
 
     #[cfg(target_os = "macos")]
     fn icon(&self, bundle: &Bundle) -> Option<PathBuf> {
-        let file = self.icons_dir.join(format!("{}.png", bundle.bundle_id));
+        let file = self.icons_dir.join(icon_file_name(&bundle.bundle_id));
         if !file.exists() {
             let png = icons::render_png(&bundle.path, ICON_SIZE)?;
             crate::config::storage::write_atomic(&file, &png).ok()?;
@@ -119,6 +119,35 @@ impl AppCatalog {
     #[cfg(not(target_os = "macos"))]
     fn icon(&self, _bundle: &Bundle) -> Option<PathBuf> {
         None
+    }
+}
+
+/// A bundle ID comes from the bundle's own Info.plist, so keep only
+/// characters that cannot leave the icons folder.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+fn icon_file_name(bundle_id: &str) -> String {
+    let safe: String = bundle_id
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | '_') {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect();
+    format!("{safe}.png")
+}
+
+#[cfg(test)]
+mod name_tests {
+    use super::icon_file_name;
+
+    #[test]
+    fn icon_names_stay_in_the_folder() {
+        assert_eq!(icon_file_name("com.apple.Notes"), "com.apple.Notes.png");
+        assert_eq!(icon_file_name("../../evil"), ".._.._evil.png");
+        assert!(!icon_file_name("a/b\\c").contains(['/', '\\']));
     }
 }
 

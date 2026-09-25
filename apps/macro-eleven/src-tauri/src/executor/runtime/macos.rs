@@ -214,14 +214,21 @@ impl MacRuntime {
         }
     }
 
+    /// Hold or release a modifier. Release always clears the flag, even if
+    /// posting fails; hold records it only once the key-down was posted. So a
+    /// failure can never leave a modifier applied to later keystrokes.
     fn set_modifier(&self, modifier: ModifierKey, down: bool) -> Result<(), String> {
+        let flag = Self::flag_for_modifier(modifier);
+        let mut held = self.held.lock().unwrap_or_else(|p| p.into_inner());
+        let mut flags = *held;
+        flags.set(flag, down);
+        if !down {
+            *held = flags;
+        }
         Self::require_accessibility()?;
-        let flags = {
-            let mut held = self.held.lock().unwrap_or_else(|p| p.into_inner());
-            held.set(Self::flag_for_modifier(modifier), down);
-            *held
-        };
-        Self::post(Self::modifier_keycode(modifier), down, flags)
+        Self::post(Self::modifier_keycode(modifier), down, flags)?;
+        *held = flags;
+        Ok(())
     }
 
     fn open(args: &[&str]) -> bool {

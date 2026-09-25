@@ -56,7 +56,10 @@ function keyStepProblem(step: Json): Problem {
 }
 
 function shortcutProblem(keys: unknown): Problem {
-  return isStringArray(keys) && isValidShortcutKeys(keys)
+  // Every token must be known; the parser alone would skip empty ones
+  return isStringArray(keys) &&
+    keys.every(isKnownToken) &&
+    isValidShortcutKeys(keys)
     ? null
     : `has an invalid shortcut "${String(keys)}"`;
 }
@@ -150,7 +153,8 @@ function layerIdSet(layers: Json): Set<number> {
   const ids = new Set<number>();
   for (const id of Object.keys(layers)) {
     const layer = Number(id);
-    if (!/^\d+$/.test(id) || !isLayerId(layer)) {
+    // Canonical decimal only, so "1" and "01" cannot both name layer 1
+    if (!/^(0|[1-9]\d*)$/.test(id) || !isLayerId(layer)) {
       fail(`Layer ID "${id}" must be a whole number from 0 to ${MAX_LAYER_ID}`);
     }
     ids.add(layer);
