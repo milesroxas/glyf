@@ -197,8 +197,8 @@ flowchart TD
     S2 --> T2{"Short test:<br/>3V3 and VBUS to GND"}
     T2 -->|pass| S3["3 · Wire the key matrix"]
     S3 --> S4{"4 · Diode test<br/>all 11 keys"}
-    S4 -->|pass| S5{"5 · Key Tester:<br/>11 keys in the right spots"}
-    S5 -->|pass| S6{"6 · Wire the knob<br/>Pot Monitor: smooth sweep"}
+    S4 -->|pass| S5{"5 · Diagnostics:<br/>11 keys in the right spots"}
+    S5 -->|pass| S6{"6 · Wire the knob<br/>Knob: smooth sweep"}
     S6 -->|pass| S7{"7 · Wire the display<br/>continuity, no bridges"}
     S7 -->|pass| S8{"8 · Glyf firmware:<br/>image, backlight, touch"}
     S8 -->|pass| S9["9 · Finish and re-flash Macro Eleven"]
@@ -441,7 +441,7 @@ Tick each key as it passes:
 1. Connect the 7 leads to J1: `C0` to J1-1 through `R2` to J1-7.
 2. Put the Pico in its socket. The USB port faces the board edge.
 3. Plug in USB. The Pico still runs the Macro Eleven firmware from Step 1.
-4. Run `pnpm dev:macro-eleven` and open the **Key Tester** page.
+4. Run `pnpm dev:macro-eleven` and open the **Diagnostics** page.
 5. Press each key, one at a time. Then press two keys at the same time.
 
 **Pass:** each key lights its own cell, in the same position as on the pad. Two keys pressed together light only those two cells.
@@ -473,7 +473,7 @@ Tick each key as it passes:
 1. Unplug USB.
 2. Solder three wires to the pot legs. Put heat-shrink on each leg.
 3. Connect them to J3: leg 1 to J3-1 (-), leg 2 to J3-2 (W), leg 3 to J3-3 (+).
-4. Plug in USB. In the app, open the **Pot Monitor** page.
+4. Plug in USB. In the app, open the **Knob** page.
 5. Turn the knob from one end to the other.
 
 **Pass:** the value moves smoothly from about 0 to about 1023. Clockwise increases the value.
@@ -606,7 +606,7 @@ pnpm dev:glyf
    cp apps/macro-eleven/src-tauri/firmware/macro_eleven.uf2 /Volumes/RPI-RP2/
    ```
 
-2. Repeat the Key Tester and Pot Monitor checks from Steps 5 and 6.
+2. Repeat the Diagnostics and Knob checks from Steps 5 and 6.
 3. Add strain relief: a small dot of hot glue where each wire bundle leaves a connector.
 4. Put Kapton tape on the underside of the protoboard if it can touch metal.
 5. Take photos of both sides of the protoboard and the back of the switch plate. They help later debugging.
@@ -619,7 +619,7 @@ pnpm dev:glyf
 - [ ] Column wires do not touch row wires at any crossing
 - [ ] Display pin 9 (SDO) is not connected
 - [ ] Display wires are 10 cm or shorter
-- [ ] All 11 keys pass in the Key Tester, in the right positions
+- [ ] All 11 keys pass in the Diagnostics, in the right positions
 - [ ] The knob sweeps from about 0 to about 1023
 - [ ] The display fills with color and touch responds (Glyf firmware)
 - [ ] The Macro Eleven firmware is back on the Pico
@@ -634,7 +634,7 @@ pnpm dev:glyf
 | Pico disconnects when you plug in the display | Short or too much load on 3V3 | Unplug. Check display pins 1 and 2 for a short. |
 | One key does nothing | Cold joint, or reversed diode | Diode test on that key (Step 4). Reflow its joints. |
 | Two keys fire from one press | Column touches row, or a diode is shorted | Check the crossings near those keys. Replace the diode. |
-| Keys mirrored in the Key Tester | Columns wired from the back view | Swap C0 with C3, and C1 with C2, at J1. |
+| Keys mirrored in the Diagnostics | Columns wired from the back view | Swap C0 with C3, and C1 with C2, at J1. |
 | Knob reads backwards | Outer legs swapped | Swap the wires on pot legs 1 and 3. |
 | Knob value is noisy | Long wires, or ground on a digital GND | Use AGND (pin 33). Shorten the wires. Add 100 nF from wiper to AGND. |
 | Screen stays white with Glyf firmware | CS, DC, RESET, SCK, or MOSI wiring | Continuity from display pins 3, 4, 5, 6, 7 to Pico pins 17, 20, 19, 15, 14. |

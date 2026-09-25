@@ -1,105 +1,75 @@
 # @glyf/keymap-schema
 
-Shared keymap schema for macropad projects in the glyf monorepo.
+The keymap format for Glyf macropads, and everything that needs to agree on it: types, the shortcut vocabulary, device layouts, the bundled default keymap, pure edit operations, and validation.
 
-## Purpose
+The Macro Eleven app's Rust host reads the same JSON files (`include_str!`) and runs the same test fixtures, so the TypeScript and Rust sides cannot drift apart silently.
 
-This package serves as the **single source of truth** for keymap structure across:
-- Companion apps (Tauri/Electron)
-- Firmware configuration tools
-- Plugin ecosystems
-- Community-contributed keymaps
+## Contents
+
+| File | Holds |
+|------|-------|
+| `src/types.ts` | `Keymap`, `Layer`, `Action` (and each action type), `MacroStep`, `DeviceDescriptor` |
+| `src/tokens.json` | Every shortcut token: modifiers and keys, their aliases, macOS glyphs, spoken names, and `KeyboardEvent.code` values |
+| `src/shortcut.ts` | `parseShortcut`, `isValidShortcutKeys`, `formatShortcut` (`["cmd", "shift", "t"]` → `["⇧⌘T"]`), `describeShortcut`, `codeToToken`, `isSameShortcut` |
+| `src/macro-eleven.device.json`, `src/device.ts` | Macro Eleven's physical keys in firmware bit order (`MACRO_ELEVEN`) |
+| `src/macro-eleven.default.json`, `src/defaults.ts` | The bundled default keymap (`MACRO_ELEVEN_DEFAULT_KEYMAP`) |
+| `src/edit.ts` | Immutable edits: `setKeyAction`, `clearKey`, `setLabel`, `addLayer`, `renameLayer`, `duplicateLayer`, `deleteLayer`, `moveLayer`, `setLayerTrigger`, `setAutoSwitchLayers`, and `findShortcutConflict` |
+| `src/validation.ts` | `assertKeymap` |
+| `fixtures/valid`, `fixtures/invalid` | Keymaps both test suites must accept or reject |
 
 ## Usage
 
 ```typescript
 import {
-  Keymap,
-  validateKeymap,
-  MACRO_ELEVEN_DEFAULT_KEYMAP
-} from '@glyf/keymap-schema';
+  assertKeymap,
+  formatShortcut,
+  MACRO_ELEVEN_DEFAULT_KEYMAP,
+  setLabel,
+} from "@glyf/keymap-schema";
 
-// Load a keymap
-const keymap: Keymap = JSON.parse(keymapJson);
+const keymap: unknown = JSON.parse(json);
+assertKeymap(keymap); // throws KeymapValidationError naming the first problem
 
-// Validate it
-if (validateKeymap(keymap)) {
-  console.log('Valid keymap!');
-}
-
-// Use default keymap
-const defaultKeymap = MACRO_ELEVEN_DEFAULT_KEYMAP;
+const renamed = setLabel(keymap, 0, "0,1", "Browser"); // a new keymap; `keymap` is unchanged
+formatShortcut(["cmd", "k", "cmd", "s"]); // ["⌘K", "⌘S"]
 ```
 
-## Schema Overview
-
-```typescript
-Keymap
-├── version: string
-├── name: string
-├── device?: DeviceInfo
-├── layers: Record<number, Layer>
-│   └── Layer
-│       ├── name: string
-│       ├── triggerApp?: string
-│       └── keys: Record<MatrixPositionKey, Action>
-└── settings?: KeymapSettings
-
-Action Types:
-- cycle_layer: Cycle through layers
-- switch_layer: Go to specific layer
-- launch_app: Launch/focus application
-- shortcut: Send keyboard shortcut
-- macro: Execute sequence of actions
-- plugin: Execute plugin action
-- noop: No operation
-```
-
-## Design Principles
-
-1. **Domain-Driven**: Models the actual hardware and user intent
-2. **Extensible**: Plugin system for custom actions
-3. **Type-Safe**: Full TypeScript type coverage
-4. **Validated**: Runtime validation utilities included
-5. **Versionable**: Semantic versioning for schema evolution
-
-## File Format
-
-Keymaps are stored as JSON files:
+## Format
 
 ```json
 {
   "version": "1.0.0",
-  "name": "My Custom Keymap",
+  "name": "My keymap",
   "layers": {
     "0": {
       "name": "App Launcher",
       "keys": {
-        "0,0": { "action": "cycle_layer" },
-        "0,1": { "action": "launch_app", "app": "Chrome" }
+        "0,1": { "action": "launch_app", "app": "Google Chrome", "bundleId": "com.google.Chrome", "label": "Chrome" }
+      }
+    },
+    "1": {
+      "name": "Chrome",
+      "triggerApp": "com.google.Chrome",
+      "keys": {
+        "0,1": { "action": "shortcut", "keys": ["cmd", "t"], "label": "New Tab" }
       }
     }
-  }
+  },
+  "settings": { "autoSwitchLayers": true }
 }
 ```
 
-## Adding New Action Types
+- Layer IDs are whole numbers 0–255, and layer 0 must exist.
+- Keys are `"row,col"` positions the device has.
+- A shortcut's `keys` are modifiers followed by one key; several chords make a sequence (`["cmd", "k", "cmd", "s"]` is ⌘K then ⌘S).
+- `triggerApp` is a bundle ID or an app name. The host uses the lowest layer whose trigger matches the front app.
+- Action types: `launch_app`, `shortcut`, `macro` (steps `shortcut`, `text`, `wait`, `keydown`, `keyup`, `keypress`), `switch_layer`, `cycle_layer`, `noop`, and `plugin` (reserved).
+- Unknown fields are kept when the host loads and saves a keymap.
 
-1. Add type to `ActionType` union in `types.ts`
-2. Create interface extending `BaseAction`
-3. Add to `Action` union type
-4. Update validation in `validation.ts`
-5. Implement executor in companion app
+## Changing the format
 
-## Future: Plugin Actions
+1. Change `types.ts` and the checks in `validation.ts`.
+2. Add a fixture under `fixtures/valid` or `fixtures/invalid`.
+3. Mirror the change in the host's `src-tauri/src/config/keymap.rs`. `cargo test` runs the same fixtures.
 
-```json
-{
-  "action": "plugin",
-  "pluginId": "spotify-controller",
-  "actionId": "play_pause",
-  "params": { "volume": 50 }
-}
-```
-
-Plugins will be dynamically loaded TypeScript/WASM modules with standardized interfaces.
+New shortcut keys go in `tokens.json`; the host's parity tests fail until it can parse and send them.

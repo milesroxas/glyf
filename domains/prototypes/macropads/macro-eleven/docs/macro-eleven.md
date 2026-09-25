@@ -52,7 +52,7 @@ Columns carry their logical matrix index (col 0 = GP5, col 3 = GP2). The top-lef
 
 Layer 0 launches apps through Spotlight. Each app key opens the app and switches to that app's shortcut layer. HOME is top-left on all 11 layers.
 
-**Host control.** This keymap boots with host control ("test mode") on. The firmware then sends no keycodes, and the companion app runs the actions instead ([keymap engine](../../../../../apps/macro-eleven/docs/keymap-engine.md)). The standalone behavior below needs host control off (Key Tester switch in the app). Without the app, the pad types nothing (audit FW-01).
+**Host control.** This keymap boots with host control ("test mode") on. The firmware then sends no keycodes, and the companion app runs the actions instead ([keymap engine](../../../../../apps/macro-eleven/docs/keymap-engine.md)). The standalone behavior below needs host control off (the switch on the app's Diagnostics page). Without the app, the pad types nothing (audit FW-01).
 
 ```
 ┌────────┬────────┬────────┐

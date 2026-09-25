@@ -8,7 +8,6 @@ Start at the [root README](../README.md) for the repo map, prerequisites, and de
 |-----|---------|
 | [product-line.md](product-line.md) | Vision, modules vs R&D, and why R&D stays in this repo |
 | [audit/2026-09-24-action-plan.md](audit/2026-09-24-action-plan.md) | Codebase audit: task list for both apps, firmware, and tooling (IDs such as ME-02, SCR-03) |
-| [plans/2026-09-25-keymap-designer.md](plans/2026-09-25-keymap-designer.md) | Keymap Designer: in-app keymap editing and profiles (KD-01 to KD-22) |
 
 ## Devices
 

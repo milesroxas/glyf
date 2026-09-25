@@ -6,12 +6,11 @@ Desktop companion (Tauri) for the [Macro Eleven](../../domains/prototypes/macrop
 
 | Page | What it does |
 |------|--------------|
-| Key Tester | Live key presses, event feed, and the host-control switch |
-| Layer Viewer | Key assignments per layer from the active keymap JSON. Reload and open the keymap file. |
-| Pot Monitor | Live potentiometer value (0–1023) |
-| Keymap Designer | App-launch bindings. Full editor in progress: [plan](../../docs/plans/2026-09-25-keymap-designer.md). |
+| Designer | Edit every key on every layer: apps, shortcuts, layer switches, and macros. Changes save as you go and reach the pad at once; ⌘Z undoes. Press a key on the pad to select it. Named profiles can be switched, duplicated, imported, and exported. |
+| Diagnostics | Live key presses, event feed, and the host-control switch |
+| Knob | Live potentiometer value (0–1023) |
 | Firmware | Compares device and bundled firmware and installs the update |
-| Overlay | Compact always-on-top window with the current layer |
+| Overlay | Compact always-on-top window with the current layer's keys |
 
 How key presses become actions: [docs/keymap-engine.md](docs/keymap-engine.md).
 
@@ -25,4 +24,4 @@ pnpm dev:macro-eleven         # dev mode: Vite HMR + Rust rebuild
 pnpm --filter macro-eleven tauri build   # release build
 ```
 
-Shortcuts and macros need macOS Accessibility permission. App launching needs Automation permission.
+Shortcuts and macros need macOS Accessibility permission; the designer shows a banner with a link to System Settings until it is granted. Opening apps needs no permission.

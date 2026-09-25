@@ -348,7 +348,7 @@ Crate: `apps/macro-eleven/src-tauri` (package `macro-eleven`, lib `macro_eleven_
     - Result: two engines, and every key press executes twice. The macOS exclusive open makes the second thread emit `connected:false` every 2 s.
     - The exiting thread also clears the new engine (line 238).
 
-- [ ] **ME-02 [P0] Action execution holds `current_layer` lock across blocking I/O and stalls HID polling**
+- [x] **ME-02 [P0] Action execution holds `current_layer` lock across blocking I/O and stalls HID polling**
   - Files: `src/hid/keymap_engine.rs`, `src/executor/actions.rs`.
   - Evidence:
     - `execute_key_action` (keymap_engine.rs:121-128) spawns a thread that locks `current_layer` and holds it for the whole `executor.execute(...)`. That call runs `osascript` (hundreds of ms), CGEvent posting with 35 ms sleeps, and macro `Wait { ms }` steps.
@@ -381,7 +381,7 @@ Crate: `apps/macro-eleven/src-tauri` (package `macro-eleven`, lib `macro_eleven_
 - [ ] **ME-04 [P1] Response framing: test-mode ACK desynchronizes the poll loop by one report** → **Revised: absorbed by LINK-02** (v1 adapter drains the ACK; v2 matches `cmd`+`seq`). Tick with LINK-02.
   - Evidence (kept): firmware ACKs `0x02` (`apps/keymap.c:355-359`). The host never reads the ACK and reads one report per poll (connection.rs:180), so every later read returns the previous frame. `set_test_mode` can also write between the poll thread's write and read.
 
-- [ ] **ME-05 [P1] Macro `keydown`/`keyup` for normal keys press the key twice; held modifiers are ignored**
+- [x] **ME-05 [P1] Macro `keydown`/`keyup` for normal keys press the key twice; held modifiers are ignored**
   - Files: `src/executor/actions.rs:66-81`, `src/executor/runtime/mod.rs`, `src/executor/runtime/macos.rs`, `noop.rs`, `windows.rs`.
   - Evidence:
     - For a non-modifier key, both `KeyDown` and `KeyUp` call `runtime.key_press` (down+up), so `keydown a` + `keyup a` types "aa".
@@ -395,7 +395,7 @@ Crate: `apps/macro-eleven/src-tauri` (package `macro-eleven`, lib `macro_eleven_
     - `[keydown a, keyup a]` produces `key_down(a), key_up(a)`.
     - A macro that errors mid-way still emits `modifier_up` for held modifiers.
 
-- [ ] **ME-06 [P1] Layer model breaks with non-contiguous layer IDs; manual override never clears**
+- [x] **ME-06 [P1] Layer model breaks with non-contiguous layer IDs; manual override never clears**
   - Files: `src/executor/actions.rs:29-36`, `src/config/keymap.rs:189-217`, `src/hid/keymap_engine.rs`.
   - Evidence:
     - `CycleLayer` uses `(current + 1) % layers.len()` and `SwitchLayer` clamps to `len - 1`. With layers `{0, 1, 5}`, `switch_layer 5` lands on layer 2, which does not exist. Every key then logs "No action", and the user is stuck because manual override blocks auto-switch.
@@ -409,18 +409,18 @@ Crate: `apps/macro-eleven/src-tauri` (package `macro-eleven`, lib `macro_eleven_
     4. `determine_layer` picks the lowest layer ID whose `triggerApp` matches.
   - Accept: unit tests for cycle over `{0,1,5}`, switch to a missing layer errors, override cleared on app change, and deterministic trigger match.
 
-- [ ] **ME-07 [P1] UI never learns current state after reload or when the overlay opens** → **Revised: backend via LINK-03 `get_link_snapshot`; this task is the frontend + engine fields.**
+- [x] **ME-07 [P1] UI never learns current state after reload or when the overlay opens** → **Revised: backend via LINK-03 `get_link_snapshot`; this task is the frontend + engine fields.**
   - Files: `src/shared/lib/tauri.ts`, `src/app/providers.tsx:31-42`, `src/features/overlay/OverlayView.tsx:65-74`, `src/shared/lib/useKeyEvents.ts:11-16`; Rust `commands/device.rs`.
   - Evidence: `device-status` is emitted only on transitions. A window reload (HMR), or an overlay opened after connecting, starts at `"disconnected"` and stays there while the device is connected. Host-control state starts at `true` in the UI regardless of backend state.
   - Change: add `get_engine_snapshot() -> { layer, host_control, source }` next to `get_link_snapshot()`. Hooks call both on mount, then apply events.
   - Accept: open the overlay after connecting (simulated device is fine) → it shows "Connected" and the current layer immediately.
 
-- [ ] **ME-08 [P1] 60 Hz event flood to every webview** → **Revised: the backend part is absorbed by LINK-02 (emit on change).** Remaining: frontend.
+- [x] **ME-08 [P1] 60 Hz event flood to every webview** → **Revised: the backend part is absorbed by LINK-02 (emit on change).** Remaining: frontend.
   - Files: `src/shared/lib/useKeyEvents.ts`, `src/shared/lib/usePotValue.ts`.
   - Change: bail out of `setState` when the payload equals current state.
   - Accept: with the pad idle, zero events per second in the devtools event log.
 
-- [ ] **ME-09 [P1] macOS permissions and automation**
+- [x] **ME-09 [P1] macOS permissions and automation**
   - Files: `src/executor/runtime/macos.rs`, `src/executor/app_detector.rs`, `src/hid/keymap_engine.rs`.
   - Evidence:
     - `CGEvent::post` needs Accessibility permission. Without it, macOS drops events silently and the app still emits `action-executed`.
@@ -437,10 +437,10 @@ Crate: `apps/macro-eleven/src-tauri` (package `macro-eleven`, lib `macro_eleven_
     4. `type_text`: post one key event per character using `CGEvent::set_string` (a Unicode string) instead of the keycode table, so text is layout-independent and supports non-ASCII.
   - Accept: with Accessibility revoked, pressing a shortcut key produces `action-error` with a clear message, and the UI shows the banner.
 
-- [ ] **ME-10 [P2] Mutex poisoning** → **Revised: link part absorbed by LINK-02.** Remaining: the engine and action worker.
+- [x] **ME-10 [P2] Mutex poisoning** → **Revised: link part absorbed by LINK-02.** Remaining: the engine and action worker.
   - Change: use `parking_lot::Mutex` in the engine. Wrap each job in `catch_unwind` and emit `macro11:action-error` on panic.
 
-- [ ] **ME-11 [P2] Keymap storage robustness**
+- [x] **ME-11 [P2] Keymap storage robustness**
   - Files: `src/config/storage.rs`, `src/commands/keymap_commands.rs`.
   - Evidence and change:
     - `save_keymap` uses `fs::write`, which leaves a partial file on crash. Write to `<name>.json.tmp`, then `fs::rename`. Put this helper in a small shared module both apps use (GL-03 needs it too).
@@ -450,7 +450,7 @@ Crate: `apps/macro-eleven/src-tauri` (package `macro-eleven`, lib `macro_eleven_
     - Unknown JSON fields are silently dropped on round-trip. TS `BaseAction.description`, `ShortcutAction.modifiers`, and `KeymapSettings.plugins` do not exist in Rust. Add these fields to the Rust structs, or add `#[serde(flatten)] extra: serde_json::Map<String, Value>` to each struct so saves preserve them.
   - Accept: unit tests for name validation, atomic save, and round-trip of a keymap containing `description` and `modifiers`.
 
-- [ ] **ME-12 [P3] Remove dead IPC surface and legacy parser**
+- [x] **ME-12 [P3] Remove dead IPC surface and legacy parser**
   - Evidence:
     - The UI never passes `path` to `get_layer_data` (useLayerData.ts calls `getLayerData()`). So `commands/layers.rs:32-36` and `src/keymap/parser.rs` (regex `keymap.c` parser) are dead, and they also let the frontend read any file path.
     - Commands `get_active_keymap`, `save_user_keymap`, `list_available_keymaps`, `load_keymap_by_name`, `get_active_application`, `reset_to_default`, and `detect_device_cmd` have no caller in `src/`.
@@ -460,7 +460,7 @@ Crate: `apps/macro-eleven/src-tauri` (package `macro-eleven`, lib `macro_eleven_
   - Change: delete the `keymap/` module, the `path` parameter, and the `regex` dependency. Move `action_label` (layers.rs:66-95) to `src/keymap_labels.rs`; the screen composer (SCR-05) reuses it. For each unused command, either delete it or add a typed wrapper in `tauri.ts` if a planned UI needs it. **[DECISION]** ask the user which keymap-management commands the Keymap Designer will use; default to deleting.
   - Accept: `cargo tree -p macro-eleven | grep regex` is empty; `pnpm -s fallow:dead-code` shows fewer unused exports.
 
-- [ ] **ME-13 [P2] Open keymap file with the system handler, not a hard-coded editor**
+- [x] **ME-13 [P2] Open keymap file with the system handler, not a hard-coded editor**
   - Files: `src/commands/keymap_commands.rs:85-171`.
   - Evidence: the macOS path tries `open -a Cursor` first (the author's editor), then `open`.
   - Change: use `tauri_plugin_opener::OpenerExt` → `app.opener().open_path(path, None::<&str>)`; delete the platform `Command` branches.
@@ -469,7 +469,7 @@ Crate: `apps/macro-eleven/src-tauri` (package `macro-eleven`, lib `macro_eleven_
   - Files: `src-tauri/tauri.conf.json:22-24` (`"csp": null`), same in `apps/glyf`.
   - Change: `"csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src ipc: http://ipc.localhost"`. (`blob:` covers VirtualScreen snapshot export in SCR-07.) Run `pnpm dev:macro-eleven` and check the webview console for CSP violations.
 
-- [ ] **ME-15 [P2] Keymap schema parity between TS and Rust**
+- [x] **ME-15 [P2] Keymap schema parity between TS and Rust**
   - Files: `shared/libs/keymap-schema/src/{types,validation,defaults}.ts`, `src-tauri/src/config/keymap.rs`, `src-tauri/src/config/default_keymap.json`, `apps/macro-eleven/src/entities/keymap.ts:61-81`.
   - Evidence:
     - `autoSwitchLayers` defaults to **true** in Rust (`keymap.rs:195`) and **false** in TS `determineActiveLayer` (`entities/keymap.ts:66`).
@@ -736,14 +736,14 @@ Location: `domains/prototypes/macropads/macro-eleven/firmware`. The build copies
 
 ## 7. Phase 5 — Tests (add alongside earlier phases; minimum set)
 
-- [ ] **T-01 [P1] Rust unit tests for macro-eleven**
+- [x] **T-01 [P1] Rust unit tests for macro-eleven**
   - `shortcuts.rs`: `ShortcutSequence::from_keys` happy path, trailing modifier error, F-keys, unknown token.
   - `keymap.rs`: `MatrixPosition::from_key` edge cases, `determine_layer`.
   - Engine: edge detection and the layer rules from ME-06.
   - The `include_str!` default keymap deserializes.
   - Protocol tests live in `glyf-link` (LINK-02/LINK-04).
-- [ ] **T-02 [P2] Make the active-app smoke test non-flaky** — `executor/app_detector.rs:22-28` asserts a frontmost app exists, which fails on headless macOS runners and over SSH. Mark it `#[ignore = "needs a GUI session"]`.
-- [ ] **T-03 [P2] Add a Vitest project for `apps/macro-eleven`**
+- [x] **T-02 [P2] Make the active-app smoke test non-flaky** — `executor/app_detector.rs:22-28` asserts a frontmost app exists, which fails on headless macOS runners and over SSH. Mark it `#[ignore = "needs a GUI session"]`.
+- [x] **T-03 [P2] Add a Vitest project for `apps/macro-eleven`**
   - Create `apps/macro-eleven/vitest.config.ts` (jsdom) and add it to root `vitest.config.ts` `projects`.
   - First tests:
     - `matrixToIndex`/`MATRIX_LAYOUT` round-trip;
@@ -760,11 +760,11 @@ Location: `domains/prototypes/macropads/macro-eleven/firmware`. The build copies
 
 ## 8. Phase 6 — macro-eleven frontend
 
-- [ ] **UI-01 [P2] Fix the FSD boundary violation** — `src/shared/ui/MacropadGrid.tsx:1` imports runtime values (`MATRIX_LAYOUT`, `matrixToIndex`) from `entities/key`, and `shared` must not depend on `entities`. Pass the layout as a prop from features/pages, or move the constants to `src/shared/config/layout.ts`. MacropadGrid also becomes the virtual input surface (SCR-08), so add `onKeyDown(index)` / `onKeyUp(index)` props. Verify with `pnpm -s fallow:dead-code --boundary-violations`.
+- [x] **UI-01 [P2] Fix the FSD boundary violation** — `src/shared/ui/MacropadGrid.tsx:1` imports runtime values (`MATRIX_LAYOUT`, `matrixToIndex`) from `entities/key`, and `shared` must not depend on `entities`. Pass the layout as a prop from features/pages, or move the constants to `src/shared/config/layout.ts`. MacropadGrid also becomes the virtual input surface (SCR-08), so add `onKeyDown(index)` / `onKeyUp(index)` props. Verify with `pnpm -s fallow:dead-code --boundary-violations`.
 - [ ] **UI-02 [P2] Use the shared `Button`; delete or adopt `card.tsx`** — `shared/ui/button.tsx` and `card.tsx` are unused (fallow `unused_files`), while `App.tsx:22-41`, `KeymapDesignerPage.tsx:20-79`, `KeyTester.tsx:307-313`, and `LayerViewer.tsx:99-114` copy long button class strings. After X-01 these come from `@glyf/ui`.
 - [ ] **UI-03 [P2] Split `KeyTester` (289 lines, cognitive 20)** — extract `HostModeSwitch`, `DebugStats`, `DebugEventFeed`, and a `useDebugEventFeed()` hook. Replace the light-theme badge colors (`bg-slate-100`, `bg-amber-50 text-amber-900`, lines 42-63 and 263) with theme tokens.
-- [ ] **UI-04 [P2] Layer viewer label pipeline** — the host now returns human labels (`action_label`), but `KeyLabel`/`OverlayKeyCell` still run them through `keycodeToLabel` (a QMK keycode parser) and fall back to `"KC_NO"` (`entities/layer.ts:17-19`). Render labels as-is; an empty slot is `"—"`. Delete `keycode-labels.ts` if no firmware-keymap viewer remains. Consider showing a small VirtualScreen thumbnail in the Layer Viewer (the same frame source as SCR-07).
-- [ ] **UI-05 [P3] Dead UI and dead exports**
+- [x] **UI-04 [P2] Layer viewer label pipeline** — the host now returns human labels (`action_label`), but `KeyLabel`/`OverlayKeyCell` still run them through `keycodeToLabel` (a QMK keycode parser) and fall back to `"KC_NO"` (`entities/layer.ts:17-19`). Render labels as-is; an empty slot is `"—"`. Delete `keycode-labels.ts` if no firmware-keymap viewer remains. Consider showing a small VirtualScreen thumbnail in the Layer Viewer (the same frame source as SCR-07).
+- [x] **UI-05 [P3] Dead UI and dead exports**
   - The "Edit Actions" button in `KeymapDesignerPage.tsx:65-73` has no handler.
   - Remove unused exports reported by fallow (trace each first): `getActionIcon`, `getActionForKey`, `determineActiveLayer`, `getLayerNames`, `isValidForDevice`, re-exports in `entities/keymap.ts`, `entities/action.ts` type re-exports, `KeyAssignment`, `KeyPressEvent`, `DeviceInfo`, `detectDevice`, `badgeVariants`.
 - [ ] **UI-06 [P3] `components.json` aliases**
