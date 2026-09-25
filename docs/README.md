@@ -4,6 +4,8 @@
 |-----|---------|
 | [Product line](product-line.md) | Vision, modular roadmap, and how this repo is organized |
 | [SDK setup](../sdks/README.md) | QMK and Pico SDK (external clones) |
+| [Codebase audit](audit/2026-09-24-action-plan.md) | Task-by-task fixes for both apps, firmware, and tooling |
+| [Keymap Designer plan](plans/2026-09-25-keymap-designer.md) | Production plan for in-app keymap editing (no JSON) |
 
 **Firmware and hardware** live next to the code:
 
