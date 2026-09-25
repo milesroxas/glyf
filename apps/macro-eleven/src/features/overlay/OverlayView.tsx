@@ -1,41 +1,17 @@
+import { formatMatrixPosition, getAction } from "@glyf/keymap-schema";
 import { useEffect } from "react";
-import { getKeyForDisplay } from "../../entities/layer";
-import { keycodeToLabel } from "../../shared/lib/keycode-labels";
+import { actionLabel } from "../../entities/action";
+import { layerName } from "../../entities/keymap";
 import { useDeviceStatus } from "../../shared/lib/useDeviceStatus";
 import { useKeyEvents } from "../../shared/lib/useKeyEvents";
-import { useLayerData } from "../../shared/lib/useLayerData";
 import { usePotValue } from "../../shared/lib/usePotValue";
 import { cn } from "../../shared/lib/utils";
 import { Badge } from "../../shared/ui/badge";
+import { Keycap } from "../../shared/ui/Keycap";
 import { KnobDial } from "../../shared/ui/KnobDial";
 import { MacropadGrid } from "../../shared/ui/MacropadGrid";
 import { Separator } from "../../shared/ui/separator";
-import "./OverlayKeyCell.css";
-
-function OverlayKeyCell({
-  keycode,
-  pressed,
-}: {
-  keycode: string;
-  pressed: boolean;
-}) {
-  const label = keycodeToLabel(keycode);
-  return (
-    <div
-      className={cn(
-        "overlay-key-cell flex h-full w-full items-center justify-center overflow-hidden rounded-lg px-1 py-0.5 transition-all duration-100",
-        "text-foreground",
-        pressed && "text-primary",
-      )}
-      title={keycode}
-      data-pressed={pressed}
-    >
-      <span className="w-full text-center text-[10px] font-medium leading-tight wrap-break-word line-clamp-2">
-        {label}
-      </span>
-    </div>
-  );
-}
+import { useActiveKeymap } from "./useActiveKeymap";
 
 function OverlayShell({
   children,
@@ -58,13 +34,12 @@ function OverlayShell({
   );
 }
 
+/** A small always-on-top window showing what each key does on the live layer. */
 export function OverlayView() {
   const { keys, layer } = useKeyEvents();
-  const { layers, loading, error } = useLayerData();
+  const { keymap, error } = useActiveKeymap();
   const { value: potValue } = usePotValue();
   const connected = useDeviceStatus() === "connected";
-
-  const currentLayer = layers.find((l) => l.index === layer) ?? layers[0];
 
   const header = (
     <div className="flex items-center justify-between gap-3">
@@ -72,42 +47,36 @@ export function OverlayView() {
         <h2 className="text-sm font-semibold tracking-tight text-foreground">
           Macro Eleven
         </h2>
-        {!loading && !error && layers.length > 0 && (
-          <Badge variant="outline">
-            L{layer} · {currentLayer.name}
+        {keymap && (
+          <Badge variant="outline" className="max-w-full truncate">
+            {layerName(keymap, layer)}
           </Badge>
         )}
       </div>
-      {!loading && !error && layers.length > 0 && (
-        <span
-          className={cn(
-            "h-2 w-2 shrink-0 rounded-full",
-            connected
-              ? "bg-chart-2 ring-2 ring-chart-2/50"
-              : "bg-muted-foreground",
-          )}
-          title={connected ? "Connected" : "Not connected"}
-        />
-      )}
+      <span
+        className={cn(
+          "size-2 shrink-0 rounded-full",
+          connected
+            ? "bg-primary ring-2 ring-primary/40"
+            : "bg-muted-foreground",
+        )}
+        title={connected ? "Connected" : "Not connected"}
+      />
     </div>
   );
 
-  if (loading) {
+  if (!keymap) {
     return (
       <OverlayShell header={header}>
-        <div className="flex flex-1 flex-col items-center justify-center gap-4">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-foreground" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </div>
-      </OverlayShell>
-    );
-  }
-
-  if (error || layers.length === 0) {
-    return (
-      <OverlayShell header={header}>
-        <div className="flex flex-1 flex-col items-center justify-center">
-          <p className="text-sm text-destructive">{error ?? "No layers"}</p>
+        <div className="flex flex-1 items-center justify-center p-4">
+          <p
+            className={cn(
+              "text-sm",
+              error ? "text-destructive" : "text-muted-foreground",
+            )}
+          >
+            {error ?? "Loading…"}
+          </p>
         </div>
       </OverlayShell>
     );
@@ -115,21 +84,33 @@ export function OverlayView() {
 
   return (
     <OverlayShell header={header}>
-      <div className="flex flex-1 min-h-0 flex-col gap-2 px-5 py-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 px-5 py-3">
         {!connected && (
-          <p className="text-xs text-muted-foreground shrink-0">
+          <p className="shrink-0 text-xs text-muted-foreground">
             Plug in Macro Eleven to see key feedback
           </p>
         )}
-        <div className="flex flex-1 min-h-0">
+        <div className="flex min-h-0 flex-1">
           <MacropadGrid
             fluid
-            renderKey={(index) => (
-              <OverlayKeyCell
-                keycode={getKeyForDisplay(currentLayer.keys, index)}
-                pressed={keys[index] ?? false}
-              />
-            )}
+            renderKey={(position, index) => {
+              const action = getAction(
+                keymap,
+                layer,
+                formatMatrixPosition(position),
+              );
+              return (
+                <Keycap
+                  pressed={keys[index] ?? false}
+                  empty={!action}
+                  className="flex h-full w-full items-center justify-center overflow-hidden px-1 py-0.5"
+                >
+                  <span className="line-clamp-2 w-full text-center text-[10px] leading-tight font-medium break-words">
+                    {action ? actionLabel(action, keymap) : ""}
+                  </span>
+                </Keycap>
+              );
+            }}
             renderEmpty={() => (
               <KnobDial
                 value={potValue / 1023}

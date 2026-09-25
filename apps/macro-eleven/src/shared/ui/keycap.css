@@ -1,0 +1,69 @@
+/* A physical key cap: a card-colored face inside a beveled edge, lit from
+   above. Shared by the designer, the overlay, and Diagnostics so every view
+   of the pad looks like the same object. */
+.keycap {
+    --_edge-top: oklch(0.36 0 0);
+    --_edge-bottom: oklch(0.2 0 0);
+    --_face: var(--card);
+
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background:
+        linear-gradient(var(--_face), var(--_face)) padding-box,
+        linear-gradient(to bottom, var(--_edge-top), var(--_edge-bottom))
+        border-box;
+    box-shadow:
+        0 1px 1px oklch(0 0 0 / 0.35),
+        0 6px 12px -4px oklch(0 0 0 / 0.45),
+        inset 0 1px 0 oklch(1 0 0 / 0.07);
+    transition:
+        transform 100ms var(--ease-out),
+        box-shadow 150ms var(--ease-out),
+        color 150ms ease;
+}
+
+/* Press feedback lands on pointer-down, not on release */
+.keycap[data-interactive]:active {
+    transform: scale(0.97);
+}
+
+/* The physical key is held down */
+.keycap[data-pressed] {
+    --_edge-top: oklch(0.42 0.1 163);
+    --_edge-bottom: oklch(0.3 0.08 163);
+    --_face: color-mix(in oklab, var(--primary) 24%, var(--card));
+
+    color: var(--foreground);
+    transform: translateY(1px) scale(0.97);
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--primary) 60%, transparent),
+        0 2px 10px -2px color-mix(in oklab, var(--primary) 45%, transparent);
+}
+
+.keycap[data-empty] {
+    background: transparent;
+    border: 1px dashed var(--border);
+    box-shadow: none;
+}
+
+/* A dragged app is over this key */
+.keycap[data-drop-target] {
+    --_face: color-mix(in oklab, var(--primary) 14%, var(--card));
+
+    border-style: solid;
+    border-color: var(--primary);
+    background: var(--_face);
+}
+
+/* Reduced motion: state shows by color alone; nothing moves or scales */
+@media (prefers-reduced-motion: reduce) {
+    .keycap {
+        transition: none;
+    }
+
+    .keycap[data-pressed],
+    .keycap[data-interactive]:active {
+        transform: none;
+    }
+}

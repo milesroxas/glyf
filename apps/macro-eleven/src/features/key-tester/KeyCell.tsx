@@ -1,4 +1,4 @@
-import { cn } from "../../shared/lib/utils";
+import { Keycap } from "../../shared/ui/Keycap";
 
 interface KeyCellProps {
   index: number;
@@ -7,15 +7,11 @@ interface KeyCellProps {
 
 export function KeyCell({ index, pressed }: KeyCellProps) {
   return (
-    <div
-      className={cn(
-        "relative w-full h-full flex items-center justify-center rounded-md border text-sm font-medium transition-all duration-75 select-none",
-        "bg-background border-input shadow-sm hover:border-accent-foreground/20",
-        pressed &&
-          "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25 scale-[0.96]",
-      )}
+    <Keycap
+      pressed={pressed}
+      className="flex h-full w-full items-center justify-center text-sm font-medium tabular-nums select-none"
     >
-      <span>{index}</span>
-    </div>
+      {index}
+    </Keycap>
   );
 }

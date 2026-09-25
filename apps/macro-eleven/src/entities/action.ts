@@ -1,27 +1,70 @@
 /**
- * Action entity - Re-exports action types from shared schema
+ * Action entity: what a key does, in the words the designer uses.
  */
-
-export type {
-  Action,
-  ActionType,
-  CycleLayerAction,
-  KeyModifier,
-  LaunchAppAction,
-  MacroAction,
-  MacroStep,
-  NoopAction,
-  PluginAction,
-  ShortcutAction,
-  SwitchLayerAction,
+import {
+  type Action,
+  describeShortcut,
+  formatShortcut,
+  type Keymap,
+  type MatrixPosition,
 } from "@glyf/keymap-schema";
+import { layerName } from "./keymap";
 
-import type { Action, MatrixPosition } from "@glyf/keymap-schema";
+/** Longest tile label; also the rev 2 screen's tile limit. */
+export const LABEL_MAX_LENGTH = 16;
 
-export interface ActionErrorEvent {
-  position: MatrixPosition;
-  layer: number;
-  error: string;
+/** The designer's action kinds (the inspector's segmented control). */
+export type ActionKind = "app" | "shortcut" | "layer" | "macro" | "none";
+
+export const ACTION_KINDS: readonly { kind: ActionKind; label: string }[] = [
+  { kind: "app", label: "App" },
+  { kind: "shortcut", label: "Shortcut" },
+  { kind: "layer", label: "Layer" },
+  { kind: "macro", label: "Macro" },
+  { kind: "none", label: "None" },
+];
+
+/** Plugins cannot be edited yet; they show as read-only. */
+export function actionKind(action: Action | undefined): ActionKind | "plugin" {
+  switch (action?.action) {
+    case "launch_app":
+      return "app";
+    case "shortcut":
+      return "shortcut";
+    case "switch_layer":
+    case "cycle_layer":
+      return "layer";
+    case "macro":
+      return "macro";
+    case "plugin":
+      return "plugin";
+    default:
+      return "none";
+  }
+}
+
+/** Text a key shows when it has no label of its own. */
+export function describeAction(action: Action, keymap?: Keymap): string {
+  switch (action.action) {
+    case "launch_app":
+      return action.app;
+    case "shortcut":
+      return formatShortcut(action.keys).join(" ");
+    case "switch_layer":
+      return layerName(keymap, action.layer);
+    case "cycle_layer":
+      return "Next Layer";
+    case "macro":
+      return "Macro";
+    case "plugin":
+      return "Plugin";
+    case "noop":
+      return "";
+  }
+}
+
+export function actionLabel(action: Action, keymap: Keymap): string {
+  return action.label || describeAction(action, keymap);
 }
 
 export interface ActionExecutedEvent {
@@ -30,66 +73,78 @@ export interface ActionExecutedEvent {
   action: Action;
 }
 
-/**
- * Get a human-readable label for an action
- */
-export function getActionLabel(action: Action): string {
-  if (action.label) {
-    return action.label;
-  }
+export interface ActionErrorEvent {
+  position: MatrixPosition;
+  layer: number;
+  error: string;
+}
 
+/** What happened, for a completion toast: "Sent ⇧⌘T", "Opened Figma". */
+export function actionResultMessage(action: Action, keymap: Keymap): string {
   switch (action.action) {
-    case "cycle_layer":
-      return "Cycle Layer";
-
-    case "switch_layer":
-      return `Layer ${action.layer}`;
-
     case "launch_app":
-      return action.app;
-
+      return `Opened ${action.app}`;
     case "shortcut":
-      return action.keys.join(" + ");
-
+      return `Sent ${formatShortcut(action.keys).join(" ")}`;
+    case "switch_layer":
+      return `Switched to ${layerName(keymap, action.layer)}`;
+    case "cycle_layer":
+      return "Switched to the next layer";
     case "macro":
-      return "Macro";
-
-    case "plugin":
-      return `${action.pluginId}:${action.actionId}`;
-
-    case "noop":
-      return "—";
-
+      return `Ran ${action.label || "macro"}`;
     default:
-      return "Unknown";
+      return actionLabel(action, keymap) || "Done";
   }
 }
 
 /**
- * Get icon name for an action (for lucide-react)
+ * `next` with the fields every action shares (label, icon, description)
+ * carried over from `previous`, so changing what a key does keeps its name.
  */
-export function getActionIcon(action: Action): string {
+export function carryOver<T extends Action>(
+  next: T,
+  previous: Action | undefined,
+): T {
+  if (!previous) return next;
+  const { label, icon, description } = previous;
+  return {
+    ...(label && { label }),
+    ...(icon && { icon }),
+    ...(description && { description }),
+    ...next,
+  };
+}
+
+/** What an action does, spoken: "opens Google Chrome", "shortcut Command T". */
+function spokenAction(action: Action, keymap: Keymap): string {
   switch (action.action) {
-    case "cycle_layer":
-    case "switch_layer":
-      return "layers";
-
     case "launch_app":
-      return "rocket";
-
+      return `opens ${action.app}`;
     case "shortcut":
-      return "keyboard";
-
+      return `shortcut ${describeShortcut(action.keys)}`;
+    case "switch_layer":
+      return `switches to ${layerName(keymap, action.layer)}`;
+    case "cycle_layer":
+      return "next layer";
     case "macro":
-      return "list-ordered";
-
-    case "plugin":
-      return "puzzle";
-
-    case "noop":
-      return "circle-off";
-
+      return `macro with ${action.sequence.length} steps`;
     default:
-      return "help-circle";
+      return "";
   }
+}
+
+/**
+ * How a screen reader hears a key: "Row 1, column 2: New Tab, shortcut
+ * Command T".
+ */
+export function spokenKey(
+  { row, col }: MatrixPosition,
+  action: Action | undefined,
+  keymap: Keymap,
+): string {
+  const where = `Row ${row + 1}, column ${col + 1}`;
+  if (!action) return `${where}: empty`;
+  const does = spokenAction(action, keymap);
+  const label = actionLabel(action, keymap);
+  return `${where}: ${[label, does].filter(Boolean).join(", ")}`;
 }

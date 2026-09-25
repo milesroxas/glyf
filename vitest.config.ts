@@ -6,7 +6,7 @@ import { defineConfig } from "vitest/config";
 const workspaceRoot = path.dirname(fileURLToPath(import.meta.url));
 
 /**
- * Monorepo test workspace: shared domain packages + glyf app (see each vitest.config.ts).
+ * Monorepo test workspace: shared domain packages and both apps (see each vitest.config.ts).
  */
 export default defineConfig({
   test: {
@@ -15,6 +15,7 @@ export default defineConfig({
       path.join(workspaceRoot, "shared/libs/display-schema"),
       path.join(workspaceRoot, "apps/glyf/vitest.config.ts"),
       path.join(workspaceRoot, "apps/glyf/vitest.browser.config.ts"),
+      path.join(workspaceRoot, "apps/macro-eleven/vitest.config.ts"),
     ],
   },
 });

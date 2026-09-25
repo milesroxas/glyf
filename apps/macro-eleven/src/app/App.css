@@ -21,6 +21,7 @@
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.58 0.22 27);
+    --warning: oklch(0.67 0.15 70);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
     --ring: oklch(0.708 0 0);
@@ -30,6 +31,9 @@
     --chart-4: oklch(0.6 0.13 163);
     --chart-5: oklch(0.51 0.1 166);
     --radius: 0.45rem;
+    /* Motion: strong ease-out for entrances, ease-in-out for on-screen moves */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.645, 0.045, 0.355, 1);
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: oklch(0.6 0.13 163);
@@ -56,6 +60,7 @@
     --accent: oklch(0.371 0 0);
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
+    --warning: oklch(0.82 0.14 80);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.556 0 0);
@@ -93,6 +98,7 @@
     --color-input: var(--input);
     --color-border: var(--border);
     --color-destructive: var(--destructive);
+    --color-warning: var(--warning);
     --color-accent-foreground: var(--accent-foreground);
     --color-accent: var(--accent);
     --color-muted-foreground: var(--muted-foreground);
@@ -136,4 +142,100 @@
     display: flex;
     height: 100vh;
     width: 100vw;
+}
+
+/* ── Floating surfaces ─────────────────────────────────────────────────────
+   Popovers, menus, tooltips, and dialogs share one enter/exit: a short fade
+   and scale from 96%, anchored at the trigger via --pop-origin. Exits are
+   shorter than entrances. */
+@keyframes pop-in {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+@keyframes pop-out {
+    to {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes fade-out {
+    to {
+        opacity: 0;
+    }
+}
+
+.pop {
+    transform-origin: var(--pop-origin, center);
+}
+
+.pop:is(
+    [data-state="open"],
+    [data-state="delayed-open"],
+    [data-state="instant-open"]
+) {
+    animation: pop-in 160ms var(--ease-out);
+}
+
+.pop[data-state="closed"] {
+    animation: pop-out 110ms var(--ease-out) forwards;
+}
+
+.scrim[data-state="open"] {
+    animation: fade-in 160ms var(--ease-out);
+}
+
+.scrim[data-state="closed"] {
+    animation: fade-out 110ms var(--ease-out) forwards;
+}
+
+/* Reduced motion: keep the fade, drop the scale */
+@media (prefers-reduced-motion: reduce) {
+    .pop:is(
+        [data-state="open"],
+        [data-state="delayed-open"],
+        [data-state="instant-open"]
+    ) {
+        animation-name: fade-in;
+    }
+
+    .pop[data-state="closed"] {
+        animation-name: fade-out;
+    }
+}
+
+/* ── Materials ─────────────────────────────────────────────────────────────
+   Translucent chrome over content. Reduced transparency makes it solid. */
+@utility material {
+    background-color: color-mix(in oklab, var(--background) 72%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+
+    @media (prefers-reduced-transparency: reduce) {
+        background-color: var(--background);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
+
+/* Heavier: large surfaces over busy content (the inspector sheet) */
+@utility material-raised {
+    background-color: color-mix(in oklab, var(--card) 92%, transparent);
+    -webkit-backdrop-filter: blur(30px) saturate(160%);
+    backdrop-filter: blur(30px) saturate(160%);
+
+    @media (prefers-reduced-transparency: reduce) {
+        background-color: var(--card);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
 }

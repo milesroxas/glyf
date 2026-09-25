@@ -1,5 +1,5 @@
 import { PotMonitor } from "../features/pot-monitor/PotMonitor";
 
-export function PotMonitorPage() {
+export function KnobPage() {
   return <PotMonitor />;
 }

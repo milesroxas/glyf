@@ -234,70 +234,70 @@ Order matters within a phase. Each task is one commit. Prefix commit messages wi
 
 ### Phase B: designer core
 
-- [ ] **KD-08 Shared UI primitives**
+- [x] **KD-08 Shared UI primitives**
   - Files: `src/shared/ui/{dialog,popover,tabs,tooltip,dropdown-menu,kbd,input,toaster}.tsx`, `components.json` aliases (UI-06), `src/shared/config/layout.ts` (UI-01), `App.tsx` (window and Toaster).
   - Change: add the shadcn components, fix aliases, move layout constants, mount `Toaster`. Set the window to 1000×680 with a 900×600 minimum.
   - Accept: `pnpm -s fallow:dead-code --boundary-violations` reports none for `shared/ui`.
 
-- [ ] **KD-09 KeymapProvider with history and autosave**
+- [x] **KD-09 KeymapProvider with history and autosave**
   - Files: `features/keymap-designer/{KeymapProvider.tsx,useUndoRedo.ts,useAutosave.ts}`.
   - Change: the state model in 4.3. ⌘Z / ⇧⌘Z bound at the provider level, ignored while a text field has focus and the field has its own undo.
   - Accept: Vitest with a mocked `save_profile`: three edits produce one save after 300 ms; undo restores the previous keymap and triggers a save; editing Default prompts to duplicate.
 
-- [ ] **KD-10 Canvas, tiles, selection ring, device-press selection**
+- [x] **KD-10 Canvas, tiles, selection ring, device-press selection**
   - Files: `features/keymap-designer/{KeymapDesigner.tsx,KeyCanvas.tsx,KeyTile.tsx,SelectionRing.tsx,useDeviceKeySelection.ts}`, `pages/KeymapDesignerPage.tsx`, `App.tsx` routes, `shared/ui/NavBar.tsx`.
   - Change: 3.1 and 3.2. Route changes from 4.3. Delete Layer Viewer files.
   - Accept: clicking a tile moves the ring with a spring; clicking another tile mid-flight redirects without a jump; a physical press selects the tile; arrow keys move selection; reduced motion makes the ring jump.
 
-- [ ] **KD-11 Inspector with App, Shortcut, Layer, None editors**
+- [x] **KD-11 Inspector with App, Shortcut, Layer, None editors**
   - Files: `features/keymap-designer/{Inspector.tsx,editors/*.tsx,ShortcutRecorder.tsx}`.
   - Change: 3.3 and 3.5 (single chord and sequence). The App editor uses a plain "Choose app" button that opens the picker from KD-12; until then it is a text field for the name.
   - Accept: recording ⌘⇧T saves `["cmd","shift","t"]`; Esc restores the old value; a conflict on the same layer shows a warning; switching kind keeps the label; "Try" on a shortcut counts down and sends it.
 
 ### Phase C: app picker
 
-- [ ] **KD-12 App picker with icons, search, and recents**
+- [x] **KD-12 App picker with icons, search, and recents**
   - Files: `features/keymap-designer/AppPicker.tsx`, `editors/AppEditor.tsx`.
   - Change: 3.4 without drag. Recents stored in `localStorage` (a per-user convenience only).
   - Accept: typing "chr" lists Google Chrome first; choosing it fills name, bundle ID, and sets the tile icon to the app icon; a missing app shows the inline warning.
 
-- [ ] **KD-13 Drag an app onto a key**
+- [x] **KD-13 Drag an app onto a key**
   - Files: `AppPicker.tsx`, `KeyCanvas.tsx`, `KeyTile.tsx`, a `useDragToTile.ts` hook.
   - Change: 3.4 drag behavior with Pointer Events, capture, grab offset, hover highlight, Esc cancel, and the spring-back on a miss.
   - Accept: drag is 1:1 from the grab point; releasing over a tile assigns the app; releasing elsewhere springs the ghost back; Esc cancels mid-drag.
 
 ### Phase D: layers and profiles
 
-- [ ] **KD-14 Layer tabs and layer settings**
+- [x] **KD-14 Layer tabs and layer settings**
   - Files: `LayerTabs.tsx`, `LayerSettings.tsx`, `editors/LayerEditor.tsx`.
   - Change: add, rename, duplicate, delete (Undo toast; warns about dangling `switch_layer` keys and clears them to None), reorder by drag, and the "Activate when this app is in front" picker that writes `triggerApp` as a bundle ID. Global "Follow the front app" switch bound to `settings.autoSwitchLayers`. Layer 0 pinned.
   - Accept: deleting a layer that another key switches to shows the count in the toast and undo restores both.
 
-- [ ] **KD-15 Profile menu, import, export**
+- [x] **KD-15 Profile menu, import, export**
   - Files: `ProfileMenu.tsx`, `App.tsx` header, `tauri.conf.json` (dialog plugin), `capabilities/default.json`.
   - Change: list, switch, new, duplicate, rename, delete (confirm), Import…, Export…, "Show in Finder". The engine follows the active profile.
   - Accept: export then import produces an identical profile; switching profiles changes a physical press immediately.
 
 ### Phase E: macros
 
-- [ ] **KD-16 Macro editor**
+- [x] **KD-16 Macro editor**
   - Files: `editors/MacroEditor.tsx`, `MacroStepRow.tsx`.
   - Change: an ordered list of steps: Shortcut (uses the recorder), Type text, Wait (ms, with a slider from 0 to 2000 and a number field), Key down, Key up. Add, remove, and reorder by drag. "Try" counts down 3 seconds. Held modifiers are released at the end of a macro (ME-05).
   - Accept: a macro `[shortcut ⌘K, wait 100, text "github.com", key enter]` saves in the shared shape and runs from "Try".
 
 ### Phase F: polish
 
-- [ ] **KD-17 Feedback surfaces**
+- [x] **KD-17 Feedback surfaces**
   - Files: `KeymapDesigner.tsx`, `PermissionsBanner.tsx`, `useActionToasts.ts`.
   - Change: 3.7. Status "Saved" in the header, completion and error toasts from engine events, the permissions banner, the offline hint.
   - Accept: revoke Accessibility and press a shortcut key: an error toast and the banner appear; grant it and the banner leaves within 2 seconds without a reload.
 
-- [ ] **KD-18 Reduced motion, reduced transparency, keyboard coverage**
+- [x] **KD-18 Reduced motion, reduced transparency, keyboard coverage**
   - Files: `App.css`, every animated component.
   - Change: 3.6 media queries; audit that every control is reachable and operable by keyboard; `aria-label`s on tiles.
   - Accept: with "Reduce motion" on in macOS, no element translates; with "Reduce transparency" on, no `backdrop-filter` is applied; the whole designer can be driven without a mouse.
 
-- [ ] **KD-19 Narrow-window sheet**
+- [x] **KD-19 Narrow-window sheet**
   - Files: `Inspector.tsx`, `InspectorSheet.tsx`.
   - Change: 3.6 bottom sheet under 900 px, with 1:1 tracking, rubber-banding, momentum projection, and velocity-sign commit.
   - Accept: a flick down closes the sheet even when released above the midpoint; a slow drag past the midpoint and back stays open.
@@ -309,10 +309,10 @@ Order matters within a phase. Each task is one commit. Prefix commit messages wi
 
 ### Phase G: tests
 
-- [ ] **KD-21 Vitest project for macro-eleven** (T-03)
+- [x] **KD-21 Vitest project for macro-eleven** (T-03)
   - Files: `apps/macro-eleven/vitest.config.ts`, root `vitest.config.ts`.
   - Tests: `KeymapProvider` (history, debounce, read-only prompt), `ShortcutRecorder` (glyphs, Esc, conflicts), `useDeviceKeySelection`, `AppPicker` search ordering, keyboard navigation across the physical layout.
-- [ ] **KD-22 Rust tests** (T-01)
+- [x] **KD-22 Rust tests** (T-01)
   - `profiles.rs` (atomic write, migration, names), `apps/macos.rs` (plist parsing on a fixture bundle), token parity (KD-01), `run_action` on the worker.
 
 ## 6. Decisions

@@ -7,7 +7,8 @@ import {
   Power,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getActionLabel } from "../../entities/action";
+import { describeAction } from "../../entities/action";
+import { KEY_POSITIONS } from "../../shared/config/layout";
 import {
   onActionError,
   onActionExecuted,
@@ -65,13 +66,8 @@ const EVENT_META: Record<
 };
 
 function indexToMatrixLabel(index: number): string {
-  if (index <= 2) {
-    return `R0C${index}`;
-  }
-  if (index <= 6) {
-    return `R1C${index - 3}`;
-  }
-  return `R2C${index - 7}`;
+  const { row, col } = KEY_POSITIONS[index];
+  return `R${row}C${col}`;
 }
 
 function formatTimestamp(value: number): string {
@@ -126,7 +122,7 @@ export function KeyTester() {
       onActionExecuted((event) => {
         pushEvent({
           type: "action",
-          title: getActionLabel(event.action),
+          title: event.action.label || describeAction(event.action),
           detail: `Layer ${event.layer} • r${event.position.row}c${event.position.col}`,
           timestamp: Date.now(),
         });
@@ -222,7 +218,7 @@ export function KeyTester() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h2 className="text-2xl font-semibold tracking-tight">Key Tester</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Diagnostics</h2>
           <p className="text-sm text-muted-foreground">
             Visualize key presses and test layer switching.
           </p>
@@ -261,9 +257,8 @@ export function KeyTester() {
         <div className="space-y-3 p-4 border-b bg-muted/20">
           {!hostMode && (
             <div className="rounded-md border border-amber-500/40 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-              Host keymap mode is off. Turn it on to run app-specific launchers
-              and shortcuts from
-              <code className="mx-1 font-mono text-xs">user-custom.json</code>.
+              Host keymap mode is off. Turn it on to run the launchers and
+              shortcuts from your active profile.
             </div>
           )}
           {actionError && (
@@ -282,7 +277,7 @@ export function KeyTester() {
 
         <div className="p-10 flex justify-center bg-muted/20">
           <MacropadGrid
-            renderKey={(index) => (
+            renderKey={(_position, index) => (
               <KeyCell index={index} pressed={keys[index] ?? false} />
             )}
           />
@@ -290,7 +285,7 @@ export function KeyTester() {
         <div className="flex items-center p-4 border-t bg-muted/40">
           <p className="text-xs text-muted-foreground">
             {hostMode
-              ? "Host keymap is active. App launches and shortcuts come from your JSON config."
+              ? "Host keymap is active. Keys run the actions in your active profile."
               : "Host keymap is disabled. Firmware macros run directly from the device."}
           </p>
         </div>

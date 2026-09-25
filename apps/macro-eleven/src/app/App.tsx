@@ -1,15 +1,24 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { MotionConfig } from "motion/react";
+import {
+  BrowserRouter,
+  Navigate,
+  Outlet,
+  Route,
+  Routes,
+} from "react-router-dom";
 import { FirmwareUpdateIndicator } from "../features/firmware-update/FirmwareUpdateIndicator";
 import { FirmwareUpdateProvider } from "../features/firmware-update/FirmwareUpdateProvider";
 import { OverlayView } from "../features/overlay/OverlayView";
+import { DiagnosticsPage } from "../pages/DiagnosticsPage";
 import { FirmwarePage } from "../pages/FirmwarePage";
 import { KeymapDesignerPage } from "../pages/KeymapDesignerPage";
-import { KeyTesterPage } from "../pages/KeyTesterPage";
-import { LayerViewerPage } from "../pages/LayerViewerPage";
-import { PotMonitorPage } from "../pages/PotMonitorPage";
+import { KnobPage } from "../pages/KnobPage";
 import { openOverlayWindow } from "../shared/lib/tauri";
+import { Button } from "../shared/ui/button";
 import { NavBar } from "../shared/ui/NavBar";
 import { StatusBadge } from "../shared/ui/StatusBadge";
+import { Toaster } from "../shared/ui/toaster";
+import { TooltipProvider } from "../shared/ui/tooltip";
 import { DeviceProvider, useDevice } from "./providers";
 import "./App.css";
 
@@ -17,21 +26,32 @@ function AppHeader() {
   const { status } = useDevice();
 
   return (
-    <header className="shrink-0 flex items-center justify-end px-6 h-14 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="material flex h-14 shrink-0 items-center justify-end border-b px-6">
       <div className="flex items-center gap-3">
         <FirmwareUpdateIndicator />
         <StatusBadge status={status} />
-        <div className="h-4 w-px bg-border mx-1" />
-        <button
-          type="button"
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 px-3"
+        <div className="mx-1 h-4 w-px bg-border" />
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => openOverlayWindow()}
           title="Open compact overlay"
         >
           Overlay
-        </button>
+        </Button>
       </div>
     </header>
+  );
+}
+
+/** Pages that read top to bottom scroll inside a centered column. */
+function ScrollingPage() {
+  return (
+    <div className="h-full overflow-y-auto">
+      <div className="container mx-auto max-w-screen-lg space-y-8 px-6 py-8">
+        <Outlet />
+      </div>
+    </div>
   );
 }
 
@@ -42,21 +62,31 @@ function MainApp() {
         <FirmwareUpdateProvider>
           <div className="flex h-screen w-full bg-background">
             <NavBar />
-            <div className="flex flex-1 flex-col overflow-hidden">
+            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               <AppHeader />
-              <main className="flex-1 overflow-y-auto">
-                <div className="container max-w-screen-lg mx-auto py-8 px-6 space-y-8">
-                  <Routes>
-                    <Route path="/" element={<KeyTesterPage />} />
-                    <Route path="/layers" element={<LayerViewerPage />} />
-                    <Route path="/pot" element={<PotMonitorPage />} />
-                    <Route path="/designer" element={<KeymapDesignerPage />} />
+              <main className="min-h-0 flex-1">
+                <Routes>
+                  <Route path="/" element={<KeymapDesignerPage />} />
+                  <Route element={<ScrollingPage />}>
+                    <Route path="/diagnostics" element={<DiagnosticsPage />} />
+                    <Route path="/knob" element={<KnobPage />} />
                     <Route path="/firmware" element={<FirmwarePage />} />
-                  </Routes>
-                </div>
+                  </Route>
+                  {/* Earlier locations of these pages */}
+                  <Route
+                    path="/designer"
+                    element={<Navigate to="/" replace />}
+                  />
+                  <Route path="/layers" element={<Navigate to="/" replace />} />
+                  <Route
+                    path="/pot"
+                    element={<Navigate to="/knob" replace />}
+                  />
+                </Routes>
               </main>
             </div>
           </div>
+          <Toaster />
         </FirmwareUpdateProvider>
       </DeviceProvider>
     </BrowserRouter>
@@ -64,10 +94,14 @@ function MainApp() {
 }
 
 function App() {
-  if (window.location.hash === "#/overlay") {
-    return <OverlayView />;
-  }
-  return <MainApp />;
+  return (
+    // Reduced motion: springs and slides become fades, app-wide
+    <MotionConfig reducedMotion="user">
+      <TooltipProvider>
+        {window.location.hash === "#/overlay" ? <OverlayView /> : <MainApp />}
+      </TooltipProvider>
+    </MotionConfig>
+  );
 }
 
 export default App;

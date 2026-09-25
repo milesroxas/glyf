@@ -3,7 +3,9 @@
   "entry": [
     "apps/glyf/vitest.config.ts",
     "apps/glyf/vitest.browser.config.ts",
-    "apps/glyf/src/test/setup.ts"
+    "apps/glyf/src/test/setup.ts",
+    "apps/macro-eleven/vitest.config.ts",
+    "apps/macro-eleven/src/test/setup.ts"
   ],
   "ignorePatterns": [
     "sdks/**",
@@ -22,17 +24,45 @@
         "name": "app",
         "patterns": ["apps/*/src/app/**", "apps/*/src/main.tsx"]
       },
-      { "name": "pages", "patterns": ["apps/*/src/pages/**"] },
-      { "name": "features", "patterns": ["apps/*/src/features/**"] },
-      { "name": "entities", "patterns": ["apps/*/src/entities/**"] },
-      { "name": "shared", "patterns": ["apps/*/src/shared/**"] }
+      {
+        "name": "pages",
+        "patterns": ["apps/*/src/pages/**"]
+      },
+      {
+        "name": "features",
+        "patterns": ["apps/*/src/features/**"]
+      },
+      {
+        "name": "entities",
+        "patterns": ["apps/*/src/entities/**"]
+      },
+      {
+        "name": "shared",
+        "patterns": ["apps/*/src/shared/**"]
+      }
     ],
     "rules": [
-      { "from": "app", "allow": ["pages", "features", "entities", "shared"] },
-      { "from": "pages", "allow": ["features", "entities", "shared"] },
-      { "from": "features", "allow": ["entities", "shared"] },
-      { "from": "entities", "allow": ["shared"] },
-      { "from": "shared", "allow": [], "allowTypeOnly": ["entities"] }
+      {
+        "from": "app",
+        "allow": ["pages", "features", "entities", "shared"]
+      },
+      {
+        "from": "pages",
+        "allow": ["features", "entities", "shared"]
+      },
+      {
+        "from": "features",
+        "allow": ["entities", "shared"]
+      },
+      {
+        "from": "entities",
+        "allow": ["shared"]
+      },
+      {
+        "from": "shared",
+        "allow": [],
+        "allowTypeOnly": ["entities"]
+      }
     ]
   },
   "rules": {

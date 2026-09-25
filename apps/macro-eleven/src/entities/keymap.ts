@@ -1,94 +1,74 @@
 /**
- * Keymap entity - Domain model for macro-eleven keymaps
- *
- * Re-exports types from shared schema and adds app-specific helpers
+ * Keymap entity: the shared schema plus the app's profile and engine types.
  */
+import {
+  type Keymap,
+  type MatrixPositionKey,
+  parseMatrixPosition,
+} from "@glyf/keymap-schema";
+import { matrixToIndex } from "../shared/config/layout";
 
-import type {
+export type {
   Action,
   Keymap,
-  Layer,
+  LaunchAppAction,
+  MacroAction,
+  MacroStep,
+  MatrixPosition,
   MatrixPositionKey,
+  ShortcutAction,
 } from "@glyf/keymap-schema";
 
-import {
-  formatMatrixPosition,
-  MACRO_ELEVEN_DEFAULT_KEYMAP,
-  parseMatrixPosition,
-} from "@glyf/keymap-schema";
+/** The bundled keymap's profile. Read-only; duplicate it to edit. */
+export const DEFAULT_PROFILE = "Default";
 
-// Re-export types
-export type { Action, Keymap, Layer, MatrixPositionKey };
+export interface ProfileSummary {
+  name: string;
+  readOnly: boolean;
+  /** Last save, ms since the epoch. Null for Default. */
+  updatedAt: number | null;
+}
 
-// Re-export utilities
-export {
-  formatMatrixPosition,
-  MACRO_ELEVEN_DEFAULT_KEYMAP,
-  parseMatrixPosition,
-};
+export interface ProfileList {
+  active: string;
+  profiles: ProfileSummary[];
+}
 
-export interface LaunchBinding {
-  app: string;
-  label: string | null;
+export interface KeymapChangedEvent {
+  profile: string;
+  /** Window that made the change; that window already has it. */
+  source: string | null;
+}
+
+/** Engine state for windows that open after it changed. */
+export interface EngineSnapshot {
   layer: number;
-  layerName: string;
-  row: number;
-  col: number;
+  activeProfile: string;
+  hostControl: boolean;
+  connected: boolean;
 }
 
-/**
- * Get action for a key in a specific layer
- */
-export function getActionForKey(
-  keymap: Keymap,
-  layer: number,
-  row: number,
-  col: number,
-): Action | null {
-  const layerData = keymap.layers[layer];
-  if (!layerData) return null;
-
-  const posKey = formatMatrixPosition({ row, col });
-  return layerData.keys[posKey] || null;
+export interface LayerChangeEvent {
+  layer: number;
+  triggerApp?: string | null;
 }
 
-/**
- * Get all layer names for UI display
- */
-export function getLayerNames(keymap: Keymap): Record<number, string> {
-  const names: Record<number, string> = {};
-  for (const [num, layer] of Object.entries(keymap.layers)) {
-    names[Number(num)] = layer.name;
-  }
-  return names;
+/** A layer's name; `Layer N` when it has none or the keymap is not at hand. */
+export function layerName(keymap: Keymap | undefined, layer: number): string {
+  return keymap?.layers[layer]?.name || `Layer ${layer}`;
 }
 
-/**
- * Check if a keymap is valid for Macro Eleven device
- */
-export function isValidForDevice(keymap: Keymap): boolean {
-  // Must have at least one layer
-  if (Object.keys(keymap.layers).length === 0) {
-    return false;
+/** A name not in `taken`: `base`, then `base 2`, `base 3`… */
+export function uniqueName(base: string, taken: Iterable<string>): string {
+  const used = new Set([...taken].map((name) => name.toLowerCase()));
+  if (!used.has(base.toLowerCase())) return base;
+  for (let n = 2; ; n++) {
+    const candidate = `${base} ${n}`;
+    if (!used.has(candidate.toLowerCase())) return candidate;
   }
+}
 
-  // If device is specified, check compatibility
-  if (keymap.device) {
-    const { matrix } = keymap.device;
-    if (matrix && (matrix.rows !== 3 || matrix.cols !== 4)) {
-      return false;
-    }
-  }
-
-  // Check all matrix positions are valid for 3x4 matrix
-  for (const layer of Object.values(keymap.layers)) {
-    for (const posKey of Object.keys(layer.keys)) {
-      const { row, col } = parseMatrixPosition(posKey as MatrixPositionKey);
-      if (row < 0 || row >= 3 || col < 0 || col >= 4) {
-        return false;
-      }
-    }
-  }
-
-  return true;
+/** A key's number as printed in the designer: its position in the layout, from 1. */
+export function keyNumber(pos: MatrixPositionKey): number {
+  return matrixToIndex(parseMatrixPosition(pos)) + 1;
 }
