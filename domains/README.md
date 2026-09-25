@@ -1,13 +1,9 @@
-# `domains/` — device firmware
-
-Firmware is grouped by **role**: shipping **Glyf modules** vs **prototype** hardware.
+# `domains/`: device firmware
 
 | Path | Role |
 |------|------|
-| [`glyf/display/`](glyf/display/) | **Display module** — RP2040 firmware for the ST7796S + XPT2046 Glyf display board (Pico SDK). |
-| [`prototypes/macropads/macro-eleven/`](prototypes/macropads/macro-eleven/) | **Prototype** — 11-key QMK macropad. |
-| [`prototypes/macropads/four-pad/`](prototypes/macropads/four-pad/) | **Prototype** — earlier macropad (QMK). |
+| [`glyf/display/`](glyf/display/) | Glyf display module: RP2040 firmware for the ST7796S + XPT2046 board (Pico SDK) |
+| [`prototypes/macropads/macro-eleven/`](prototypes/macropads/macro-eleven/) | R&D prototype: 11-key QMK macropad |
+| [`prototypes/macropads/four-pad/`](prototypes/macropads/four-pad/) | R&D prototype: earlier 7-key QMK macropad |
 
-New **Glyf modules** go under **`domains/glyf/<module>/`**. New **experiments** that are not yet a named module use [`research/`](../research/README.md); macropad prototypes that already live in-tree stay under **`domains/prototypes/`**.
-
-Do not import from `research/` into production module paths—see [`research/README.md`](../research/README.md).
+New Glyf modules go in `domains/glyf/<module>/`. Experiments that are not a module yet go in [`research/`](../research/README.md). Module code never imports from `research/`.

@@ -1,127 +1,85 @@
-# Macro Eleven Companion App
+# Macro Eleven companion app
 
-Desktop companion app for the Macro Eleven macropad. Configures layer mappings and tests inputs (key presses + potentiometer) via Raw HID.
+Features and run commands: [README.md](README.md). Repo-wide rules (FSD, typed IPC, theme tokens): [root CLAUDE.md](../../CLAUDE.md). Device hardware and wire protocol: [macro-eleven.md](../../domains/prototypes/macropads/macro-eleven/docs/macro-eleven.md). Key-to-action behavior: [docs/keymap-engine.md](docs/keymap-engine.md).
 
-## Tech Stack
+Work in progress: [Keymap Designer plan](../../docs/plans/2026-09-25-keymap-designer.md) (KD-xx) and [audit](../../docs/audit/2026-09-24-action-plan.md) (ME-xx, UI-xx). Check them before changing keymap storage, commands, or the connection thread.
 
-- **Frontend:** React 19 + TypeScript + Vite
-- **Backend:** Tauri v2 (Rust)
-- **HID:** `hidapi` crate, QMK Raw HID (32-byte reports, usage page `0xFF60`)
-- **Routing:** react-router-dom
+## Stack
 
-## Architecture & Standards
+React 19, TypeScript, Vite, Tailwind v4, shadcn/ui (`components.json`), react-router-dom. Tauri v2 (Rust). Raw HID through the `hidapi` crate. Keymap types from `@glyf/keymap-schema`.
 
-### Feature-Sliced Design (FSD)
+## Frontend map
 
-All frontend code follows FSD. Layers have strict import rules — each layer can only import from layers below it:
+| Path | Holds |
+|------|-------|
+| `entities/` | `device`, `key` (`MATRIX_LAYOUT`, key/pot events), `layer`, `keymap`, `action`, `firmware` |
+| `features/` | `key-tester`, `layer-viewer`, `pot-monitor`, `overlay`, `firmware-update` |
+| `pages/` | Routes `/` Key Tester, `/layers`, `/pot`, `/designer` (read-only list of app launchers until the plan lands), `/firmware`. `#/overlay` renders the overlay window. |
+| `shared/lib/` | `tauri.ts` (command wrappers), hooks (`useDeviceStatus`, `useKeyEvents`, `usePotValue`, `useLayerData`, `useLaunchBindings`), `keycode-labels.ts` |
+| `shared/ui/` | `MacropadGrid` (3-4-4 grid, empty cell at `[0,3]`), `KnobDial`, `NavBar`, `StatusBadge`, shadcn primitives |
 
-```
-src/
-├── app/          # App shell, providers, global styles. Imports from all layers.
-├── pages/        # Route-level components. Thin wrappers around features.
-├── features/     # Self-contained business logic + UI (key-tester, layer-viewer, pot-monitor).
-├── entities/     # Domain types and constants. No UI, no side effects.
-└── shared/       # Reusable UI components (ui/) and utilities (lib/). No business logic.
-```
+Known FSD violation: `shared/ui/MacropadGrid.tsx` imports runtime values from `entities/key` (audit UI-01).
 
-**Import direction:** `app → pages → features → entities → shared`. Never import upward.
+## Backend map (`src-tauri/src/`)
 
-### Domain-Driven Design
+| Path | Holds |
+|------|-------|
+| `lib.rs` | Command registration. Starts the HID poll thread in `setup`. |
+| `hid/connection.rs` | `HidConnection`: poll thread (~60 Hz) from launch, auto-reconnect, `suspend()` hands the device to the firmware updater |
+| `hid/protocol.rs` | Report build/parse for commands `0x01`-`0x04` |
+| `hid/keymap_engine.rs` | Key-state diff, layer choice, action dispatch |
+| `executor/` | `actions.rs` runs actions; `runtime/` per OS (`macos.rs` CGEvent + osascript, `windows.rs`, `noop.rs`); `shortcuts.rs` token parser; `app_detector.rs` frontmost app |
+| `config/` | `keymap.rs` (serde mirror of the schema), `storage.rs` (`~/.config/macro-eleven/keymaps/`) |
+| `firmware/` | Update path: `bundle.rs` (manifest + UF2), `updater.rs`, `picoboot.rs` (RP2040 bootloader USB protocol), `mass_storage.rs` (Windows fallback), `uf2.rs`, `version.rs` |
+| `keymap/parser.rs` | Legacy `keymap.c` parser, only reached through `get_layer_data(path)` (audit ME-12) |
+| `commands/` | Tauri commands, below |
 
-Entities model the hardware domain:
-- `device.ts` — connection status, device info
-- `layer.ts` — layer data, key assignments (maps to QMK keymap layers)
-- `key.ts` — matrix positions, key/pot events, physical layout constants
+## IPC
 
-The physical layout is defined once in `key.ts` (`MATRIX_LAYOUT`) and shared via `MacropadGrid`.
+Commands by file. Only the ones marked * have a wrapper in `shared/lib/tauri.ts`.
 
-### Principles
+| File | Commands |
+|------|----------|
+| `device.rs` | `detect_device_cmd`*, `get_device_status`*, `set_test_mode`*, `reload_keymap`* |
+| `firmware.rs` | `get_firmware_status`*, `update_firmware`* |
+| `layers.rs` | `get_layer_data`* |
+| `overlay.rs` | `open_overlay_window`* |
+| `keymap_commands.rs` | `list_launch_bindings`*, `open_active_keymap_file`*, `get_active_keymap`, `save_user_keymap`, `list_available_keymaps`, `load_keymap_by_name`, `get_active_application`, `reset_to_default` |
 
-- **DRY** — Physical layout defined once (`MATRIX_LAYOUT`), rendered via `MacropadGrid`. Keycode-to-label mapping centralized in `keycode-labels.ts`.
-- **Full type safety** — All Tauri commands have typed wrappers in `shared/lib/tauri.ts`. Rust structs derive `Serialize`. No `any` types.
-- **Separation of concerns** — Hooks handle subscriptions (`useDeviceStatus`, `useKeyEvents`, `usePotValue`, `useLayerData`), components handle rendering.
-- **Minimal dependencies** — No state management library. React context + hooks suffice for device state.
+Events:
 
-## Rust Backend Structure
+| Event | Payload | When |
+|-------|---------|------|
+| `macro11:device-status` | `{ connected }` | On change. `get_device_status` gives the current value on mount. |
+| `macro11:key-event` | `{ keys: bool[11], layer }` | Every poll |
+| `macro11:pot-value` | `{ value, layer }` | Every poll |
+| `macro11:test-mode` | `{ enabled }` | On connect and on `set_test_mode` |
+| `macro11:key-press` | `{ position, pressed, timestamp }` | Key edge. No UI listener. |
+| `macro11:layer-change` | `{ layer, triggerApp }` | Host layer changes |
+| `macro11:action-executed` | `{ position, layer, action }` | Action succeeded |
+| `macro11:action-error` | `{ position, layer, error }` | Action failed |
+| `macro11:firmware-progress` | `{ stage, fraction }` | During `update_firmware` |
 
-```
-src-tauri/src/
-├── lib.rs              # Tauri setup, command registration, HidConnection state
-├── main.rs             # Desktop entry point
-├── commands/
-│   ├── device.rs       # detect_device_cmd, get_device_status
-│   └── layers.rs       # get_layer_data (parses keymap.c, default path hardcoded)
-├── firmware/           # Device firmware updates (see "Firmware Updates")
-│   ├── bundle.rs       # Loads + checksums firmware/manifest.json and the bundled UF2
-│   ├── updater.rs      # enter bootloader -> flash -> wait for new version
-│   ├── picoboot.rs     # RP2040 bootloader USB protocol (what picotool speaks), via rusb
-│   ├── mass_storage.rs # Fallback: copy UF2 to the RPI-RP2 drive (Windows)
-│   ├── uf2.rs          # UF2 parser -> 4 KB flash sectors
-│   └── version.rs      # major.minor.patch
-├── hid/
-│   ├── connection.rs   # HidConnection: polling thread at ~60Hz, started at launch, auto-reconnect,
-│   │                   # suspend() hands the device to the updater
-│   └── protocol.rs     # 32-byte message format, build_state_request / parse_state_response
-└── keymap/
-    └── parser.rs       # Regex-based keymap.c parser, extracts LAYOUT() blocks + layer names
-```
+## Firmware updates
 
-## Raw HID Protocol
-
-Request/response, 32 bytes each:
-- **Request:** `[0x01, 0, 0, ...]` — poll state
-- **Response:** `[0x01, key_lo, key_hi, pot_lo, pot_hi, layer, ...]`
-  - Bytes 1-2: 11-bit key bitmask (bit per matrix position)
-  - Bytes 3-4: potentiometer ADC (uint16 LE, 0-1023)
-  - Byte 5: active layer number
-
-System commands, handled by every keymap (firmware `macro_eleven.c`):
-- `[0x03]` GET_INFO -> `[0x03, protocol, major, minor, patch, ...]`. Firmware before 1.1.0 doesn't answer.
-- `[0x04, 'B', 'O', 'O', 'T', flags]` ENTER_BOOTLOADER -> `[0x04, 1]`, then the device reboots into the RP2040 bootloader. Flag bit 0 hides the RPI-RP2 drive.
-
-Tauri events emitted: `macro11:key-event`, `macro11:pot-value`, `macro11:device-status`, `macro11:firmware-progress`.
-
-## Firmware Updates
-
-The app bundles firmware in `src-tauri/firmware/` (`macro_eleven.uf2` + `manifest.json`, generated by `domains/prototypes/macropads/macro-eleven/bundle-firmware.sh`; both are committed). `get_firmware_status` compares the device version with the bundled version. `update_firmware` suspends the poll thread, because macOS hidapi opens devices exclusively. It sends ENTER_BOOTLOADER, flashes over PICOBOOT with sector 0 written last, and waits for the device to report the new version. `cargo run --example flash -- file.uf2` runs the same path from the CLI.
-
-## Hardware Reference
-
-- **MCU:** RP2040
-- **USB:** VID `0x4653`, PID `0x0002`
-- **Matrix:** 3 rows x 4 cols, COL2ROW. 11 keys (position [0,3] is empty).
-- **Pot:** ADC on `GP26`, 10-bit (0-1023)
-- **Layers:** 11 layers (0 = App Selection, 1-10 = app-specific shortcuts)
-
-### Key Files (QMK firmware)
-
-- `keyboards/handwired/macro_eleven/keymaps/apps/keymap.c` — layer definitions + `raw_hid_receive_keymap()`
-- `keyboards/handwired/macro_eleven/macro_eleven.c` — system Raw HID commands (GET_INFO, ENTER_BOOTLOADER)
-- `keyboards/handwired/macro_eleven/version.h` — firmware version
-- `keyboards/handwired/macro_eleven/keyboard.json` — USB IDs, matrix pins, layout
-- `keyboards/handwired/macro_eleven/rules.mk` — `RAW_ENABLE = yes`
-- `keyboards/handwired/macro_eleven/config.h` — `POT_PIN GP26`
+The app bundles `src-tauri/firmware/{macro_eleven.uf2,manifest.json}`, written by `bundle-firmware.sh` and committed. `update_firmware` suspends the poll thread first, because macOS hidapi opens the device exclusively. `cargo run --example flash -- file.uf2` runs the same path from the CLI. Update sequence and release steps: [macro-eleven.md](../../domains/prototypes/macropads/macro-eleven/docs/macro-eleven.md#firmware-updates-from-the-companion-app).
 
 ## Commands
 
 ```bash
-npm run tauri dev     # Launch app in dev mode (frontend HMR + Rust rebuild)
-npm run build         # Build frontend only
-npx tsc --noEmit      # TypeScript typecheck
-cd src-tauri && cargo build   # Rust build only
-cd src-tauri && cargo test    # Run Rust tests (keymap parser, UF2, PICOBOOT framing, bundled firmware)
+pnpm dev:macro-eleven                              # from repo root: Vite HMR + Rust rebuild
+pnpm --filter macro-eleven typecheck
+cargo test -p macro-eleven                         # keymap parser, UF2, PICOBOOT framing, bundled firmware
 ```
 
-## UI Design
+## UI
 
-- **Dark theme:** `#1a1a2e` background, `#4cc9f0` accent, `#4ade80` pressed key color
-- **Window:** 800x600, sidebar nav + content area
-- **Grid:** `MacropadGrid` renders 3-4-4 layout matching physical macropad (empty cell at [0,3])
-- CSS custom properties defined in `app/App.css` — use `var(--*)` tokens, not raw colors
+- Dark theme (`class="dark"` on `<html>`), shadcn oklch tokens in `app/App.css`, green primary (hue 163).
+- Window 800×600: sidebar nav plus content.
 
-## Adding Features
+## Adding features
 
-- New pages: create in `pages/`, add route in `app/App.tsx`, add nav item in `shared/ui/NavBar.tsx`
-- New Tauri commands: add to `commands/*.rs`, register in `lib.rs`, add typed wrapper in `shared/lib/tauri.ts`
-- New keycodes: add to `shared/lib/keycode-labels.ts`
-- New HID message types: extend `hid/protocol.rs` and update firmware `raw_hid_receive_keymap()` (keymap) or `raw_hid_receive()` in `macro_eleven.c` (system commands)
+- Page: add it in `pages/`, a route in `app/App.tsx`, and a nav item in `shared/ui/NavBar.tsx`.
+- Command: add it in `commands/*.rs`, register it in `lib.rs`, and add a wrapper in `shared/lib/tauri.ts`.
+- Keymap field or action: change `shared/libs/keymap-schema` and `config/keymap.rs` together.
+- HID message: extend `hid/protocol.rs` and the firmware. System commands go in `raw_hid_receive()` in `firmware/macro_eleven.c`; keymap commands go in `raw_hid_receive_keymap()` in `firmware/keymaps/apps/keymap.c`. Document the bytes in macro-eleven.md.

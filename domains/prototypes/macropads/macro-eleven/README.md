@@ -44,3 +44,5 @@ App launcher and per-app shortcuts for macOS.
 ## Documentation
 
 See [docs/macro-eleven.md](docs/macro-eleven.md) for hardware details, configuration, and keymap customization.
+
+Building rev 2 (keys + knob + 4.0" touch display) by hand? Follow [docs/rev2-wiring-guide.md](docs/rev2-wiring-guide.md).

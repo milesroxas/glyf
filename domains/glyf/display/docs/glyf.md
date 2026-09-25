@@ -1,150 +1,94 @@
-# glyf – Hardware & Firmware Reference
+# Glyf display module: hardware and protocol reference
 
-## Overview
+RP2040 USB display: 4.0" ST7796S SPI TFT (480×320, RGB565) with XPT2046 resistive touch. The [Glyf app](../../../../apps/glyf/) controls it over Raw HID. Build and flash steps: [README](../README.md).
 
-**glyf** is an RP2040-based USB display device featuring a 4.0" ST7796S SPI TFT
-(480×320 pixels, RGB565) with XPT2046 resistive touch.  It communicates with
-the host via USB Raw HID (same usage page as macro-eleven) and is controlled by
-the `apps/glyf` Tauri companion app.
+## Specifications
 
----
+| Parameter | Value |
+|-----------|-------|
+| MCU | RP2040 (Raspberry Pi Pico) |
+| Display | ST7796S 4.0" SPI TFT, 480 × 320 px, 16-bit RGB565 |
+| Touch | XPT2046 resistive, 12-bit ADC |
+| USB | VID `0x4653`, PID `0x0003`, Raw HID usage page `0xFF60` |
 
-## Hardware Specifications
+## Wiring
 
-| Parameter       | Value                                     |
-|-----------------|-------------------------------------------|
-| MCU             | RP2040 (Raspberry Pi Pico)                |
-| Display         | ST7796S 4.0" SPI TFT                      |
-| Resolution      | 480 × 320 px                              |
-| Colour depth    | 16-bit RGB565                             |
-| Touch           | XPT2046 resistive (12-bit ADC)            |
-| USB VID         | `0x4653`                                  |
-| USB PID         | `0x0003`                                  |
-| HID usage page  | `0xFF60` (Raw HID)                        |
+Rows follow the display's 14-pin header order. [`firmware/src/pinout.h`](../firmware/src/pinout.h) is the source of truth.
 
----
+| # | TFT pin | Pico | Signal | Notes |
+|---|---------|------|--------|-------|
+| 1 | VCC | 3V3(OUT) | Power | |
+| 2 | GND | GND | Ground | |
+| 3 | CS | GP13 | `TFT_CS` | Display chip select, active LOW |
+| 4 | RESET | GP15 | `TFT_RST` | Hard reset, active LOW |
+| 5 | DC/RS | GP14 | `TFT_DC` | HIGH = data, LOW = command |
+| 6 | SDI (MOSI) | GP11 | `SPI1_MOSI` | Shared bus |
+| 7 | SCK | GP10 | `SPI1_SCK` | Shared bus |
+| 8 | LED | GP16 | `TFT_BL` | Backlight PWM (PWM0A), active HIGH |
+| 9 | SDO (MISO) | GP12 | `SPI1_MISO` | Shared bus |
+| 10 | T_CLK | GP10 | `SPI1_SCK` | Same net as pin 7 |
+| 11 | T_CS | GP17 | `TCH_CS` | Touch chip select, active LOW |
+| 12 | T_DIN | GP11 | `SPI1_MOSI` | Same net as pin 6 |
+| 13 | T_DO | GP12 | `SPI1_MISO` | Same net as pin 9 |
+| 14 | T_IRQ | GP18 | `TCH_IRQ` | Touch interrupt, active LOW, pull-up |
 
-## GPIO Pinout
+Display and touch share SPI1. Separate CS lines keep them independent. GP10–GP12 are the SPI1 bank in the middle of the header, which leaves GP0–GP9 free for buttons, I²C, or UART, and GP19–GP28 free for LEDs, encoders, and ADC.
 
-All display and touch signals share **SPI1** (hardware-accelerated on the RP2040).
-Two separate CS lines keep the peripherals independent on the shared bus.
+### SPI bus sharing
 
-| GPIO  | Signal      | Direction | Description                          |
-|-------|-------------|-----------|--------------------------------------|
-| GP10  | SPI1_SCK    | Out       | SPI1 clock – shared bus              |
-| GP11  | SPI1_MOSI   | Out       | SPI1 TX – shared bus                 |
-| GP12  | SPI1_MISO   | In        | SPI1 RX – touch read-back            |
-| GP13  | TFT_CS      | Out       | Display chip-select (active LOW)     |
-| GP14  | TFT_DC      | Out       | Display Data/Command (HIGH = data)   |
-| GP15  | TFT_RST     | Out       | Display hard reset (active LOW)      |
-| GP16  | TFT_BL      | Out       | Backlight PWM (PWM0A, active HIGH)   |
-| GP17  | TCH_CS      | Out       | Touch chip-select (active LOW)       |
-| GP18  | TCH_IRQ     | In        | Touch interrupt (active LOW, pull-up)|
+| Phase | Clock | CS |
+|-------|-------|----|
+| Display write | 40 MHz | GP13 |
+| Touch read | 2 MHz | GP17 |
 
-> **Why SPI1 (GP10–GP12)?**
-> RP2040 SPI peripherals are pinned to specific GPIO banks.  GP10–GP12 are the
-> clean SPI1 bank in the middle of the header, leaving GP0–GP9 free for future
-> buttons / I²C / UART and GP19–GP28 for LEDs, encoders and ADC.
+The XPT2046 driver lowers the SPI clock to 2 MHz for each touch read and restores 40 MHz after it. Both run in the main loop on one thread, so no lock is needed. Display writes use blocking SPI today; DMA is planned (audit SCR-09).
 
-> **Why not QMK?**
-> QMK has no production-grade ST7796S TFT driver at this resolution.  glyf uses
-> the Pico SDK directly for full control over SPI DMA, PWM backlight and the
-> TinyUSB Raw HID stack.
+### SWD (flashing and debug)
 
----
+Use a Raspberry Pi Debug Probe or another 3.3 V CMSIS-DAP probe.
 
-## SPI Bus Sharing
-
-| Phase              | Baud       | CS asserted  |
-|--------------------|-----------|--------------|
-| Display write      | 40 MHz    | GP13 (TFT_CS)|
-| Touch read         |  2 MHz    | GP17 (TCH_CS)|
-
-The XPT2046 driver temporarily lowers the SPI baud to 2 MHz before each touch
-read and restores it to 40 MHz immediately after.  Both operations are
-single-threaded inside the main loop, so no mutex is required.
-
----
-
-## USB HID Protocol
-
-Report size: **32 bytes**, usage page `0xFF60`.
-
-### Host → Device (command)
-
-| Byte | Field          | Description                    |
-|------|----------------|--------------------------------|
-| 0    | `cmd`          | Command byte (see below)       |
-| 1…31 | args           | Command-specific arguments     |
-
-| Cmd  | Name               | Args                                  |
-|------|--------------------|---------------------------------------|
-| 0x01 | Poll state         | *(none)* – device replies immediately |
-| 0x02 | Set brightness     | `[1]` = 0–255                         |
-| 0x03 | Set display power  | `[1]` = 0 off / 1 on                  |
-| 0x04 | Fill display       | `[1]` high byte, `[2]` low byte RGB565|
-
-### Device → Host (state report, response to `0x01`)
-
-| Byte | Field          | Description                         |
-|------|----------------|-------------------------------------|
-| 0    | `0x01`         | Command echo                        |
-| 1    | `brightness`   | Current backlight level 0–255       |
-| 2    | `display_on`   | 0 = off, 1 = on                     |
-| 3    | `touch_pressed`| 0 / 1                               |
-| 4–5  | `touch_x`      | Pixel X (big-endian, 0–479)         |
-| 6–7  | `touch_y`      | Pixel Y (big-endian, 0–319)         |
-| 8–9  | `touch_z`      | Pressure 0–4095 (big-endian)        |
-| 10–31| reserved       | Zero-padded                         |
-
----
-
-## Firmware Build
-
-Prerequisites: [Pico SDK](https://github.com/raspberrypi/pico-sdk) v1.5+, CMake, and OpenOCD for the preferred SWD path.
-
-```bash
-export PICO_SDK_PATH=/path/to/pico-sdk
-
-cd domains/glyf/display
-bash build.sh
-bash flash-swd.sh        # preferred SWD / OpenOCD path
-# or
-bash flash-picotool.sh   # explicit USB tool path
-# or
-bash flash-uf2.sh        # explicit BOOTSEL / mounted RPI-RP2 path
-```
-
-Best-practice note: keep artifact generation (`build.sh`) separate from flash
-transport (`flash-swd.sh`, `flash-picotool.sh`, or `flash-uf2.sh`). Use SWD as
-the default daily workflow; use the BOOTSEL mass-storage path for recovery /
-early bring-up.
-
-## SWD Wiring
-
-Recommended probe: Raspberry Pi Debug Probe or another 3.3 V CMSIS-DAP probe.
-
-For Raspberry Pi Pico boards, connect:
-
-| Probe signal | Pico target |
-|--------------|-------------|
+| Probe | Pico |
+|-------|------|
 | `SC` / `SWCLK` | `SWCLK` |
 | `SD` / `SWDIO` | `SWDIO` |
 | `GND` | `GND` |
 
-Power the Pico separately over USB or `VSYS`; the Pico SWD header does not
-provide target power.
+The SWD header does not power the Pico. Power it over USB or `VSYS`.
 
-By default, `flash-swd.sh` uses OpenOCD's `interface/cmsis-dap.cfg` and
-`target/rp2040.cfg`. Override them only when using a different probe:
+`flash-swd.sh` uses OpenOCD `interface/cmsis-dap.cfg` and `target/rp2040.cfg` at 5000 kHz. Override with `GLYF_OPENOCD_INTERFACE_CFG`, `GLYF_OPENOCD_TARGET_CFG`, or `GLYF_OPENOCD_ADAPTER_SPEED`:
 
 ```bash
 GLYF_OPENOCD_INTERFACE_CFG=interface/picoprobe.cfg bash flash-swd.sh
 ```
 
----
+## USB HID protocol
 
-## Companion App
+32-byte reports. The host writes 33 bytes: report ID `0x00` plus the 32-byte report.
 
-See `apps/glyf/` for the Tauri desktop companion.  It communicates over Raw HID
-at ~60 Hz, mirroring the macro-eleven pattern.
+### Host → device
+
+| Cmd | Name | Args |
+|-----|------|------|
+| `0x01` | Poll state | None. The device replies at once. |
+| `0x02` | Set brightness | `[1]` = 0–255 |
+| `0x03` | Set display power | `[1]` = 0 off, 1 on |
+| `0x04` | Fill display | `[1]` high byte, `[2]` low byte of an RGB565 color |
+
+### Device → host (reply to `0x01`)
+
+| Byte | Field | Value |
+|------|-------|-------|
+| 0 | echo | `0x01` |
+| 1 | `brightness` | 0–255 |
+| 2 | `display_on` | 0 or 1 |
+| 3 | `touch_pressed` | 0 or 1 |
+| 4–5 | `touch_x` | Pixel X, big-endian, 0–479 |
+| 6–7 | `touch_y` | Pixel Y, big-endian, 0–319 |
+| 8–9 | `touch_z` | Pressure 0–4095, big-endian |
+| 10–31 | reserved | Zero |
+
+A versioned v2 protocol shared with Macro Eleven is planned (audit LINK-01).
+
+## Why the Pico SDK, not QMK
+
+QMK has no production-grade ST7796S driver at this resolution. The Pico SDK gives direct control of SPI, the PWM backlight, and the TinyUSB Raw HID stack.

@@ -1,137 +1,54 @@
-# glyf Companion App
+# Glyf companion app
 
-Desktop companion app for the glyf 4.0" ST7796S TFT display device (480×320,
-XPT2046 touch).  Controls display brightness / power, visualises touch input,
-and persists device settings, all via Raw HID.
+Features and run commands: [README.md](README.md). Repo-wide rules (FSD, typed IPC, theme tokens): [root CLAUDE.md](../../CLAUDE.md). Hardware, pinout, and wire protocol: [glyf.md](../../domains/glyf/display/docs/glyf.md). Open issues: [audit](../../docs/audit/2026-09-24-action-plan.md) Section B (GL-xx, GFW-xx).
 
-## Tech Stack
+## Stack
 
-- **Frontend:** React 19 + TypeScript + Vite
-- **Backend:** Tauri v2 (Rust)
-- **HID:** `hidapi` crate, Raw HID (32-byte reports, usage page `0xFF60`)
-- **Routing:** react-router-dom
+React 19, TypeScript, Vite, Tailwind v4, react-router-dom. Tauri v2 (Rust). Raw HID through the `hidapi` crate. Types from `@glyf/display-schema`.
 
-## Architecture & Standards
+## Frontend map
 
-### Feature-Sliced Design (FSD)
+| Path | Holds |
+|------|-------|
+| `entities/` | `device`, `display`, `touch`: re-exports from `@glyf/display-schema`, no UI |
+| `features/` | `display-preview`, `touch-monitor`, `settings`, `device-debug` |
+| `pages/` | Routes `/` Display, `/touch`, `/settings`, `/debug` |
+| `shared/lib/` | `tauri.ts` (command wrappers), `useDisplayState`, `useTouchEvents`, `utils` |
+| `shared/ui/` | `NavBar`, `StatusBadge`, `button`, `card` |
 
-Strict unidirectional imports — each layer may only import from layers below it:
+## Backend map (`src-tauri/src/`)
 
-```
-src/
-├── app/          # App shell, providers, global styles. Imports from all layers.
-├── pages/        # Route-level components. Thin wrappers around features.
-├── features/     # Self-contained UI + logic (display-preview, touch-monitor, settings).
-├── entities/     # Domain types re-exported from @glyf/display-schema. No UI.
-└── shared/       # Reusable UI components (ui/) and utilities (lib/). No business logic.
-```
+| Path | Holds |
+|------|-------|
+| `lib.rs` | Command registration, state. `RUST_LOG=glyf_lib::hid=debug` for HID logs. |
+| `commands/device.rs` | `detect_device_cmd`, `connect_device`, `disconnect_device`, `get_device_connection_snapshot`, `get_device_debug_snapshot`, `set_display_brightness`, `set_display_power`, `fill_display` |
+| `commands/display.rs` | `get_display_config`, `save_display_config`, `reset_display_config` |
+| `hid/connection.rs` | `HidConnection`: poll thread (~60 Hz) started by `connect_device`, auto-reconnect |
+| `hid/protocol.rs` | 32-byte report build/parse (unit-tested) |
+| `config/display_config.rs` | `GlyfConfig`, `DisplayConfig`, `TouchCalibration`: serde mirror of `display-schema` |
+| `config/storage.rs` | JSON load/save at `~/.config/glyf/config.json` |
 
-**Import direction:** `app → pages → features → entities → shared`. Never import upward.
+Events: `glyf:device-status`, `glyf:display-state`, `glyf:touch-event`.
 
-### Domain-Driven Design
-
-Entities model the hardware domain (single source of truth: `@glyf/display-schema`):
-- `device.ts`  — connection status, device info
-- `display.ts` — display config, state, orientation
-- `touch.ts`   — touch point, calibration, events
-
-### Principles
-
-- **No multiple sources of truth** — all types live in `shared/libs/display-schema`.
-  Rust structs in `src-tauri/src/config/display_config.rs` mirror them exactly.
-- **Full type safety** — all Tauri commands have typed wrappers in `shared/lib/tauri.ts`.
-  Rust structs derive `Serialize` / `Deserialize`. No `any`.
-- **Separation of concerns** — hooks handle subscriptions (`useDisplayState`,
-  `useTouchEvents`), components handle rendering.
-- **Minimal dependencies** — React context + hooks, no external state library.
-
-## Rust Backend Structure
-
-```
-src-tauri/src/
-├── lib.rs              # Tauri setup, command registration, state management
-├── main.rs             # Desktop entry point
-├── commands/
-│   ├── device.rs       # detect_device_cmd, connect_device, disconnect_device,
-│   │                   # set_display_brightness, set_display_power
-│   └── display.rs      # get_display_config, save_display_config, reset_display_config
-├── hid/
-│   ├── connection.rs   # HidConnection: background polling at ~60 Hz, auto-reconnect
-│   └── protocol.rs     # 32-byte report format, build_* / parse_state_response
-└── config/
-    ├── display_config.rs  # GlyfConfig, DisplayConfig, TouchCalibration (mirrors schema)
-    └── storage.rs         # JSON load/save → ~/.config/glyf/config.json
-```
-
-## Raw HID Protocol
-
-Report size: 32 bytes, usage page `0xFF60`, VID `0x4653`, PID `0x0003`.
-
-**Host → Device:**
-- `[0x01]`       Poll state
-- `[0x02, b]`    Set brightness (b = 0–255)
-- `[0x03, p]`    Set power (p = 0 off / 1 on)
-- `[0x04, h, l]` Fill display with RGB565 colour
-
-**Device → Host (response to 0x01):**
-- `[0]`   `0x01` echo
-- `[1]`   brightness
-- `[2]`   display_on
-- `[3]`   touch_pressed
-- `[4–5]` touch_x big-endian (0–479)
-- `[6–7]` touch_y big-endian (0–319)
-- `[8–9]` touch_z big-endian pressure (0–4095)
-
-Tauri events emitted: `glyf:device-status`, `glyf:display-state`, `glyf:touch-event`.
-
-## Hardware Reference
-
-- **MCU:** RP2040 (Raspberry Pi Pico)
-- **Display:** ST7796S 4.0" SPI TFT, 480×320 px, RGB565
-- **Touch:** XPT2046 resistive, 12-bit ADC
-- **USB:** VID `0x4653`, PID `0x0003`
-
-### GPIO Pinout
-
-| GPIO  | Signal    | Description                          |
-|-------|-----------|--------------------------------------|
-| GP10  | SPI1_SCK  | SPI clock (shared bus)               |
-| GP11  | SPI1_MOSI | SPI MOSI (shared bus)                |
-| GP12  | SPI1_MISO | SPI MISO (touch read-back)           |
-| GP13  | TFT_CS    | Display chip-select (active LOW)     |
-| GP14  | TFT_DC    | Display Data/Command                 |
-| GP15  | TFT_RST   | Display hard reset (active LOW)      |
-| GP16  | TFT_BL    | Backlight PWM (PWM0A)                |
-| GP17  | TCH_CS    | Touch chip-select (active LOW)       |
-| GP18  | TCH_IRQ   | Touch interrupt (active LOW)         |
-
-See `domains/glyf/display/docs/glyf.md` for the full firmware reference.
-
-## Config Storage
-
-```
-~/.config/glyf/
-└── config.json    # GlyfConfig (display settings + touch calibration)
-```
+Config fields `orientation`, `colorDepth`, and `sleepAfterMs` are saved but never sent to the device (audit GL-09).
 
 ## Commands
 
 ```bash
-npm run tauri dev      # Launch in dev mode (frontend HMR + Rust rebuild)
-npm run build          # Build frontend only
-npx tsc --noEmit       # TypeScript typecheck
-cd src-tauri && cargo build   # Rust build only
+pnpm dev:glyf                              # from repo root: Vite HMR + Rust rebuild
+pnpm --filter ./apps/glyf typecheck
+pnpm test                                  # includes this app's jsdom and browser tests
+cargo test -p glyf                         # protocol tests
 ```
 
-## UI Design
+## UI
 
-- **Theme:** dark, purple accent (oklch hue 270) to distinguish from macro-eleven's green
-- **Window:** 900×640, sidebar nav + content area
-- CSS custom properties in `app/App.css` — use `var(--*)` tokens, not raw colours
+- Dark theme (`class="dark"` on `<html>`), shadcn oklch tokens in `app/App.css`, purple primary (hue 270) to tell it apart from Macro Eleven's green.
+- Window 900×640: sidebar nav plus content.
 
-## Adding Features
+## Adding features
 
-- New pages: create in `pages/`, add route in `app/App.tsx`, add nav item in `shared/ui/NavBar.tsx`
-- New Tauri commands: add to `commands/*.rs`, register in `lib.rs`, add typed wrapper in `shared/lib/tauri.ts`
-- New types: add to `shared/libs/display-schema/src/types.ts` — mirror in Rust if serialised
-- New HID message types: extend `hid/protocol.rs` and update firmware `hid_handler.c`
+- Page: add it in `pages/`, a route in `app/App.tsx`, and a nav item in `shared/ui/NavBar.tsx`.
+- Command: add it in `commands/*.rs`, register it in `lib.rs`, and add a wrapper in `shared/lib/tauri.ts`.
+- Type: add it to `shared/libs/display-schema/src/types.ts`. Mirror it in Rust if it is serialized.
+- HID message: extend `hid/protocol.rs` and firmware `src/hid/hid_handler.c`. Document the bytes in glyf.md.

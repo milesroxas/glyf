@@ -1,37 +1,28 @@
-# Macro Eleven
+# Macro Eleven app
 
-Desktop companion app for the Macro Eleven macropad. Configures layer mappings and tests inputs (key presses + potentiometer) via Raw HID.
+Desktop companion (Tauri) for the [Macro Eleven](../../domains/prototypes/macropads/macro-eleven/) macropad. It runs keymap actions on the host, shows live key and knob input, and updates the device firmware over USB.
 
 ## Features
 
-- **Key Tester** — Live key press detection with visual feedback
-- **Layer Viewer** — Browse key assignments per layer (parsed from QMK keymap.c)
-- **Pot Monitor** — Real-time potentiometer ADC value (0–1023)
-- **Overlay** — Compact always-on-top window for quick reference
+| Page | What it does |
+|------|--------------|
+| Key Tester | Live key presses, event feed, and the host-control switch |
+| Layer Viewer | Key assignments per layer from the active keymap JSON. Reload and open the keymap file. |
+| Pot Monitor | Live potentiometer value (0–1023) |
+| Keymap Designer | App-launch bindings. Full editor in progress: [plan](../../docs/plans/2026-09-25-keymap-designer.md). |
+| Firmware | Compares device and bundled firmware and installs the update |
+| Overlay | Compact always-on-top window with the current layer |
 
-## Tech Stack
+How key presses become actions: [docs/keymap-engine.md](docs/keymap-engine.md).
 
-- React 19 + TypeScript + Vite
-- Tauri v2 (Rust)
-- Raw HID via `hidapi` (32-byte reports, usage page `0xFF60`)
+## Run
 
-## Requirements
-
-- Node.js 18+
-- Rust (for Tauri)
-- Macro Eleven macropad connected via USB (VID `0x4653`, PID `0x0002`)
-
-## Commands
+Prerequisites are in the [root README](../../README.md#prerequisites). Connect the macropad over USB (VID `0x4653`, PID `0x0002`).
 
 ```bash
-pnpm install
-pnpm tauri dev     # Dev mode (frontend HMR + Rust rebuild)
-pnpm tauri build   # Production build
+pnpm install                  # from repo root
+pnpm dev:macro-eleven         # dev mode: Vite HMR + Rust rebuild
+pnpm --filter macro-eleven tauri build   # release build
 ```
 
-## Hardware
-
-- **MCU:** RP2040
-- **Matrix:** 3×4, 11 keys (position [0,3] empty)
-- **Potentiometer:** 10-bit ADC on GP26
-- **Layers:** 11 (0 = App Selection, 1–10 = app shortcuts)
+Shortcuts and macros need macOS Accessibility permission. App launching needs Automation permission.

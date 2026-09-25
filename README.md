@@ -1,177 +1,69 @@
 # Glyf
 
-Monorepo for **Glyf**—a modular product line of linked physical productivity devices (firmware, companion apps, shared schemas, and R&D).
+Monorepo for **Glyf**, a modular line of linked desk devices: module firmware, desktop companion apps, and the shared schemas between them. Vision, roadmap, and what counts as product vs R&D: [docs/product-line.md](docs/product-line.md). All docs: [docs/README.md](docs/README.md).
 
-**Vision:** devices compose into a system (e.g. a base module, a display + keys module, a knob / switches module for context). This repository is the engineering home for that line: shared types, apps, and module firmware live together so you can concept and ship without maintaining parallel copies of protocols or tooling.
+## Projects
 
-See **[docs/product-line.md](docs/product-line.md)** for roadmap framing, R&D vs modules, and notes on **monorepo vs a separate lab repo**.
+| Project | Firmware | Companion app | Status |
+|---------|----------|---------------|--------|
+| Glyf display module: 4.0" TFT + touch | [domains/glyf/display](domains/glyf/display/) (Pico SDK) | [apps/glyf](apps/glyf/) | Active module |
+| Macro Eleven: 11-key macropad + knob | [domains/prototypes/macropads/macro-eleven](domains/prototypes/macropads/macro-eleven/) (QMK) | [apps/macro-eleven](apps/macro-eleven/) | R&D |
+| Four Pad: 7-key macropad + LCD | [domains/prototypes/macropads/four-pad](domains/prototypes/macropads/four-pad/) (QMK) | None | R&D, legacy |
 
-## Modules and R&D (current tree)
+Shared code:
 
-| Name | What it is | Status |
-|------|------------|--------|
-| [Display module](domains/glyf/display/) | 4.0" TFT + touch (RP2040, Pico SDK) — Glyf display hardware | Active module |
-| [Glyf companion app](apps/glyf/) | Desktop app for the display module | Active |
-| [Macro Eleven](domains/prototypes/macropads/macro-eleven/) | 11-key QMK macropad + host keymap experiments | R&D / prototype |
-| [Macro Eleven app](apps/macro-eleven/) | Tauri companion tied to Macro Eleven | R&D / prototype |
-| [Four Pad](domains/prototypes/macropads/four-pad/) | QMK macropad prototype | R&D / prototype |
+| Path | What |
+|------|------|
+| [shared/libs/display-schema](shared/libs/display-schema/) | `@glyf/display-schema`: display config and state types |
+| [shared/libs/keymap-schema](shared/libs/keymap-schema/) | `@glyf/keymap-schema`: macropad keymap format |
+| `shared/libs/hotswap-sockets` | STL and Fusion 360 files for hot-swap switch sockets |
+| `shared/libs/LiquidCrystal_I2C` | Vendored Arduino LCD library. No firmware uses it; Four Pad has its own `i2c_lcd.c`. |
+| [research/](research/) | Tracked experiments that are not yet a module |
+| [sdks/](sdks/) | External SDK clones (gitignored) |
 
-**Macro Eleven** and **Four Pad** are intentionally kept for learning and R&D (layouts, QMK, companion patterns). They are **not** the public product definition of the Glyf line—the line is the **modular system** and the **display module** (and future modules) under Glyf.
+Apps are Tauri v2 (Rust) with React 19 frontends in Feature-Sliced Design. Types shared between an app and its device live in `shared/libs/` and are mirrored in Rust.
 
-## Repository structure
+## Prerequisites
 
-```
-glyf/
-├── apps/                       # Companion desktop apps (Tauri)
-│   ├── glyf/                   # Glyf display module companion
-│   └── macro-eleven/           # Macro Eleven (R&D) companion
-│
-├── domains/                    # Firmware (see domains/README.md)
-│   ├── glyf/
-│   │   └── display/            # Glyf display module (Pico SDK)
-│   └── prototypes/
-│       └── macropads/
-│           ├── macro-eleven/   # R&D — QMK
-│           └── four-pad/       # R&D — QMK
-│
-├── shared/                     # Shared contracts (single source of truth)
-│   └── libs/
-│       ├── display-schema/     # @glyf/display-schema — display types
-│       └── keymap-schema/      # @glyf/keymap-schema — macropad / keymap types
-│
-├── research/                   # Tracked experiments (see research/README.md)
-├── sdks/                       # External SDKs (clone separately — sdks/README.md)
-└── docs/                       # Product line and doc index
-```
+| Tool | For | Install |
+|------|-----|---------|
+| Node 22 + pnpm 10 | JS workspaces | `corepack enable` (version from `packageManager`) |
+| Rust stable | Tauri backends | [rustup.rs](https://rustup.rs) |
+| Tauri CLI v2 | App dev and build | `cargo install tauri-cli --version ^2` |
+| QMK CLI + `qmk_firmware` | Macropad firmware | `brew install qmk/qmk/qmk`, then [sdks/README.md](sdks/README.md) |
+| Pico SDK + `arm-none-eabi-gcc` + CMake | Display firmware | [sdks/README.md](sdks/README.md) |
+| OpenOCD + Debug Probe | SWD flashing (display) | `brew install open-ocd` |
+| picotool | USB flashing (optional) | `brew install picotool` |
 
-## Quick start
-
-### Prerequisites
-
-| Tool | Purpose | Install |
-|------|---------|---------|
-| pnpm 10 | JS package manager | `npm i -g pnpm` |
-| Rust (stable) | Tauri backends | [rustup.rs](https://rustup.rs) |
-| Tauri CLI v2 | App dev/build | `cargo install tauri-cli --version ^2` |
-| QMK CLI | Macropad R&D firmware | `brew install qmk/qmk/qmk && qmk setup` |
-| Pico SDK | Glyf display firmware | See [sdks/README.md](sdks/README.md) |
-| OpenOCD | Preferred SWD flashing/debug path | `brew install open-ocd` |
-| picotool | Optional USB flashing path | `brew install picotool` |
-
-### Install JS dependencies (all workspaces)
+## Develop
 
 ```bash
-pnpm install
+pnpm install              # all workspaces
+pnpm dev:glyf             # Glyf app
+pnpm dev:macro-eleven     # Macro Eleven app
+pnpm typecheck && pnpm lint && pnpm test
+cargo test --workspace --locked
+pnpm firmware             # interactive build / flash / launch for the display module
 ```
 
-### Run a companion app
+Firmware build and flash steps are in each firmware README.
 
-```bash
-pnpm dev:glyf           # Glyf display companion
-pnpm dev:macro-eleven   # Macro Eleven (R&D) companion
-```
-
-### Typecheck all apps
-
-```bash
-pnpm typecheck
-```
-
----
-
-## Firmware
-
-### Macropads (QMK) — R&D
-
-```bash
-cd domains/prototypes/macropads/macro-eleven
-./build.sh apps        # build
-./build.sh apps flash  # build + flash
-./watch-and-flash.sh   # interactive: detects bootloader, prompts keymap
-```
-
-```bash
-cd domains/prototypes/macropads/four-pad
-./build.sh apps flash
-```
-
-### Glyf display module (Pico SDK)
-
-Rows follow **connector pin order** on the display (1 → 14).
-
-| # | TFT pad | Connect to Pico |
-|---|---------|-------------------|
-| 1 | VCC | 3V3(OUT) |
-| 2 | GND | GND |
-| 3 | CS | GP13 |
-| 4 | RESET | GP15 |
-| 5 | DC/RS | GP14 |
-| 6 | SDI (MOSI) | GP11 |
-| 7 | SCK | GP10 |
-| 8 | LED | GP16 |
-| 9 | SDO (MISO) | GP12 |
-| 10 | T_CLK | GP10 (same net as SCK) |
-| 11 | T_CS | GP17 |
-| 12 | T_DIN | GP11 (same net as SDI/MOSI) |
-| 13 | T_DO | GP12 (same net as SDO/MISO) |
-| 14 | T_IRQ | GP18 |
-
-```bash
-export PICO_SDK_PATH=/path/to/pico-sdk   # or set in ~/.zshrc
-
-cd domains/glyf/display
-./build.sh              # build only
-./flash-swd.sh          # preferred SWD / OpenOCD path
-./flash-uf2.sh          # explicit BOOTSEL / mounted RPI-RP2 path
-./flash-picotool.sh     # explicit picotool path
-```
-
-Recommended workflow:
-
-```bash
-pnpm firmware                 # interactive TUI for build / flash / launch
-
-pnpm firmware:build
-pnpm firmware:flash:swd        # preferred daily dev path
-# or
-pnpm firmware:flash:picotool   # USB-only path
-# or
-pnpm firmware:flash:uf2        # explicit BOOTSEL recovery / bring-up path
-pnpm dev:glyf
-```
-
-Recommended SWD hardware path:
-
-- Use a Raspberry Pi Debug Probe or any 3.3 V CMSIS-DAP probe.
-- Connect probe `SC` -> Pico `SWCLK`, probe `SD` -> Pico `SWDIO`, and probe `GND` -> Pico `GND`.
-- Power the Pico separately over USB or `VSYS`; the 3-pin Pico SWD header does not provide power.
-
----
-
-## Architecture
-
-Apps use **Feature-Sliced Design (FSD)** on the frontend; the repo uses **bounded contexts** per app and domain.
-
-- **Single source of truth** — shared types in `shared/libs/`, mirrored in Rust with matching `serde` structs where needed.
-- **One install** — `pnpm install` at the root installs workspaces together.
-
-### USB identifiers
+## USB identifiers
 
 | Device | VID | PID |
 |--------|-----|-----|
-| Macro Eleven (R&D) | `0x4653` | `0x0002` |
+| Four Pad | `0x4653` | `0x0001` |
+| Macro Eleven | `0x4653` | `0x0002` |
 | Glyf display module | `0x4653` | `0x0003` |
 
----
-
-## R&D
-
-- Tracked experiments and graduation: [`research/README.md`](research/README.md)
-- Macropad prototypes: [`domains/prototypes/macropads/`](domains/prototypes/macropads/) (see table above)
+`0x4653` is not an allocated vendor ID. Get a real VID/PID before shipping hardware (audit FW-08).
 
 ## CI
 
-GitHub Actions on push/PR to `main`:
+GitHub Actions on push and pull request to `main` ([ci.yml](.github/workflows/ci.yml)):
 
-- **TypeScript** — `tsc --noEmit` for Glyf and Macro Eleven apps (matrix)
-- **Rust** — `cargo check --workspace` for Tauri backends
+- **Repository layout**: firmware folders and build scripts exist.
+- **TypeScript & Vitest**: `pnpm typecheck`, then `pnpm test` (jsdom and Playwright Chromium).
+- **Rust**: `cargo test --workspace --locked` on Ubuntu with Tauri system packages.
+
+CI does not run `pnpm lint`, Clippy, or firmware builds yet (audit X-02).

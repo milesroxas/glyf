@@ -1,48 +1,35 @@
-# Glyf — display module
+# Glyf display module
 
-RP2040 firmware for the **Glyf display module**: the 4.0" ST7796S TFT + XPT2046
-resistive touch board. This directory is the **display** piece of the Glyf product
-line (see [docs/product-line.md](../../../docs/product-line.md)), not the whole line by itself.
+RP2040 firmware (Pico SDK, C) for the Glyf display module: a 4.0" ST7796S TFT with XPT2046 resistive touch. This is one module of the Glyf line ([product-line.md](../../../docs/product-line.md)). Companion app: [apps/glyf](../../../apps/glyf/).
 
-## Quick Start
+Hardware, wiring, and HID protocol: [docs/glyf.md](docs/glyf.md).
+
+## Build and flash
+
+Needs the Pico SDK (v1.5+), CMake 3.13+, `arm-none-eabi-gcc`, and OpenOCD for SWD ([sdks/README.md](../../../sdks/README.md)). `build.sh` uses `PICO_SDK_PATH`, or `sdks/pico-sdk` when that is unset.
+
+From the repo root:
 
 ```bash
-export PICO_SDK_PATH=/path/to/pico-sdk
-
-bash build.sh
-bash flash-swd.sh        # preferred SWD / OpenOCD flashing path
-# or
-bash flash-picotool.sh   # explicit USB flashing path
-# or
-bash flash-uf2.sh        # explicit BOOTSEL / mounted RPI-RP2 path
+pnpm firmware                  # interactive: build, flash, launch the app
+pnpm firmware:build            # build.sh
+pnpm firmware:flash:swd        # daily path: SWD probe + OpenOCD
+pnpm firmware:flash:picotool   # USB only; needs BOOTSEL (firmware has no picotool reset interface yet)
+pnpm firmware:flash:uf2        # copy the UF2 to /Volumes/RPI-RP2 (macOS; recovery and bring-up)
+pnpm dev:glyf
 ```
 
-## Recommended Dev Workflow
+The scripts in this folder (`build.sh`, `flash-*.sh`) do the same from here. Build and flash stay separate so any flash path can use the same artifact.
 
-- Build artifacts with `bash build.sh`
-- Flash over SWD with `bash flash-swd.sh`
-- Run the companion app with `pnpm dev:glyf`
-
-Use `flash-uf2.sh` for BOOTSEL recovery or very early board bring-up, not as the default daily path.
-
-## Structure
+## Source
 
 ```
-firmware/
-├── CMakeLists.txt
-└── src/
-    ├── main.c              # Entry point + TinyUSB callbacks
-    ├── pinout.h            # All GPIO assignments (single source of truth)
-    ├── tusb_config.h       # TinyUSB / USB descriptor config
-    ├── display/
-    │   ├── st7796s.h       # ST7796S driver API
-    │   └── st7796s.c       # ST7796S driver implementation
-    ├── touch/
-    │   ├── xpt2046.h       # XPT2046 driver API
-    │   └── xpt2046.c       # XPT2046 driver implementation
-    └── hid/
-        ├── hid_handler.h   # HID command / report API
-        └── hid_handler.c   # HID command / report implementation
+firmware/src/
+├── main.c              entry point, main loop, TinyUSB callbacks
+├── pinout.h            every GPIO, SPI clock, and USB ID (source of truth)
+├── tusb_config.h       TinyUSB config
+├── usb_descriptors.c   USB descriptors
+├── display/st7796s.*   ST7796S driver
+├── touch/xpt2046.*     XPT2046 driver
+└── hid/hid_handler.*   HID command dispatch and state report
 ```
-
-See [`docs/glyf.md`](docs/glyf.md) for full hardware reference and HID protocol.

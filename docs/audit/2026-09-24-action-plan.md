@@ -10,6 +10,22 @@ This file is written to be executed task-by-task by an LLM coding agent (Claude)
 - **Phase 3 (SCR):** a portable C screen core. The same C code renders on the device and inside the Tauri app, so the in-app screen is pixel-identical to rev 2 hardware.
 - Updated tasks where these phases absorb or change earlier work. Look for **→ Revised:** notes.
 
+**Status on 2026-09-25.** Two commits landed after this audit: b8627c7 (Macro Eleven firmware updates: `0x03 GET_INFO`, `0x04 ENTER_BOOTLOADER`, PICOBOOT updater) and ee151ca (connect/disconnect removed; the poll thread starts at launch). Re-read the cited code before you start these tasks:
+
+| Task | Status | What changed |
+|------|--------|--------------|
+| ME-01 | Moot | `stop()`, `connect_device`, and `disconnect_device` are gone. `start()` runs once from `setup` (`lib.rs`). Ticked. |
+| H-00 | Partial | The files are tracked now. The CI `test -f domains/glyf/display/flash-swd.sh` check is still missing. |
+| ME-07 | Partial | `get_device_status` + `useDeviceStatus` seed connection status on mount. Layer and host-control state are still not seeded. |
+| FW-07 | Partial | HID bootloader entry exists once, in `macro_eleven.c`. The per-keymap `BACK_HOME` copies remain. |
+| UI-02 | Partial | `button.tsx` and `card.tsx` are used by `FirmwareUpdatePanel.tsx`. The copied class strings remain elsewhere. |
+| LINK-01, LINK-02 | Evidence stale | The spec and the v1 adapter must cover `0x03`/`0x04`. `DeviceLink` must keep the `suspend()` handoff the firmware updater uses. |
+| LINK-03 | Evidence stale | Add `commands/firmware.rs`, `firmware/updater.rs`, and `examples/flash.rs` to Files. The manual Disconnect/Connect check no longer applies to macro-eleven. |
+| ME-03, ME-04 | Evidence stale | Line numbers in `connection.rs` moved. A `GET_INFO` query now runs before test mode on each connect. The problems remain. |
+| FW-03 | Evidence stale | `raw_hid_receive` is at keyboard level now. `default`/`via` answer `0x03`/`0x04` but not `0x01`. |
+| X-01 | Evidence stale | macro-eleven `providers.tsx` and `StatusBadge.tsx` changed; re-run `pnpm -s fallow:dupes`. |
+| X-03 | Partial | Docs reorganized on 2026-09-25. See the task. |
+
 ---
 
 ## 0. How to execute this plan
@@ -325,7 +341,7 @@ New Cargo workspace members: `shared/crates/glyf-link`, `shared/crates/glyf-core
 
 Crate: `apps/macro-eleven/src-tauri` (package `macro-eleven`, lib `macro_eleven_lib`).
 
-- [ ] **ME-01 [P0] Duplicate HID poll threads after disconnect → connect** → **Revised: absorbed by LINK-02/LINK-03.** Tick with LINK-03.
+- [x] **ME-01 [P0] Duplicate HID poll threads after disconnect → connect** → **Moot since ee151ca:** the app has no disconnect/connect path, and `start()` runs once at launch.
   - Evidence (kept for context):
     - `stop()` (connection.rs:66) only stores `running=false`. The poll thread may be inside `thread::sleep(RECONNECT_INTERVAL)` (2 s, lines 102/118/130/234).
     - A Connect inside that window finds `is_running()` false, so `start()` (line 51) spawns a second thread. The old thread wakes, sees the shared `running` flag true, and keeps looping.
@@ -782,11 +798,8 @@ Location: `domains/prototypes/macropads/macro-eleven/firmware`. The build copies
     - optionally QMK rev1/rev2 builds in the `qmkfm/qmk_cli` container.
 
 - [ ] **X-03 [P3] Documentation drift**
-  - Update `apps/macro-eleven/CLAUDE.md`: it lists only `device.rs`/`layers.rs`, says the Layer Viewer parses `keymap.c`, uses `npm`, the protocol section lacks command 0x02, and the UI colors are outdated. Point it to `glyf-link`, the simulator, and the protocol doc.
-  - Update `apps/macro-eleven/README.md` ("parsed from QMK keymap.c", "11 layers").
-  - Update the root `README.md` CI section, and add a "Develop without hardware (simulator)" section.
-  - Move `IMPLEMENTATION_SUMMARY.md` into `docs/` (or delete it).
-  - Update `HOST_SIDE_KEYMAP_SYSTEM.md` after ME-11 and LINK-01.
+  - Done 2026-09-25: both app `CLAUDE.md` files and READMEs match the code; the root README CI section is correct; `IMPLEMENTATION_SUMMARY.md` is deleted; `HOST_SIDE_KEYMAP_SYSTEM.md` is now `apps/macro-eleven/docs/keymap-engine.md`; the Macro Eleven wire protocol is in `macro-eleven.md`.
+  - Remaining: when LINK and SCR land, point both app `CLAUDE.md` files to `glyf-link`, the simulator, and `docs/protocol/glyf-link-v2.md`. Add a "Develop without hardware (simulator)" section to the root README. Update `keymap-engine.md` after ME-11 and LINK-01.
 
 - [ ] **X-04 [P3] fallow false positive** — `fallow security` flags `scripts/firmware.mjs:19` (`spawn` with a non-literal command), but all call sites pass literals. Add `// fallow-ignore-next-line security-sink` with a one-line reason.
 
@@ -925,6 +938,7 @@ Host root paths: `apps/glyf/src-tauri/src/` (crate `glyf`) and `apps/glyf/src/`.
   - Macro Eleven: VID `0x4653`, PID `0x0002`, usage page `0xFF60`.
     - Request `[report_id=0, 0x01]`; test-mode `[0, 0x02, enable]`.
     - Response `[0x01, key_lo, key_hi, pot_lo, pot_hi, layer, test_mode]`.
+    - Added after the audit (b8627c7): `0x03 GET_INFO` → `[0x03, proto=1, major, minor, patch]` and `0x04 ENTER_BOOTLOADER` `[0x04, 'B','O','O','T', flags]` → `[0x04, 1]`, handled in `macro_eleven.c` for every keymap. The v1 adapters must keep these too.
   - Glyf: PID `0x0003`. Commands `0x01`-`0x04` and the big-endian state report match `hid_handler.c:55-66`.
   - The v1 adapters in LINK-02 must preserve this exactly.
 - **Key index order** matches across firmware `matrix_map` (`apps/keymap.c:369-373`), Rust `index_to_position` (`keymap_engine.rs:179-186`), and TS `matrixToIndex` (`entities/key.ts:53-57`). The SCR-01 tile order must use the same order.
