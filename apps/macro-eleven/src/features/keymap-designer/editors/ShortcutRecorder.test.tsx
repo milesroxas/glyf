@@ -42,6 +42,35 @@ describe("ShortcutRecorder", () => {
     expect(onCommit).toHaveBeenCalledWith(["shift", "cmd", "p"]);
   });
 
+  it("keeps a ⌘ chord when only ⌘ comes up", () => {
+    // macOS sends no key-up for a key pressed with ⌘ held
+    const { field, onCommit } = setup([]);
+    fireEvent.keyDown(field, { code: "MetaLeft", metaKey: true });
+    fireEvent.keyDown(field, { code: "Digit1", metaKey: true });
+    fireEvent.keyUp(field, { code: "MetaLeft" });
+    expect(onCommit).toHaveBeenCalledWith(["cmd", "1"]);
+  });
+
+  it("keeps recording while another app has focus", () => {
+    const { field, onCommit, onCancel } = setup([]);
+    const hasFocus = vi.spyOn(document, "hasFocus").mockReturnValue(false);
+    fireEvent.blur(field);
+    hasFocus.mockRestore();
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(screen.getByText("Recording…")).toBeInTheDocument();
+    fireEvent.keyDown(field, { code: "KeyK", ctrlKey: true });
+    fireEvent.keyUp(field, { code: "KeyK", ctrlKey: true });
+    expect(onCommit).toHaveBeenCalledWith(["ctrl", "k"]);
+  });
+
+  it("cancels when focus moves elsewhere in the window", () => {
+    const { field, onCancel } = setup([]);
+    const hasFocus = vi.spyOn(document, "hasFocus").mockReturnValue(true);
+    fireEvent.blur(field);
+    hasFocus.mockRestore();
+    expect(onCancel).toHaveBeenCalled();
+  });
+
   it("cancels with Esc and keeps the old value", () => {
     const { field, onCommit, onCancel } = setup();
     fireEvent.keyDown(field, { code: "KeyK", metaKey: true });

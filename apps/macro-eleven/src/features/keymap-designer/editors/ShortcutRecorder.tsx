@@ -191,17 +191,32 @@ export function ShortcutRecorder({
     }
   };
 
+  // Any key coming up keeps the chord: macOS sends no key-up for a key
+  // pressed with ⌘ held, only for ⌘ itself
   const onKeyUp = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (!recording) return;
     event.preventDefault();
     event.stopPropagation();
     const done = pending.current;
-    if (done && done.code === event.code) {
+    if (done) {
       stop();
       onCommit(done.keys);
-    } else if (!done && mode === "chord") {
+    } else if (mode === "chord") {
       setLive(heldModifiers(event));
     }
+  };
+
+  const onBlur = () => {
+    if (!recording) return;
+    // Another app or window took focus (a system shortcut, or checking the
+    // shortcut elsewhere): keep recording for when this window comes back
+    if (!document.hasFocus()) {
+      pending.current = null;
+      setLive([]);
+      return;
+    }
+    stop();
+    onCancel?.();
   };
 
   return (
@@ -215,11 +230,7 @@ export function ShortcutRecorder({
         onClick={() => (recording ? undefined : start())}
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
-        onBlur={() => {
-          if (!recording) return;
-          stop();
-          onCancel?.();
-        }}
+        onBlur={onBlur}
         className={cn(
           "flex h-8 w-full min-w-0 items-center rounded-md border border-input bg-input/30 px-2.5 text-left shadow-xs outline-none transition-[border-color,box-shadow,background-color] duration-150",
           "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40",
