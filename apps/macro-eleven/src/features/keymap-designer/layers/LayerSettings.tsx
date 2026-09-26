@@ -4,20 +4,15 @@ import {
   renameLayer,
   setLayerTrigger,
 } from "@glyf/keymap-schema";
-import { ChevronsUpDown, Copy, Settings2, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { ChevronsUpDown, Copy, Trash2, X } from "lucide-react";
+import type { ComponentProps } from "react";
 import { findApp } from "../../../entities/app";
 import { layerName } from "../../../entities/keymap";
 import { useInstalledApps } from "../../../shared/lib/useInstalledApps";
 import { AppIcon } from "../../../shared/ui/AppIcon";
 import { Button } from "../../../shared/ui/button";
 import { Input } from "../../../shared/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../../shared/ui/popover";
-import { Tooltip } from "../../../shared/ui/tooltip";
+import { PopoverContent } from "../../../shared/ui/popover";
 import { AppPicker } from "../apps/AppPicker";
 import { Field } from "../editors/Field";
 import { useDesigner, useKeymap } from "../model/KeymapProvider";
@@ -122,43 +117,40 @@ function LayerActions({ onDone }: { onDone: () => void }) {
   );
 }
 
-/** Name, trigger app, duplicate, and delete for the layer being viewed. */
-export function LayerSettings() {
+/**
+ * Name, trigger app, duplicate, and delete for the layer being viewed. The
+ * layer tabs own the popover and anchor it to the active tab.
+ */
+export function LayerSettingsContent({
+  onClose,
+  ...props
+}: ComponentProps<typeof PopoverContent> & { onClose: () => void }) {
   const keymap = useKeymap();
   const { layer, edit } = useDesigner();
-  const [open, setOpen] = useState(false);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip content="Layer settings">
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            aria-label={`Settings for ${layerName(keymap, layer)}`}
-            className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60 data-[state=open]:bg-accent data-[state=open]:text-foreground"
-          >
-            <Settings2 className="size-4" />
-          </button>
-        </PopoverTrigger>
-      </Tooltip>
-      <PopoverContent align="end" className="grid w-80 gap-4">
-        <Field label="Layer name" htmlFor="layer-name">
-          <Input
-            id="layer-name"
-            value={keymap.layers[layer]?.name ?? ""}
-            placeholder={`Layer ${layer}`}
-            onChange={(event) => {
-              // Read now: the edit may run later (after duplicating Default)
-              const name = event.target.value;
-              edit((km) => renameLayer(km, layer, name), {
-                coalesce: `layer-name:${layer}`,
-              });
-            }}
-          />
-        </Field>
-        <TriggerAppField />
-        <LayerActions onDone={() => setOpen(false)} />
-      </PopoverContent>
-    </Popover>
+    <PopoverContent
+      align="start"
+      aria-label={`Settings for ${layerName(keymap, layer)}`}
+      className="grid w-80 gap-4"
+      {...props}
+    >
+      <Field label="Layer name" htmlFor="layer-name">
+        <Input
+          id="layer-name"
+          value={keymap.layers[layer]?.name ?? ""}
+          placeholder={`Layer ${layer}`}
+          onChange={(event) => {
+            // Read now: the edit may run later (after duplicating Default)
+            const name = event.target.value;
+            edit((km) => renameLayer(km, layer, name), {
+              coalesce: `layer-name:${layer}`,
+            });
+          }}
+        />
+      </Field>
+      <TriggerAppField />
+      <LayerActions onDone={onClose} />
+    </PopoverContent>
   );
 }

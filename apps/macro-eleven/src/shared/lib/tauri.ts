@@ -3,8 +3,9 @@
  * never call `invoke` or `listen` directly.
  */
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
-import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { emitTo, listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import type {
   ActionErrorEvent,
@@ -26,6 +27,11 @@ import type {
   LayerChangeEvent,
   ProfileList,
 } from "../../entities/keymap";
+import type {
+  Backdrop,
+  LoginItemStatus,
+  Settings,
+} from "../../entities/settings";
 
 // ── Events ─────────────────────────────────────────────────────────────────
 
@@ -56,6 +62,22 @@ export const onKeymapChanged = subscribe<KeymapChangedEvent>(
 );
 export const onFirmwareProgress = subscribe<FirmwareProgressEvent>(
   "macro11:firmware-progress",
+);
+/** The whole settings, after any window changed them. */
+export const onSettingsChanged = subscribe<Settings>(
+  "macro11:settings-changed",
+);
+/**
+ * The menu bar panel opened. `tip` is the one-time first-close tip;
+ * `backdrop` follows Reduce Transparency.
+ */
+export const onPanelShown = subscribe<{ tip: boolean; backdrop: Backdrop }>(
+  "macro11:panel-shown",
+);
+/** The main window should show this page. */
+export const onNavigate = subscribe<string>("macro11:navigate");
+export const onOverlayBackdrop = subscribe<Backdrop>(
+  "macro11:overlay-material",
 );
 
 export function onTestModeChange(
@@ -99,8 +121,100 @@ export function openAccessibilitySettings(): Promise<void> {
   return invoke<void>("open_accessibility_settings");
 }
 
-export function openOverlayWindow(): Promise<void> {
-  return invoke<void>("open_overlay_window");
+// ── Settings ───────────────────────────────────────────────────────────────
+
+export function getSettings(): Promise<Settings> {
+  return invoke<Settings>("get_settings");
+}
+
+/** Change some settings; they apply at once. Resolves to all of them. */
+export function updateSettings(patch: Partial<Settings>): Promise<Settings> {
+  return invoke<Settings>("update_settings", { patch });
+}
+
+export function getLoginItem(): Promise<LoginItemStatus> {
+  return invoke<LoginItemStatus>("get_login_item");
+}
+
+export function setLoginItem(enabled: boolean): Promise<LoginItemStatus> {
+  return invoke<LoginItemStatus>("set_login_item", { enabled });
+}
+
+export function openLoginItemsSettings(): Promise<void> {
+  return invoke<void>("open_login_items_settings");
+}
+
+/** While a new overlay shortcut is recorded, the saved one stays quiet. */
+export function pauseOverlayShortcut(paused: boolean): Promise<void> {
+  return invoke<void>("pause_overlay_shortcut", { paused });
+}
+
+const OVERLAY_PREVIEW = "macro11:overlay-preview";
+
+/** Show a Transparency value on the overlay while the slider moves, unsaved. */
+export function previewOverlayTransparency(value: number): Promise<void> {
+  return emitTo("macro11-overlay", OVERLAY_PREVIEW, value);
+}
+
+export const onOverlayPreview = subscribe<number>(OVERLAY_PREVIEW);
+
+// ── Windows ────────────────────────────────────────────────────────────────
+
+/** Bring up the designer, optionally on a page (`/firmware`). */
+export function showMainWindow(route?: string): Promise<void> {
+  return invoke<void>("show_main_window", { route: route ?? null });
+}
+
+export function showSettingsWindow(): Promise<void> {
+  return invoke<void>("show_settings_window");
+}
+
+/** Size the Settings window to its pane; the top edge stays put. */
+export function fitSettingsWindow(height: number): Promise<void> {
+  return invoke<void>("fit_settings_window", { height });
+}
+
+/** Size the menu bar panel to its content. */
+export function fitPanel(height: number): Promise<void> {
+  return invoke<void>("fit_panel", { height });
+}
+
+export function hidePanel(): Promise<void> {
+  return invoke<void>("hide_panel");
+}
+
+/** Quit for real: the pad stops running actions. */
+export function quitApp(): Promise<void> {
+  return invoke<void>("quit_app");
+}
+
+/** The window's name in the Window menu and Mission Control. */
+export function setWindowTitle(title: string): Promise<void> {
+  return getCurrentWindow().setTitle(title);
+}
+
+export function setOverlayVisible(visible: boolean): Promise<Settings> {
+  return invoke<Settings>("set_overlay_visible", { visible });
+}
+
+/** What a see-through window draws behind its content, after Reduce Transparency. */
+export function getBackdrop(surface: "overlay" | "panel"): Promise<Backdrop> {
+  return invoke<Backdrop>("get_backdrop", { surface });
+}
+
+/** Reduce Transparency changed: the host checks it again. */
+export function refreshOverlayBackdrop(): Promise<void> {
+  return invoke<void>("refresh_overlay_backdrop");
+}
+
+/** Fade the overlay while the pad is idle, or bring it back. */
+export function setOverlayDimmed(dimmed: boolean): Promise<void> {
+  return invoke<void>("set_overlay_dimmed", { dimmed });
+}
+
+/** Put the overlay back at its first size and place. */
+export function resetOverlayFrame(): Promise<void> {
+  return invoke<void>("reset_overlay_frame");
 }
 
 // ── Profiles ───────────────────────────────────────────────────────────────

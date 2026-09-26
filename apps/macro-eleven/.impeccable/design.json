@@ -1,0 +1,547 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-26T17:35:50+00:00",
+  "title": "Design System: Macro Eleven",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Signal Green",
+        "canonical": "oklch(0.7 0.15 162)",
+        "tonalRamp": [
+          "oklch(0.15 0.15 162)",
+          "oklch(0.26 0.15 162)",
+          "oklch(0.37 0.15 162)",
+          "oklch(0.48 0.15 162)",
+          "oklch(0.6 0.15 162)",
+          "oklch(0.72 0.15 162)",
+          "oklch(0.84 0.15 162)",
+          "oklch(0.95 0.15 162)"
+        ]
+      },
+      "primary-foreground": {
+        "role": "primary",
+        "displayName": "Deep Green Ink",
+        "canonical": "oklch(0.26 0.05 173)",
+        "tonalRamp": [
+          "oklch(0.15 0.05 173)",
+          "oklch(0.26 0.05 173)",
+          "oklch(0.37 0.05 173)",
+          "oklch(0.48 0.05 173)",
+          "oklch(0.6 0.05 173)",
+          "oklch(0.72 0.05 173)",
+          "oklch(0.84 0.05 173)",
+          "oklch(0.95 0.05 173)"
+        ]
+      },
+      "warning": {
+        "role": "secondary",
+        "displayName": "Caution Amber",
+        "canonical": "oklch(0.82 0.14 80)",
+        "tonalRamp": [
+          "oklch(0.15 0.14 80)",
+          "oklch(0.26 0.14 80)",
+          "oklch(0.37 0.14 80)",
+          "oklch(0.48 0.14 80)",
+          "oklch(0.6 0.14 80)",
+          "oklch(0.72 0.14 80)",
+          "oklch(0.84 0.14 80)",
+          "oklch(0.95 0.14 80)"
+        ]
+      },
+      "destructive": {
+        "role": "secondary",
+        "displayName": "Error Red",
+        "canonical": "oklch(0.704 0.191 22.216)",
+        "tonalRamp": [
+          "oklch(0.15 0.19 22.216)",
+          "oklch(0.26 0.19 22.216)",
+          "oklch(0.37 0.19 22.216)",
+          "oklch(0.48 0.19 22.216)",
+          "oklch(0.6 0.19 22.216)",
+          "oklch(0.72 0.19 22.216)",
+          "oklch(0.84 0.19 22.216)",
+          "oklch(0.95 0.19 22.216)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Night",
+        "canonical": "oklch(0.145 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.6 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.84 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Graphite",
+        "canonical": "oklch(0.205 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.6 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.84 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "popover": {
+        "role": "neutral",
+        "displayName": "Graphite",
+        "canonical": "oklch(0.205 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.6 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.84 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "oklch(0.985 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.6 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.84 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "canonical": "oklch(0.269 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.6 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.84 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Ash",
+        "canonical": "oklch(0.708 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.6 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.84 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Zinc",
+        "canonical": "oklch(0.274 0.006 286.033)",
+        "tonalRamp": [
+          "oklch(0.15 0.006 286.033)",
+          "oklch(0.26 0.006 286.033)",
+          "oklch(0.37 0.006 286.033)",
+          "oklch(0.48 0.006 286.033)",
+          "oklch(0.6 0.006 286.033)",
+          "oklch(0.72 0.006 286.033)",
+          "oklch(0.84 0.006 286.033)",
+          "oklch(0.95 0.006 286.033)"
+        ]
+      },
+      "accent": {
+        "role": "neutral",
+        "displayName": "Accent Grey",
+        "canonical": "oklch(0.371 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.6 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.84 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(1 0 0 / 10%)"
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Field Edge",
+        "canonical": "oklch(1 0 0 / 15%)"
+      },
+      "ring": {
+        "role": "neutral",
+        "displayName": "Focus Grey",
+        "canonical": "oklch(0.556 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.6 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.84 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "glass-tint": {
+        "role": "neutral",
+        "displayName": "Glass Tint",
+        "canonical": "oklch(0.145 0 0 / 0.3)"
+      },
+      "glass-well": {
+        "role": "neutral",
+        "displayName": "Glass Well",
+        "canonical": "oklch(0 0 0 / 0.22)"
+      },
+      "glass-edge": {
+        "role": "neutral",
+        "displayName": "Glass Edge",
+        "canonical": "oklch(1 0 0 / 0.1)"
+      },
+      "glass-hover": {
+        "role": "neutral",
+        "displayName": "Glass Hover",
+        "canonical": "oklch(1 0 0 / 0.1)"
+      },
+      "glass-press": {
+        "role": "neutral",
+        "displayName": "Glass Press",
+        "canonical": "oklch(1 0 0 / 0.16)"
+      },
+      "keycap-edge-top": {
+        "role": "neutral",
+        "displayName": "Bevel Light",
+        "canonical": "oklch(0.36 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.6 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.84 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "keycap-edge-bottom": {
+        "role": "neutral",
+        "displayName": "Bevel Dark",
+        "canonical": "oklch(0.2 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.37 0 0)",
+          "oklch(0.48 0 0)",
+          "oklch(0.6 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.84 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Title",
+        "purpose": "Panel name, window titles, tip heading."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Panel rows and settings row labels."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Status, second lines of notices, pad module footer."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Sentence-case group headings and toolbar pane names."
+      },
+      "footnote": {
+        "displayName": "Footnote",
+        "purpose": "One line of help under a settings row or group."
+      },
+      "shortcut": {
+        "displayName": "Shortcut",
+        "purpose": "Key glyphs at the right of a menu row."
+      },
+      "key-legend": {
+        "displayName": "Key Legend",
+        "purpose": "Labels printed on keycaps; follows --key."
+      }
+    },
+    "shadows": [
+      {
+        "name": "keycap-rest",
+        "value": "0 1px 1px oklch(0 0 0 / 0.35), 0 6px 12px -4px oklch(0 0 0 / 0.45), inset 0 1px 0 oklch(1 0 0 / 0.07)",
+        "purpose": "Every keycap at rest."
+      },
+      {
+        "name": "keycap-lit",
+        "value": "0 0 0 1px color-mix(in oklab, var(--primary) 60%, transparent), 0 2px 10px -2px color-mix(in oklab, var(--primary) 45%, transparent)",
+        "purpose": "A physically held key. The only glow in the system."
+      },
+      {
+        "name": "chassis",
+        "value": "0 24px 48px -24px oklch(0 0 0 / 0.7), inset 0 1px 0 oklch(1 0 0 / 0.05)",
+        "purpose": "The pad plate."
+      },
+      {
+        "name": "well-edge",
+        "value": "inset 0 0 0 1px var(--glass-edge)",
+        "purpose": "Recessed wells on glass (pad module, first-close tip)."
+      },
+      {
+        "name": "panel-solid-edge",
+        "value": "inset 0 0 0 1px var(--border)",
+        "purpose": "The panel's edge when Reduce Transparency paints it solid."
+      },
+      {
+        "name": "material",
+        "value": "background: color-mix(in oklab, var(--background) 72%, transparent); backdrop-filter: blur(20px) saturate(160%)",
+        "purpose": "In-webview translucent chrome; opaque background under Reduce Transparency."
+      },
+      {
+        "name": "material-raised",
+        "value": "background: color-mix(in oklab, var(--card) 92%, transparent); backdrop-filter: blur(30px) saturate(160%)",
+        "purpose": "Large sheets over busy content (inspector sheet); opaque card under Reduce Transparency."
+      },
+      {
+        "name": "native-glass",
+        "value": "NSGlassEffectView, style Regular (HUD vibrancy before macOS 26); panel corner 18px, overlay corner 16px",
+        "purpose": "Floating functional layers only. Reduce Transparency: no glass, the page paints solid."
+      },
+      {
+        "name": "overlay-glass-tint",
+        "value": "color-mix(in oklab, var(--background) calc((0.12 + (1 - transparency) * 0.76) * 100%), transparent)",
+        "purpose": "The overlay's tint over native glass, from the Transparency setting (glassTint in entities/settings.ts)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Shared curve for entrances, fades, and AppKit window animations."
+      },
+      {
+        "name": "ease-in-out",
+        "value": "cubic-bezier(0.645, 0.045, 0.355, 1)",
+        "purpose": "On-screen moves."
+      },
+      {
+        "name": "spring",
+        "value": "spring, bounce 0, duration 300ms",
+        "purpose": "Interruptible UI: selection ring, tab and segment indicators, sheets."
+      },
+      {
+        "name": "spring-momentum",
+        "value": "spring, bounce 0.2, duration 400ms",
+        "purpose": "After a throw or drag release only."
+      },
+      {
+        "name": "crossfade",
+        "value": "opacity 150ms ease-out",
+        "purpose": "Content swaps in place; layer-change legends."
+      },
+      {
+        "name": "pop-in",
+        "value": "opacity 0 and scale 0.96 to rest, 160ms ease-out, origin at trigger",
+        "purpose": "Popovers, menus, tooltips, dialogs. Reduce Motion: fade only."
+      },
+      {
+        "name": "pop-out",
+        "value": "to opacity 0 and scale 0.96, 110ms ease-out",
+        "purpose": "Floating surface exit."
+      },
+      {
+        "name": "keycap-press",
+        "value": "transform 100ms ease-out, box-shadow 150ms ease-out",
+        "purpose": "Key press feedback; none under Reduce Motion."
+      },
+      {
+        "name": "switch-thumb",
+        "value": "transform 200ms ease-out",
+        "purpose": "Switch travel; none under Reduce Motion."
+      },
+      {
+        "name": "settings-pane",
+        "value": "in 180ms after 40ms, out 100ms; native window resize 240ms top-anchored",
+        "purpose": "Settings pane change."
+      },
+      {
+        "name": "panel-show",
+        "value": "window alpha 120ms in, 100ms out; content settle translateY(-6px) scale(0.985) to rest over 260ms",
+        "purpose": "Menu bar panel open and close. Reduce Motion: fade only."
+      },
+      {
+        "name": "tip-expand",
+        "value": "height and opacity 220ms ease-out",
+        "purpose": "First-close tip in and out."
+      },
+      {
+        "name": "overlay-idle",
+        "value": "window alpha to 0.35 over 600ms, back over 120ms",
+        "purpose": "Overlay idle fade."
+      },
+      {
+        "name": "overlay-reset",
+        "value": "native frame move 350ms ease-out",
+        "purpose": "Reset position and size."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "designer-inspector-beside",
+        "value": "760px of content"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Panel Row",
+      "kind": "nav",
+      "refersTo": "panel-row",
+      "description": "A menu item in the menu bar panel with optional shortcut glyphs.",
+      "html": "<div class=\"ds-panel\"><button class=\"ds-row\">Settings…<kbd class=\"ds-kbd\">⌘,</kbd></button><button class=\"ds-row\">Quit Macro Eleven<kbd class=\"ds-kbd\">⌘Q</kbd></button></div>",
+      "css": ".ds-panel{width:320px;padding:6px;border-radius:18px;background:var(--popover, oklch(0.205 0 0));box-shadow:inset 0 0 0 1px var(--border, oklch(1 0 0 / 10%));font-family:'Inter Variable',sans-serif} .ds-row{display:flex;align-items:center;gap:10px;width:100%;height:26px;padding:0 10px;border:0;border-radius:7px;background:transparent;color:var(--foreground, oklch(0.985 0 0));font:400 13px/18px 'Inter Variable',sans-serif;text-align:left;outline:none} .ds-row:hover,.ds-row:focus-visible{background:oklch(1 0 0 / 0.1)} .ds-row:active{background:oklch(1 0 0 / 0.16)} .ds-kbd{margin-left:auto;font:400 12px 'Inter Variable',sans-serif;letter-spacing:0.08em;color:var(--muted-foreground, oklch(0.708 0 0))}"
+    },
+    {
+      "name": "Notice Row",
+      "kind": "custom",
+      "refersTo": "panel-row",
+      "description": "Two-line panel row with a 16px drawn icon, Title Case command with ellipsis.",
+      "html": "<button class=\"ds-notice\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ds-notice-icon\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg><span><span class=\"ds-notice-title\">Allow Accessibility Access…</span><span class=\"ds-notice-help\">Shortcuts and macros need it to reach other apps.</span></span></button>",
+      "css": ".ds-notice{display:flex;align-items:flex-start;gap:10px;width:320px;padding:8px 10px;border:0;border-radius:7px;background:transparent;color:var(--foreground, oklch(0.985 0 0));text-align:left;font-family:'Inter Variable',sans-serif} .ds-notice:hover,.ds-notice:focus-visible{background:oklch(1 0 0 / 0.1)} .ds-notice-icon{margin-top:1px;flex-shrink:0;color:var(--warning, oklch(0.82 0.14 80))} .ds-notice-title{display:block;font-size:13px;line-height:18px} .ds-notice-help{display:block;font-size:12px;line-height:16px;color:var(--muted-foreground, oklch(0.708 0 0))}"
+    },
+    {
+      "name": "Keycap",
+      "kind": "custom",
+      "refersTo": "keycap",
+      "description": "The pad's key cap; resting and pressed (lit) states.",
+      "html": "<div class=\"ds-pad\"><div class=\"ds-key\"><span class=\"ds-legend\">Chrome</span></div><div class=\"ds-key ds-key-pressed\"><span class=\"ds-legend\">Slack</span></div><div class=\"ds-key ds-key-empty\"></div></div>",
+      "css": ".ds-pad{--key:64px;display:grid;grid-template-columns:repeat(3,var(--key));grid-auto-rows:var(--key);gap:calc(var(--key)*0.1);padding:calc(var(--key)*0.22);border:1px solid oklch(1 0 0 / 10%);border-radius:calc(var(--key)*0.34);background:linear-gradient(to bottom,oklch(0.205 0 0),oklch(0.145 0 0));box-shadow:0 24px 48px -24px oklch(0 0 0 / 0.7),inset 0 1px 0 oklch(1 0 0 / 0.05);width:max-content} .ds-key{--_t:oklch(0.36 0 0);--_b:oklch(0.2 0 0);--_f:oklch(0.205 0 0);display:flex;align-items:flex-end;padding:calc(var(--key)*0.1);border:1px solid transparent;border-radius:calc(var(--key)*0.12);background:linear-gradient(color-mix(in oklab,var(--_f),white 3%),var(--_f) 60%) padding-box,linear-gradient(to bottom,var(--_t),var(--_b)) border-box;box-shadow:0 1px 1px oklch(0 0 0 / 0.35),0 6px 12px -4px oklch(0 0 0 / 0.45),inset 0 1px 0 oklch(1 0 0 / 0.07);color:oklch(0.985 0 0);transition:transform 100ms cubic-bezier(0.23,1,0.32,1),box-shadow 150ms cubic-bezier(0.23,1,0.32,1)} .ds-key:active{transform:scale(0.97)} .ds-key-pressed{--_t:oklch(0.42 0.1 163);--_b:oklch(0.3 0.08 163);--_f:color-mix(in oklab,oklch(0.7 0.15 162) 24%,oklch(0.205 0 0));transform:translateY(1px) scale(0.97);box-shadow:0 0 0 1px color-mix(in oklab,oklch(0.7 0.15 162) 60%,transparent),0 2px 10px -2px color-mix(in oklab,oklch(0.7 0.15 162) 45%,transparent)} .ds-key-empty{background:transparent;border:1px dashed oklch(1 0 0 / 10%);box-shadow:none} .ds-legend{font:500 clamp(10px,calc(var(--key)*0.15),13px)/1.2 'Inter Variable',sans-serif}"
+    },
+    {
+      "name": "Glass Well",
+      "kind": "card",
+      "refersTo": "close-tip",
+      "description": "Recessed neutral well on glass: the first-close tip with its checkbox opt-in.",
+      "html": "<aside class=\"ds-well\"><strong class=\"ds-well-title\">Macro Eleven is still running</strong><p class=\"ds-well-body\">Your keys work with the window closed. Click the pad icon up here to come back.</p><div class=\"ds-well-foot\"><label class=\"ds-well-label\"><input type=\"checkbox\" class=\"ds-check\"> Open at login</label><button class=\"ds-btn-secondary\">Got it</button></div></aside>",
+      "css": ".ds-well{width:300px;padding:12px;border-radius:12px;background:oklch(0 0 0 / 0.22);box-shadow:inset 0 0 0 1px oklch(1 0 0 / 0.1);color:oklch(0.985 0 0);font-family:'Inter Variable',sans-serif} .ds-well-title{display:block;font:600 13px/18px 'Inter Variable',sans-serif} .ds-well-body{margin:2px 0 0;font-size:12px;line-height:16px;color:oklch(0.985 0 0 / 0.75)} .ds-well-foot{display:flex;align-items:center;gap:8px;margin-top:10px} .ds-well-label{display:flex;align-items:center;gap:8px;font-size:12px} .ds-check{width:14px;height:14px;margin:0;accent-color:oklch(0.7 0.15 162)} .ds-btn-secondary{margin-left:auto;height:24px;padding:0 10px;border:0;border-radius:5.2px;background:var(--secondary, oklch(0.274 0.006 286.033));color:oklch(0.985 0 0);font:500 12px 'Inter Variable',sans-serif} .ds-btn-secondary:hover{background:color-mix(in oklab,oklch(0.274 0.006 286.033) 80%,transparent)} .ds-btn-secondary:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.556 0 0 / 0.5)}"
+    },
+    {
+      "name": "Settings Group",
+      "kind": "card",
+      "refersTo": "settings-group",
+      "description": "System Settings-style grouped rows: label and help left, control right.",
+      "html": "<section class=\"ds-group-wrap\"><h2 class=\"ds-group-h\">Menu bar</h2><div class=\"ds-group\"><div class=\"ds-srow\"><div><label class=\"ds-srow-label\">Show menu bar icon</label><p class=\"ds-srow-help\">Open the panel from the menu bar.</p></div><button role=\"switch\" aria-checked=\"true\" class=\"ds-switch\"><span class=\"ds-thumb\"></span></button></div><div class=\"ds-srow ds-srow-next\"><div><label class=\"ds-srow-label\">Open at login</label></div><button role=\"switch\" aria-checked=\"false\" class=\"ds-switch ds-switch-off\"><span class=\"ds-thumb\"></span></button></div></div></section>",
+      "css": ".ds-group-wrap{display:grid;gap:6px;width:500px;font-family:'Inter Variable',sans-serif} .ds-group-h{margin:0;padding:0 12px;font:600 11px/1 'Inter Variable',sans-serif;letter-spacing:0.01em;color:oklch(0.708 0 0)} .ds-group{overflow:hidden;border:1px solid oklch(1 0 0 / 10%);border-radius:10px;background:color-mix(in oklab,oklch(0.205 0 0) 70%,transparent)} .ds-srow{display:flex;align-items:center;gap:24px;margin:0 12px;padding:10px 0} .ds-srow>div{flex:1} .ds-srow-next{border-top:1px solid oklch(1 0 0 / 10%)} .ds-srow-label{display:block;font-size:13px;line-height:18px;color:oklch(0.985 0 0)} .ds-srow-help{margin:2px 0 0;font-size:11px;line-height:15px;color:oklch(0.708 0 0)} .ds-switch{display:inline-flex;align-items:center;width:32px;height:18px;padding:0;border:1px solid transparent;border-radius:9999px;background:oklch(0.7 0.15 162)} .ds-switch:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.556 0 0 / 0.5)} .ds-switch-off{background:oklch(1 0 0 / 15%)} .ds-thumb{display:block;width:16px;height:16px;border-radius:9999px;background:oklch(0.145 0 0);box-shadow:0 1px 2px oklch(0 0 0 / 0.3);transform:translateX(14px);transition:transform 200ms cubic-bezier(0.23,1,0.32,1)} .ds-switch-off .ds-thumb{transform:none}"
+    },
+    {
+      "name": "Segmented Choice",
+      "kind": "chip",
+      "refersTo": "segmented-choice",
+      "description": "A macOS segmented control that picks one value; raised selected segment.",
+      "html": "<div class=\"ds-seg\" role=\"radiogroup\"><button class=\"ds-seg-item ds-seg-on\" role=\"radio\" aria-checked=\"true\">Glass</button><button class=\"ds-seg-item\" role=\"radio\" aria-checked=\"false\">Solid</button></div>",
+      "css": ".ds-seg{display:flex;width:180px;height:28px;padding:2px;border-radius:7.2px;background:oklch(0.269 0 0)} .ds-seg-item{flex:1;padding:0 12px;border:0;border-radius:5.2px;background:transparent;color:oklch(0.708 0 0);font:500 12px 'Inter Variable',sans-serif;transition:color 150ms} .ds-seg-item:hover{color:oklch(0.985 0 0)} .ds-seg-item:focus-visible{outline:none;box-shadow:0 0 0 2px oklch(0.556 0 0 / 0.6)} .ds-seg-on{color:oklch(0.985 0 0);background:oklch(0.985 0 0 / 0.16);box-shadow:0 1px 3px oklch(0 0 0 / 0.1),0 1px 2px -1px oklch(0 0 0 / 0.1)}"
+    },
+    {
+      "name": "Toolbar Pane",
+      "kind": "nav",
+      "refersTo": "toolbar-pane",
+      "description": "Settings window toolbar: icon over label, sliding selection fill.",
+      "html": "<div class=\"ds-toolbar\"><button class=\"ds-pane ds-pane-on\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41\"/></svg><span>General</span></button><button class=\"ds-pane\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M2 10h6V4\"/><path d=\"m2 4 6 6\"/><path d=\"M21 10V7a2 2 0 0 0-2-2h-7\"/><path d=\"M3 14v2a2 2 0 0 0 2 2h3\"/><rect x=\"12\" y=\"14\" width=\"10\" height=\"7\" rx=\"1\"/></svg><span>Overlay</span></button></div>",
+      "css": ".ds-toolbar{display:flex;justify-content:center;gap:4px;width:320px;padding-bottom:8px;border-bottom:1px solid oklch(1 0 0 / 10%)} .ds-pane{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:72px;height:48px;border:0;border-radius:7.2px;background:transparent;color:oklch(0.708 0 0);font:500 11px/1 'Inter Variable',sans-serif;transition:color 150ms} .ds-pane:hover{color:oklch(0.985 0 0)} .ds-pane:focus-visible{outline:none;box-shadow:0 0 0 2px oklch(0.556 0 0 / 0.6)} .ds-pane:active svg{transform:scale(0.95)} .ds-pane-on{color:oklch(0.985 0 0);background:oklch(0.985 0 0 / 0.08)}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one committing action on a designer page.",
+      "html": "<button class=\"ds-btn-primary\">Install Update</button>",
+      "css": ".ds-btn-primary{height:36px;padding:8px 16px;border:0;border-radius:5.2px;background:oklch(0.7 0.15 162);color:oklch(0.26 0.05 173);font:500 14px 'Inter Variable',sans-serif;transition:background 150ms} .ds-btn-primary:hover{background:color-mix(in oklab,oklch(0.7 0.15 162) 90%,transparent)} .ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.556 0 0 / 0.5)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Pad on the Desk",
+    "overview": "Macro Eleven is a dark Mac app whose one real object is the pad. The same drawing of it (keycaps on a chassis, sized from one length) appears in the designer, the overlay, Diagnostics, and the menu bar panel, and everything around it behaves like macOS: a menu bar extra, a Settings window with toolbar panes, grouped rows, native fades. The chrome stays quiet and neutral so the keys, and the moment one lights under your finger, carry the screen.\n\nTwo materials meet here. Floating functional layers (the menu bar panel, the overlay background) are native glass drawn by macOS; the pad and its keycaps are solid, lit-from-above objects that sit on that glass as content. Density is Mac-menu density: 13 px text, 26 px rows, hairline separators. Code map and window behavior live in [CLAUDE.md](CLAUDE.md#ui); product principles in [PRODUCT.md](PRODUCT.md).",
+    "keyCharacteristics": [
+      "Dark only (`dark` class on every window); neutral greys with zero chroma.",
+      "One green accent, hue 162 to 163, that always means state.",
+      "Native Liquid Glass for floating layers, solid chassis everywhere else; Reduce Transparency turns glass solid.",
+      "One pad look, scaled from `--key`.",
+      "Springs for interruptible motion, short ease-out fades for everything else, native window fades on the host."
+    ],
+    "rules": [
+      {
+        "name": "The Interruptible Rule",
+        "body": "Anything the user can retarget mid-flight moves on a spring from its current value; nothing overshoots unless force preceded it.",
+        "section": "overview"
+      },
+      {
+        "name": "The Green Means State Rule",
+        "body": "Green appears only where something is on, live, connected, or pressed. Notices, tips, and decoration stay neutral; the first-close tip is a neutral well, green only on its pad glyph.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tint, Not Glass Rule",
+        "body": "On a glass window, wells and hover fills are tints (glass-well, glass-hover, glass-press). Never stack a second blurred layer on native glass.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mac Menu Case Rule",
+        "body": "Commands use Title Case, and a command that opens more UI ends in an ellipsis (\"Settings…\", \"Update Firmware…\", \"Allow Accessibility Access…\"). Headings, help, and option labels use sentence case. No uppercase tracked labels.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Length Rule",
+        "body": "Every pad dimension derives from `--key`. Never size a keycap, gap, or legend in fixed pixels.",
+        "section": "layout"
+      },
+      {
+        "name": "The Lit Key Rule",
+        "body": "Only a pressed keycap glows. Status dots, pips, and switches are flat color.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** follow macOS first: menu bar extra, Settings… ⌘, in the app menu, toolbar panes, grouped rows, close hides and never quits.",
+      "**Do** draw the pad with `MacropadGrid`, `Keycap`, and `pad.css`, sized by `--key` alone.",
+      "**Do** keep text on glass at full strength and step secondary text down with foreground opacity.",
+      "**Do** give every glass surface its solid fallback for Reduce Transparency, and every motion a Reduce Motion path (fade only or none).",
+      "**Do** use 16 px drawn icons in notice rows, colored by meaning (Caution Amber for warnings, foreground at 70% for neutral news)."
+    ],
+    "donts": [
+      "**Don't** use green for anything that is not state: no green tips, banners, or decoration.",
+      "**Don't** add a glow outside the pressed keycap; status dots stay flat.",
+      "**Don't** layer a blurred material on top of native glass; use the glass tints.",
+      "**Don't** set labels in uppercase with wide tracking; headings are sentence case at 11 px semibold.",
+      "**Don't** use raw colors; every color comes from the tokens in `src/app/App.css`."
+    ]
+  }
+}

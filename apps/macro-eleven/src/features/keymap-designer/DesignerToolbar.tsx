@@ -8,7 +8,6 @@ import { Button } from "../../shared/ui/button";
 import { Kbd } from "../../shared/ui/kbd";
 import { Switch } from "../../shared/ui/switch";
 import { Tooltip } from "../../shared/ui/tooltip";
-import { LayerSettings } from "./layers/LayerSettings";
 import { LayerTabs } from "./layers/LayerTabs";
 import { useDesigner, useKeymap } from "./model/KeymapProvider";
 import { ProfileMenu } from "./profiles/ProfileMenu";
@@ -126,34 +125,42 @@ function HistoryButtons() {
   );
 }
 
-/** Profile, save status, and undo; then the layer tabs. */
-export function DesignerToolbar() {
+/** Switch layers as apps come to the front. A setting of the whole profile. */
+function FollowFrontApp() {
   const keymap = useKeymap();
   const { edit } = useDesigner();
-  const following = autoSwitchLayers(keymap);
+  return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: the switch is the control
+    <label className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+      Follow the front app
+      <Switch
+        checked={autoSwitchLayers(keymap)}
+        onCheckedChange={(enabled) =>
+          edit((km) => setAutoSwitchLayers(km, enabled))
+        }
+      />
+    </label>
+  );
+}
 
+/**
+ * The profile row (name, save status, profile settings, undo), then the
+ * layer tabs, which get the full width.
+ */
+export function DesignerToolbar() {
   return (
     <div className="material sticky top-0 z-10 border-b">
       <div className="flex h-12 items-center gap-2 px-3">
         <ProfileMenu />
         <SaveStatus />
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-3">
+          <FollowFrontApp />
+          <div className="h-4 w-px bg-border" />
           <HistoryButtons />
         </div>
       </div>
-      <div className="flex h-11 items-center gap-2 px-3">
+      <div className="flex h-11 items-center px-3">
         <LayerTabs />
-        <LayerSettings />
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: the switch is the control */}
-        <label className="ml-auto flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-          Follow the front app
-          <Switch
-            checked={following}
-            onCheckedChange={(enabled) =>
-              edit((km) => setAutoSwitchLayers(km, enabled))
-            }
-          />
-        </label>
       </div>
     </div>
   );

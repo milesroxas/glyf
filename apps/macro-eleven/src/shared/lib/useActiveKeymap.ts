@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Keymap } from "../../entities/keymap";
-import { unlistenAll } from "../../shared/lib/listeners";
-import {
-  getEngineSnapshot,
-  getProfile,
-  onKeymapChanged,
-} from "../../shared/lib/tauri";
+import { unlistenAll } from "./listeners";
+import { getEngineSnapshot, getProfile, onKeymapChanged } from "./tauri";
 
 /** The keymap the pad is using, reloaded whenever it changes. */
 export function useActiveKeymap() {

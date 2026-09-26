@@ -5,9 +5,25 @@
 import { MACRO_ELEVEN_DEFAULT_KEYMAP } from "@glyf/keymap-schema";
 import { emit } from "@tauri-apps/api/event";
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
+import type { FirmwareStatus } from "../entities/firmware";
 import type { Keymap } from "../entities/keymap";
+import type { LoginItemStatus, Settings } from "../entities/settings";
 
 type Args = Record<string, unknown>;
+
+/** The host's defaults (`config/settings.rs`). */
+const DEFAULT_SETTINGS: Settings = {
+  menuBarIcon: true,
+  menuBarLayer: false,
+  dockIcon: true,
+  overlayVisible: false,
+  overlayOnTop: true,
+  overlayAllSpaces: true,
+  overlayMaterial: "glass",
+  overlayTransparency: 0.6,
+  overlayFadeWhenIdle: true,
+  overlayShortcut: [],
+};
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -21,6 +37,17 @@ class FakeBackend {
   saves: { name: string; keymap: Keymap }[] = [];
   /** When set, `save_profile` fails with this message. */
   saveError: string | null = null;
+  settings: Settings = clone(DEFAULT_SETTINGS);
+  login: LoginItemStatus = "disabled";
+  accessibility = true;
+  firmware: FirmwareStatus = {
+    mode: "ready",
+    version: "1.1.2",
+    bundledVersion: "1.1.2",
+    updateAvailable: false,
+  };
+  /** Every command that changes windows (`hide_panel`, `quit_app`, …), in order. */
+  calls: string[] = [];
 
   /** Start over with a "Work" profile (a copy of Default) plus `profiles`. */
   reset(profiles: Record<string, Keymap> = {}, active = "Work") {
@@ -34,6 +61,16 @@ class FakeBackend {
     this.hostLayer = 0;
     this.saves = [];
     this.saveError = null;
+    this.settings = clone(DEFAULT_SETTINGS);
+    this.login = "disabled";
+    this.accessibility = true;
+    this.firmware = {
+      mode: "ready",
+      version: "1.1.2",
+      bundledVersion: "1.1.2",
+      updateAvailable: false,
+    };
+    this.calls = [];
     mockWindows("main");
     mockIPC((cmd, args) => this.handle(cmd, (args ?? {}) as Args), {
       shouldMockEvents: true,
@@ -52,6 +89,14 @@ class FakeBackend {
     return clone(keymap);
   }
 
+  /** Like the host: merge, then tell every window. */
+  private updateSettings(patch: Partial<Settings>): Settings {
+    this.settings = { ...this.settings, ...clone(patch) };
+    const next = clone(this.settings);
+    void emit("macro11:settings-changed", next);
+    return next;
+  }
+
   private handle(cmd: string, args: Args): unknown {
     const name = args.name as string;
     switch (cmd) {
@@ -65,7 +110,37 @@ class FakeBackend {
           connected: true,
         };
       case "get_permissions":
-        return { accessibility: true };
+        return { accessibility: this.accessibility };
+      case "get_settings":
+        return clone(this.settings);
+      case "update_settings":
+        return this.updateSettings(args.patch as Partial<Settings>);
+      case "set_overlay_visible":
+        return this.updateSettings({ overlayVisible: args.visible as boolean });
+      case "get_login_item":
+        return this.login;
+      case "set_login_item":
+        this.login = args.enabled ? "enabled" : "disabled";
+        return this.login;
+      case "get_backdrop":
+        return "glass";
+      case "get_firmware_status":
+        return clone(this.firmware);
+      case "fit_panel":
+      case "fit_settings_window":
+      case "hide_panel":
+      case "open_login_items_settings":
+      case "pause_overlay_shortcut":
+      case "plugin:event|emit_to":
+      case "plugin:window|set_title":
+      case "quit_app":
+      case "refresh_overlay_backdrop":
+      case "reset_overlay_frame":
+      case "set_overlay_dimmed":
+      case "show_main_window":
+      case "show_settings_window":
+        this.calls.push(cmd);
+        return null;
       case "list_installed_apps":
         return [];
       case "list_profiles":

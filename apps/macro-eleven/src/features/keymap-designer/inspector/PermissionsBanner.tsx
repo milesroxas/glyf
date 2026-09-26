@@ -3,8 +3,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
 import { CROSSFADE } from "../../../shared/lib/motion";
 import { openAccessibilitySettings } from "../../../shared/lib/tauri";
+import { useAccessibilityPermission } from "../../../shared/lib/useAccessibilityPermission";
 import { Button } from "../../../shared/ui/button";
-import { useAccessibilityPermission } from "../model/usePermissions";
 
 /**
  * Shortcuts and macros need macOS Accessibility access. Shown where those

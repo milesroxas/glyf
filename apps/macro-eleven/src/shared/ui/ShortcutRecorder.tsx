@@ -7,7 +7,7 @@ import {
 } from "@glyf/keymap-schema";
 import { useAnimate, useReducedMotion } from "motion/react";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
-import { cn } from "../../../shared/lib/utils";
+import { cn } from "../lib/utils";
 
 /** "chord": modifiers + one key. "key": a single key, modifiers included (macro key down/up). */
 type RecorderMode = "chord" | "key";
@@ -23,6 +23,10 @@ interface ShortcutRecorderProps {
   onCancel?: () => void;
   /** Start recording on mount (a step the user just added). */
   autoRecord?: boolean;
+  /** Refuse a finished chord: return why, and recording goes on. */
+  validate?: (keys: string[]) => string | null;
+  /** Recording started or stopped. */
+  onRecordingChange?: (recording: boolean) => void;
   "aria-label": string;
   className?: string;
 }
@@ -64,8 +68,12 @@ function readKey(event: KeyboardEvent, mode: RecorderMode): Intent {
   return { type: "press", code: event.code, keys };
 }
 
-function announcement(recording: boolean, rejected: boolean): string {
-  if (rejected) return "That key cannot be sent. Try another.";
+const UNSENDABLE =
+  "Macro Eleven can’t send that key. Try letters, numbers, arrows, or F1–F12.";
+
+function announcement(recording: boolean, rejected: string | null): string {
+  if (rejected === UNSENDABLE) return "That key cannot be sent. Try another.";
+  if (rejected) return rejected;
   return recording ? "Recording. Press a shortcut." : "";
 }
 
@@ -101,7 +109,8 @@ function RecorderText({
  * A field that records a keyboard shortcut, like the recorders in System
  * Settings. Click it (or press Return) and press keys: the chord shows as
  * glyphs while held and is kept when the key comes up. Esc cancels, and
- * Backspace alone clears. Keys the pad cannot send give a short shake.
+ * Backspace alone clears. Keys the pad cannot send, and chords `validate`
+ * refuses, give a short shake and say why.
  */
 export function ShortcutRecorder({
   mode = "chord",
@@ -110,12 +119,16 @@ export function ShortcutRecorder({
   onClear,
   onCancel,
   autoRecord = false,
+  validate,
+  onRecordingChange,
   "aria-label": label,
   className,
 }: ShortcutRecorderProps) {
   const [recording, setRecording] = useState(false);
+  const recordingChanged = useRef(onRecordingChange);
+  recordingChanged.current = onRecordingChange;
   const [live, setLive] = useState<string[]>([]);
-  const [rejected, setRejected] = useState(false);
+  const [rejected, setRejected] = useState<string | null>(null);
   const pending = useRef<{ code: string; keys: string[] } | null>(null);
   const [scope, animate] = useAnimate<HTMLButtonElement>();
   const reduceMotion = useReducedMotion();
@@ -143,13 +156,17 @@ export function ShortcutRecorder({
   }, [autoRecord, scope]);
 
   useEffect(() => {
+    recordingChanged.current?.(recording);
+  }, [recording]);
+
+  useEffect(() => {
     if (!rejected) return;
-    const timer = setTimeout(() => setRejected(false), 1600);
+    const timer = setTimeout(() => setRejected(null), 2400);
     return () => clearTimeout(timer);
   }, [rejected]);
 
-  const reject = () => {
-    setRejected(true);
+  const reject = (reason = UNSENDABLE) => {
+    setRejected(reason);
     // Reduced motion: the border flashes instead (data-rejected)
     if (!reduceMotion && scope.current) {
       animate(scope.current, { x: [0, -4, 4, -4, 4, 0] }, { duration: 0.2 });
@@ -198,7 +215,12 @@ export function ShortcutRecorder({
     event.preventDefault();
     event.stopPropagation();
     const done = pending.current;
-    if (done) {
+    const problem = done && validate?.(done.keys);
+    if (done && problem) {
+      pending.current = null;
+      setLive([]);
+      reject(problem);
+    } else if (done) {
       stop();
       onCommit(done.keys);
     } else if (mode === "chord") {
@@ -226,7 +248,7 @@ export function ShortcutRecorder({
         type="button"
         aria-label={`${label}: ${value.length ? describeShortcut(value) : "none"}`}
         aria-pressed={recording}
-        data-rejected={rejected || undefined}
+        data-rejected={rejected ? "" : undefined}
         onClick={() => (recording ? undefined : start())}
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
@@ -245,10 +267,7 @@ export function ShortcutRecorder({
         </span>
       </button>
       {rejected && (
-        <p className="mt-1.5 text-xs text-destructive">
-          Macro Eleven can’t send that key. Try letters, numbers, arrows, or
-          F1–F12.
-        </p>
+        <p className="mt-1.5 text-xs text-destructive">{rejected}</p>
       )}
     </div>
   );

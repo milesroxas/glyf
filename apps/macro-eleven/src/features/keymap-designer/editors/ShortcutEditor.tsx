@@ -7,8 +7,8 @@ import {
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import type { ShortcutAction } from "../../../entities/keymap";
+import { ShortcutRecorder } from "../../../shared/ui/ShortcutRecorder";
 import { Field, Warning } from "./Field";
-import { ShortcutRecorder } from "./ShortcutRecorder";
 
 interface ShortcutEditorProps {
   /** Undefined while the key is becoming a shortcut key. */

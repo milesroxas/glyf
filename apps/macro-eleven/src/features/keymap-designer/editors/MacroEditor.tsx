@@ -8,9 +8,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../../shared/ui/dropdown-menu";
+import { ShortcutRecorder } from "../../../shared/ui/ShortcutRecorder";
 import { Field } from "./Field";
 import { MacroStepRow, STEP_LABELS } from "./MacroStepRow";
-import { ShortcutRecorder } from "./ShortcutRecorder";
 
 type NewStep = "shortcut" | "text" | "wait" | "keydown" | "keyup";
 

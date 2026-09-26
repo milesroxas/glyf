@@ -12,6 +12,9 @@ const TOKENS_JSON: &str =
 pub struct TokenEntry {
     pub token: String,
     pub aliases: Vec<String>,
+    /// `KeyboardEvent.code` values, the first one canonical.
+    #[serde(default)]
+    pub codes: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -46,6 +49,26 @@ static KNOWN: LazyLock<HashSet<&'static str>> =
 #[cfg(test)]
 pub fn table() -> &'static TokenTable {
     &TABLE
+}
+
+fn entry(token: &str) -> Option<&'static TokenEntry> {
+    let token = token.trim();
+    let multi = token.chars().count() > 1;
+    TABLE.modifiers.iter().chain(&TABLE.keys).find(|entry| {
+        std::iter::once(&entry.token)
+            .chain(&entry.aliases)
+            .any(|name| if multi { name.eq_ignore_ascii_case(token) } else { name == token })
+    })
+}
+
+/// The canonical token for a token or alias (`command` → `cmd`).
+pub fn canonical(token: &str) -> Option<String> {
+    entry(token).map(|entry| entry.token.clone())
+}
+
+/// The key's `KeyboardEvent.code` (`o` → `KeyO`).
+pub fn dom_code(token: &str) -> Option<&'static str> {
+    entry(token)?.codes.first().map(String::as_str)
 }
 
 /// Multi-character names are case-insensitive; single characters are not.

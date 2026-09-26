@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getPermissions } from "../../../shared/lib/tauri";
+import { getPermissions } from "./tauri";
 
 const POLL_MS = 1500;
 

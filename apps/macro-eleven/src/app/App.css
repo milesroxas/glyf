@@ -233,3 +233,33 @@
         backdrop-filter: none;
     }
 }
+
+/* ── Glass windows ─────────────────────────────────────────────────────────
+   The menu bar panel and the overlay are see-through windows: macOS draws
+   the glass (Liquid Glass on macOS 26, vibrancy before) and the page paints
+   only what sits on it. Text on glass stays at full strength. Wells and
+   hover fills are tints, never a second layer of glass. */
+:root {
+    /* Over bright desktops the glass alone is too light for white text */
+    --glass-tint: oklch(0.145 0 0 / 0.3);
+    --glass-well: oklch(0 0 0 / 0.22);
+    --glass-edge: oklch(1 0 0 / 0.1);
+    --glass-hover: oklch(1 0 0 / 0.1);
+    --glass-press: oklch(1 0 0 / 0.16);
+}
+
+:root:is([data-surface="panel"], [data-surface="overlay"]),
+:root:is([data-surface="panel"], [data-surface="overlay"]) body {
+    background: transparent;
+}
+
+.panel-surface {
+    border-radius: 18px;
+    background: var(--glass-tint);
+}
+
+/* Reduce Transparency: the host draws no glass, so the page is the panel */
+.panel-surface[data-backdrop="solid"] {
+    background: var(--popover);
+    box-shadow: inset 0 0 0 1px var(--border);
+}

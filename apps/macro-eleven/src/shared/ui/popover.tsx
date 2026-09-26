@@ -6,6 +6,8 @@ import { FLOATING_PLACEMENT } from "./floating";
 
 const Popover = PopoverPrimitive.Root;
 const PopoverTrigger = PopoverPrimitive.Trigger;
+/** Positions the popover at an element other than its trigger. */
+const PopoverAnchor = PopoverPrimitive.Anchor;
 
 /** Scales in from its trigger. Scrolls when the window is too short for it. */
 function PopoverContent({
@@ -29,4 +31,4 @@ function PopoverContent({
   );
 }
 
-export { Popover, PopoverContent, PopoverTrigger };
+export { Popover, PopoverAnchor, PopoverContent, PopoverTrigger };

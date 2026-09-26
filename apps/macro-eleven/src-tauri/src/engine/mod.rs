@@ -86,6 +86,8 @@ enum Effect {
 #[serde(rename_all = "camelCase")]
 pub struct EngineSnapshot {
     pub layer: u8,
+    /// The layer's name; `Layer N` when it has none.
+    pub layer_name: String,
     pub active_profile: String,
 }
 
@@ -256,8 +258,16 @@ impl KeymapEngine {
 
     pub fn snapshot(&self) -> EngineSnapshot {
         let state = self.lock();
+        let layer_name = state
+            .keymap
+            .layers
+            .get(&state.layer)
+            .map(|layer| layer.name.trim())
+            .filter(|name| !name.is_empty())
+            .map_or_else(|| format!("Layer {}", state.layer), str::to_owned);
         EngineSnapshot {
             layer: state.layer,
+            layer_name,
             active_profile: state.profile.clone(),
         }
     }

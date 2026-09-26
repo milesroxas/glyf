@@ -2,8 +2,8 @@ import { GripVertical, X } from "lucide-react";
 import type { PointerEvent } from "react";
 import type { MacroStep } from "../../../entities/keymap";
 import { Input } from "../../../shared/ui/input";
+import { ShortcutRecorder } from "../../../shared/ui/ShortcutRecorder";
 import { Slider } from "../../../shared/ui/slider";
-import { ShortcutRecorder } from "./ShortcutRecorder";
 
 /** Slider range for waits; the number field allows up to the host's limit. */
 const WAIT_SLIDER_MAX_MS = 2000;
