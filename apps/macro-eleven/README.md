@@ -25,3 +25,5 @@ pnpm --filter macro-eleven tauri build   # release build
 ```
 
 Shortcuts and macros need macOS Accessibility permission; the designer shows a banner with a link to System Settings until it is granted. Opening apps needs no permission.
+
+The release build is signed with the Developer ID set in `bundle.macOS.signingIdentity` (`src-tauri/tauri.conf.json`). macOS ties the Accessibility grant to that signature, so the grant survives rebuilds. An unsigned or ad-hoc build loses it on every rebuild: System Settings still shows the switch on, but the app is not trusted. To build without the certificate, set `APPLE_SIGNING_IDENTITY=-` (ad-hoc). If the banner stays after you grant access, run `tccutil reset Accessibility com.milesroxas.macro-eleven`, relaunch the app, and grant it again.
