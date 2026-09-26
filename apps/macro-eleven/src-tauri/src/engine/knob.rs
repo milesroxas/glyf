@@ -5,9 +5,13 @@
 //! the volume to the knob position would then jump. Instead, each turn
 //! covers the distance left to the stop it turns toward: the knob and the
 //! volume reach the stop together, and from there they track 1:1.
+//!
+//! The volume keys play a feedback sound on every press. The knob plays it
+//! for every key step it moves the volume, and once more when it stops.
 
 use std::sync::{Arc, Condvar, Mutex, MutexGuard};
 use std::thread;
+use std::time::{Duration, Instant};
 
 use crate::executor::volume::SystemVolume;
 
@@ -16,6 +20,10 @@ const KNOB_MAX: f32 = 1023.0;
 /// A readback this close to the volume last set is that volume. Devices
 /// round the value; a volume key moves it 1/16.
 const SAME_VOLUME: f32 = 0.02;
+/// How far one volume key press moves the volume.
+const KEY_STEP: f32 = 1.0 / 16.0;
+/// No reading for this long means the knob stopped.
+const SETTLE: Duration = Duration::from_millis(150);
 
 /// Turns knob positions into volume changes. Pure, so it is tested alone.
 #[derive(Default)]
@@ -51,6 +59,40 @@ impl KnobFollower {
         .clamp(0.0, 1.0);
         self.volume = Some(next);
         Some(next)
+    }
+}
+
+/// When to play the feedback sound during a turn.
+#[derive(Default)]
+struct Feedback {
+    /// Volume at the last sound, or at the start of the first turn.
+    played_at: Option<f32>,
+    /// The volume moved since the last sound.
+    unplayed: bool,
+}
+
+impl Feedback {
+    /// The volume moved from `from` to `to`. Returns true to play now: the
+    /// volume has moved a key step since the last sound.
+    fn moved(&mut self, from: f32, to: f32) -> bool {
+        let played_at = *self.played_at.get_or_insert(from);
+        if (to - played_at).abs() >= KEY_STEP {
+            self.played_at = Some(to);
+            self.unplayed = false;
+            true
+        } else {
+            self.unplayed = true;
+            false
+        }
+    }
+
+    /// The knob stopped at `volume`. Returns true to play now.
+    fn stopped(&mut self, volume: f32) -> bool {
+        let play = std::mem::take(&mut self.unplayed);
+        if play {
+            self.played_at = Some(volume);
+        }
+        play
     }
 }
 
@@ -117,15 +159,31 @@ impl Drop for KnobVolume {
 
 fn run(shared: &Shared, volume: &dyn SystemVolume) {
     let mut follower = KnobFollower::default();
+    let mut feedback = Feedback::default();
+    // Volume last set, for the sound when the knob stops
+    let mut last_volume = None;
     let mut last_error = None;
     loop {
         let (reset, reading) = {
+            let settle_at = feedback.unplayed.then(|| Instant::now() + SETTLE);
             let mut pending = lock(shared);
             while !pending.closed && !pending.reset && pending.reading.is_none() {
+                let Some(settle_at) = settle_at else {
+                    pending = shared
+                        .1
+                        .wait(pending)
+                        .unwrap_or_else(|poisoned| poisoned.into_inner());
+                    continue;
+                };
+                let now = Instant::now();
+                if now >= settle_at {
+                    break;
+                }
                 pending = shared
                     .1
-                    .wait(pending)
-                    .unwrap_or_else(|poisoned| poisoned.into_inner());
+                    .wait_timeout(pending, settle_at - now)
+                    .unwrap_or_else(|poisoned| poisoned.into_inner())
+                    .0;
             }
             if pending.closed {
                 return;
@@ -134,14 +192,28 @@ fn run(shared: &Shared, volume: &dyn SystemVolume) {
         };
         if reset {
             follower.reset();
+            feedback = Feedback::default();
         }
         let Some(reading) = reading else {
+            // Nothing new before the deadline: the knob stopped
+            if let Some(level) = last_volume {
+                if feedback.stopped(level) {
+                    volume.play_feedback();
+                }
+            }
             continue;
         };
         let position = f32::from(reading.min(KNOB_MAX as u16)) / KNOB_MAX;
-        let result = volume.get().and_then(|current| match follower.turn(position, current) {
-            Some(next) => volume.set(next),
-            None => Ok(()),
+        let result = volume.get().and_then(|current| {
+            let Some(next) = follower.turn(position, current) else {
+                return Ok(());
+            };
+            volume.set(next)?;
+            last_volume = Some(next);
+            if next != current && feedback.moved(current, next) {
+                volume.play_feedback();
+            }
+            Ok(())
         });
         // Report a failure once, not on every reading
         let error = result.err();
@@ -222,6 +294,17 @@ mod tests {
     }
 
     #[test]
+    fn feedback_plays_every_key_step_and_on_stop() {
+        let mut feedback = Feedback::default();
+        assert!(!feedback.moved(0.5, 0.52), "less than a key step");
+        assert!(feedback.moved(0.52, 0.5 + KEY_STEP));
+        assert!(!feedback.moved(0.5 + KEY_STEP, 0.6));
+        assert!(feedback.stopped(0.6));
+        assert!(!feedback.stopped(0.6), "once per stop");
+        assert!(!feedback.moved(0.6, 0.61), "steps count from the last sound");
+    }
+
+    #[test]
     fn reset_forgets_the_knob() {
         let mut follower = KnobFollower::default();
         follower.turn(0.5, 0.5);
@@ -261,6 +344,24 @@ mod tests {
         // From 0 the knob can only turn up: 0.5 covers its 0.5 left over the full turn
         knob.report(Some(1023));
         wait_for(&volume, 1.0);
+        thread::sleep(SETTLE * 2);
+        assert_eq!(volume.feedback(), 1, "a key step or more plays at once, not again on stop");
+    }
+
+    #[test]
+    fn a_small_turn_plays_feedback_when_it_stops() {
+        let volume = FakeVolume::new(0.5);
+        let knob = KnobVolume::spawn(Box::new(volume.clone()));
+        knob.report(Some(512));
+        taken(&knob);
+        knob.report(Some(530));
+        taken(&knob);
+        assert_eq!(volume.feedback(), 0);
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while volume.feedback() == 0 && Instant::now() < deadline {
+            thread::sleep(Duration::from_millis(5));
+        }
+        assert_eq!(volume.feedback(), 1);
     }
 
     #[test]

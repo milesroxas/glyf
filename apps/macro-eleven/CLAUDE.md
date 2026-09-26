@@ -66,7 +66,7 @@ Events:
 
 ## Knob volume
 
-Under host control the knob sets the system output volume; the firmware sends no volume keys. `engine/knob.rs` runs on its own thread and applies only the newest reading. A turn covers the distance left to the stop it turns toward, so the knob and the volume meet at the stops and then track 1:1. The volume never jumps, even after the volume keys or the menu bar change it. The poll thread passes readings only from firmware 1.1.2 or later (`HOST_KNOB_FIRMWARE` in `hid/connection.rs`); older firmware still taps volume keys.
+Under host control the knob sets the system output volume; the firmware sends no volume keys. `engine/knob.rs` runs on its own thread and applies only the newest reading. A turn covers the distance left to the stop it turns toward, so the knob and the volume meet at the stops and then track 1:1. The volume never jumps, even after the volume keys or the menu bar change it. Like the volume keys, it plays the system feedback sound through the output (when Sound > "Play feedback when volume is changed" is on): once per 1/16 of volume moved, and once when the knob stops for 150 ms. The poll thread passes readings only from firmware 1.1.2 or later (`HOST_KNOB_FIRMWARE` in `hid/connection.rs`); older firmware still taps volume keys.
 
 ## Firmware updates
 

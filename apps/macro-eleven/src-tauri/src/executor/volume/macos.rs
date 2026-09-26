@@ -1,9 +1,10 @@
 //! Output volume through CoreAudio. The virtual main volume is the value the
 //! menu bar slider shows; it works on devices without a main volume control.
 
-use std::ffi::c_void;
+use std::ffi::{c_char, c_void};
 use std::mem::size_of;
 use std::ptr;
+use std::sync::OnceLock;
 
 use super::SystemVolume;
 
@@ -38,6 +39,41 @@ extern "C" {
     ) -> OsStatus;
 }
 
+#[link(name = "CoreFoundation", kind = "framework")]
+extern "C" {
+    static kCFPreferencesAnyApplication: *const c_void;
+    fn CFStringCreateWithCString(
+        allocator: *const c_void,
+        string: *const c_char,
+        encoding: u32,
+    ) -> *const c_void;
+    fn CFURLCreateFromFileSystemRepresentation(
+        allocator: *const c_void,
+        path: *const u8,
+        length: isize,
+        is_directory: u8,
+    ) -> *const c_void;
+    fn CFPreferencesGetAppBooleanValue(
+        key: *const c_void,
+        application: *const c_void,
+        valid: *mut u8,
+    ) -> u8;
+    fn CFRelease(object: *const c_void);
+}
+
+#[link(name = "AudioToolbox", kind = "framework")]
+extern "C" {
+    fn AudioServicesCreateSystemSoundID(url: *const c_void, sound: *mut u32) -> OsStatus;
+    fn AudioServicesSetProperty(
+        property: u32,
+        specifier_size: u32,
+        specifier: *const c_void,
+        data_size: u32,
+        data: *const c_void,
+    ) -> OsStatus;
+    fn AudioServicesPlaySystemSound(sound: u32);
+}
+
 const fn four_cc(code: &[u8; 4]) -> u32 {
     u32::from_be_bytes(*code)
 }
@@ -58,6 +94,16 @@ const MUTE: PropertyAddress = PropertyAddress {
     scope: four_cc(b"outp"),
     element: 0,
 };
+
+/// The sound the volume keys play.
+const FEEDBACK_SOUND: &str =
+    "/System/Library/LoginPlugins/BezelServices.loginPlugin/Contents/Resources/volume.aiff";
+/// Sound > "Play feedback when volume is changed", in the global domain.
+const FEEDBACK_SETTING: &std::ffi::CStr = c"com.apple.sound.beep.feedback";
+const CF_STRING_ENCODING_UTF8: u32 = 0x0800_0100;
+/// `kAudioServicesPropertyIsUISound`: 0 plays through the default output
+/// (where the volume changed), not the alert device.
+const IS_UI_SOUND: u32 = four_cc(b"isui");
 
 /// Read a fixed-size property.
 fn get<T: Copy + Default>(object: AudioObjectId, address: &PropertyAddress) -> Result<T, OsStatus> {
@@ -111,7 +157,60 @@ fn output_device() -> Result<AudioObjectId, String> {
     }
 }
 
-pub struct CoreAudioVolume;
+fn feedback_enabled() -> bool {
+    // SAFETY: the key is a valid C string; every CF object made is released
+    unsafe {
+        let key = CFStringCreateWithCString(
+            ptr::null(),
+            FEEDBACK_SETTING.as_ptr(),
+            CF_STRING_ENCODING_UTF8,
+        );
+        if key.is_null() {
+            return false;
+        }
+        let mut valid = 0;
+        let enabled =
+            CFPreferencesGetAppBooleanValue(key, kCFPreferencesAnyApplication, &mut valid);
+        CFRelease(key);
+        enabled != 0
+    }
+}
+
+/// Register the feedback sound. `None` if the file is missing.
+fn load_feedback_sound() -> Option<u32> {
+    // SAFETY: the path bytes outlive the call; the URL is released
+    unsafe {
+        let url = CFURLCreateFromFileSystemRepresentation(
+            ptr::null(),
+            FEEDBACK_SOUND.as_ptr(),
+            FEEDBACK_SOUND.len() as isize,
+            0,
+        );
+        if url.is_null() {
+            return None;
+        }
+        let mut sound = 0;
+        let status = AudioServicesCreateSystemSoundID(url, &mut sound);
+        CFRelease(url);
+        if status != 0 {
+            return None;
+        }
+        let not_ui: u32 = 0;
+        AudioServicesSetProperty(
+            IS_UI_SOUND,
+            size_of::<u32>() as u32,
+            &sound as *const u32 as *const c_void,
+            size_of::<u32>() as u32,
+            &not_ui as *const u32 as *const c_void,
+        );
+        Some(sound)
+    }
+}
+
+#[derive(Default)]
+pub struct CoreAudioVolume {
+    feedback_sound: OnceLock<Option<u32>>,
+}
 
 impl SystemVolume for CoreAudioVolume {
     fn get(&self) -> Result<f32, String> {
@@ -132,5 +231,15 @@ impl SystemVolume for CoreAudioVolume {
             }
         }
         Ok(())
+    }
+
+    fn play_feedback(&self) {
+        if !feedback_enabled() {
+            return;
+        }
+        if let Some(sound) = *self.feedback_sound.get_or_init(load_feedback_sound) {
+            // SAFETY: `sound` came from AudioServicesCreateSystemSoundID
+            unsafe { AudioServicesPlaySystemSound(sound) };
+        }
     }
 }
