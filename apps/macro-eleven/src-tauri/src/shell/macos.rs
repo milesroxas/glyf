@@ -14,8 +14,9 @@ use objc2::{define_class, msg_send, ClassType, MainThreadMarker, MainThreadOnly}
 use objc2_app_kit::{
     NSAnimatablePropertyContainer, NSAnimationContext, NSAutoresizingMaskOptions,
     NSGlassEffectView, NSGlassEffectViewStyle, NSPanel, NSPopUpMenuWindowLevel, NSStatusItem,
-    NSUserInterfaceItemIdentification, NSView, NSWindow, NSWindowAnimationBehavior,
-    NSWindowCollectionBehavior, NSWindowOrderingMode, NSWindowStyleMask, NSWorkspace,
+    NSTitlebarSeparatorStyle, NSUserInterfaceItemIdentification, NSView, NSWindow,
+    NSWindowAnimationBehavior, NSWindowButton, NSWindowCollectionBehavior, NSWindowOrderingMode,
+    NSWindowStyleMask, NSWorkspace,
 };
 use objc2_foundation::{NSAppleEventDescriptor, NSAppleEventManager, NSPoint, NSRect, NSSize, NSString};
 use objc2_quartz_core::CAMediaTimingFunction;
@@ -205,10 +206,11 @@ define_class!(
     }
 );
 
-/// Turn a borderless Tauri window into a non-activating panel: it takes the
-/// keyboard without bringing Macro Eleven's other windows forward, floats
-/// above other apps (full-screen ones included), and stays out of ⌘-Tab and
-/// Mission Control, like a menu.
+/// Turn a Tauri window into a non-activating panel: it takes the keyboard
+/// without bringing Macro Eleven's other windows forward, floats above other
+/// apps (full-screen ones included), and stays out of ⌘-Tab and Mission
+/// Control, like a menu. A titled window (macOS 26, for its rounded shape)
+/// loses its title bar: no buttons, no separator, and no dragging by it.
 pub fn make_menu_panel(window: &NSWindow) {
     // SAFETY: MenuPanel adds no ivars to NSPanel, and NSPanel adds none to
     // NSWindow that an existing window lacks; the tauri-nspanel crate relies
@@ -235,6 +237,18 @@ pub fn make_menu_panel(window: &NSWindow) {
     // The panel fades itself (`fade`), so AppKit's own animation stays off
     panel.setAnimationBehavior(NSWindowAnimationBehavior::None);
     panel.setHasShadow(true);
+    // Only a titled window has these
+    for button in [
+        NSWindowButton::CloseButton,
+        NSWindowButton::MiniaturizeButton,
+        NSWindowButton::ZoomButton,
+    ] {
+        if let Some(button) = panel.standardWindowButton(button) {
+            button.setHidden(true);
+        }
+    }
+    panel.setTitlebarSeparatorStyle(NSTitlebarSeparatorStyle::None);
+    panel.setMovable(false);
 }
 
 /// Show the panel with the keyboard, without activating the app.

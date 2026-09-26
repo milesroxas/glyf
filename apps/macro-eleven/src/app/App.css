@@ -253,8 +253,9 @@
     background: transparent;
 }
 
+/* The corners follow the window's (`CORNER_RADIUS` in shell/panel.rs) */
 .panel-surface {
-    border-radius: 18px;
+    border-radius: 16px;
     background: var(--glass-tint);
 }
 

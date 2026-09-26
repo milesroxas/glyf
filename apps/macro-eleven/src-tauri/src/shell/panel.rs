@@ -30,8 +30,10 @@ const EDGE_MARGIN: f64 = 8.0;
 /// A click on the icon that closed the panel (it lost focus to the click)
 /// must not open it again.
 const REOPEN_GUARD: Duration = Duration::from_millis(250);
+/// The corners of a macOS 26 window, which the glass and the page follow
+/// (`.panel-surface` in App.css).
 #[cfg(target_os = "macos")]
-const CORNER_RADIUS: f64 = 18.0;
+const CORNER_RADIUS: f64 = 16.0;
 #[cfg(target_os = "macos")]
 const FADE_IN_SECONDS: f64 = 0.12;
 #[cfg(target_os = "macos")]
@@ -112,12 +114,14 @@ fn window(app: &AppHandle) -> Option<WebviewWindow> {
 
 /// Build the hidden panel at launch.
 pub fn create(app: &AppHandle) -> tauri::Result<()> {
-    let window = WebviewWindowBuilder::new(app, LABEL, WebviewUrl::App("index.html".into()))
+    let builder = WebviewWindowBuilder::new(app, LABEL, WebviewUrl::App("index.html".into()))
         .title("Macro Eleven")
         .inner_size(WIDTH, HEIGHT)
-        .decorations(false)
         .transparent(true)
         .resizable(false)
+        .minimizable(false)
+        .maximizable(false)
+        .closable(false)
         .visible(false)
         .focused(false)
         .shadow(true)
@@ -125,8 +129,23 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
         .accept_first_mouse(true)
         // The app is dark: the glass and the window chrome must be too
         .theme(Some(tauri::Theme::Dark))
-        .initialization_script("window.location.hash = '#/panel';")
-        .build()?;
+        .initialization_script("window.location.hash = '#/panel';");
+    // macOS 26 outlines a window's shadow along the window's own shape, not
+    // the glass: a borderless window is a rectangle, so its outline ran
+    // square around the rounded glass. A titled window is the rounded
+    // shape; its title bar is see-through and its buttons hidden
+    // (`make_menu_panel`), and the page runs under it.
+    #[cfg(target_os = "macos")]
+    let builder = if super::macos::liquid_glass_available() {
+        builder
+            .title_bar_style(tauri::TitleBarStyle::Overlay)
+            .hidden_title(true)
+    } else {
+        builder.decorations(false)
+    };
+    #[cfg(not(target_os = "macos"))]
+    let builder = builder.decorations(false);
+    let window = builder.build()?;
 
     #[cfg(target_os = "macos")]
     {
