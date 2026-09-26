@@ -27,8 +27,8 @@ React 19, TypeScript, Vite, Tailwind v4, shadcn/ui on `radix-ui` (`components.js
 |------|-------|
 | `lib.rs` | Setup: profile store (and the one-time migration), engine, app catalog, HID poll thread; command registration |
 | `config/` | `keymap.rs` (serde mirror of the schema; keeps unknown fields; `validate` runs the same checks as `assertKeymap`), `profiles.rs` (profile files, names, import/export, migration), `storage.rs` (atomic writes), `device.rs` and `tokens.rs` (read the shared JSON files) |
-| `engine/` | `KeymapEngine`: key edges, layer rules, hot reload, the front-app thread; `events.rs` (UI events, behind a trait for tests) |
-| `executor/` | `worker.rs` (the single action thread), `actions.rs` (runs actions; macros release held modifiers), `runtime/` per OS (`macos.rs` CGEvent + `open`), `permissions.rs` (Accessibility), `app_detector.rs` (front app) |
+| `engine/` | `KeymapEngine`: key edges, layer rules, hot reload, the front-app thread; `events.rs` (UI events, behind a trait for tests); `knob.rs` (knob to system volume) |
+| `executor/` | `worker.rs` (the single action thread), `actions.rs` (runs actions; macros release held modifiers), `runtime/` per OS (`macos.rs` CGEvent + `open`), `permissions.rs` (Accessibility), `app_detector.rs` (front app), `volume/` (system output volume; `macos.rs` CoreAudio) |
 | `apps/` | Installed apps: bundle scanning (`plist`), icons rendered by AppKit and cached |
 | `hid/` | `connection.rs` (poll thread ~60 Hz from launch, auto-reconnect, `suspend()` for firmware updates; emits input events on change), `protocol.rs` |
 | `firmware/` | Update path: `bundle.rs`, `updater.rs`, `picoboot.rs`, `mass_storage.rs`, `uf2.rs`, `version.rs` |
@@ -63,6 +63,10 @@ Events:
 | `macro11:action-error` | `{ position, layer, error }` | A key's action failed |
 | `macro11:keymap-changed` | `{ profile, source }` | The active profile was saved or switched. `source` is the window that did it. |
 | `macro11:firmware-progress` | `{ stage, fraction }` | During `update_firmware` |
+
+## Knob volume
+
+Under host control the knob sets the system output volume; the firmware sends no volume keys. `engine/knob.rs` runs on its own thread and applies only the newest reading. A turn covers the distance left to the stop it turns toward, so the knob and the volume meet at the stops and then track 1:1. The volume never jumps, even after the volume keys or the menu bar change it. The poll thread passes readings only from firmware 1.1.2 or later (`HOST_KNOB_FIRMWARE` in `hid/connection.rs`); older firmware still taps volume keys.
 
 ## Firmware updates
 

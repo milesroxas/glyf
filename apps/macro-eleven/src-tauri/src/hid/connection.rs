@@ -10,6 +10,7 @@ use super::protocol::{
     build_info_request, build_state_request, build_test_mode_command, parse_info_response,
     parse_state_response, FirmwareInfo, KEY_COUNT, RAW_HID_REPORT_SIZE,
 };
+use crate::firmware::version::Version;
 
 const VID: u16 = 0x4653;
 const PID: u16 = 0x0002;
@@ -21,11 +22,20 @@ const RELEASE_TIMEOUT: Duration = Duration::from_secs(3);
 /// Firmware without GET_INFO never answers; give up after this many reads.
 const INFO_READ_ATTEMPTS: usize = 3;
 const INFO_READ_TIMEOUT_MS: i32 = 100;
+/// First firmware that stops tapping volume keys under host control. Older
+/// firmware keeps the knob, so the host would fight it.
+const HOST_KNOB_FIRMWARE: Version = Version {
+    major: 1,
+    minor: 1,
+    patch: 2,
+};
 
 /// Receives every key-state report (the keymap engine).
 pub trait KeyStateSink: Send + Sync {
     /// `host_control`: the host runs actions; the firmware's keycodes are off.
     fn process_keys(&self, keys: &[bool; KEY_COUNT], host_control: bool);
+    /// The knob reading (0-1023) while the host owns the knob, else `None`.
+    fn process_knob(&self, reading: Option<u16>);
 }
 
 pub struct HidConnection {
@@ -197,7 +207,9 @@ impl HidConnection {
                 }
             };
 
-            *firmware_info.lock().unwrap() = query_firmware_info(&hid_device);
+            let info = query_firmware_info(&hid_device);
+            let host_knob = info.is_some_and(|info| info.version >= HOST_KNOB_FIRMWARE);
+            *firmware_info.lock().unwrap() = info;
 
             // Ensure firmware macros stay disabled unless explicitly requested
             let should_enable_test_mode = desired_test_mode.load(Ordering::SeqCst);
@@ -270,6 +282,9 @@ impl HidConnection {
                             }
                             let host_actions_enabled = desired_test_mode.load(Ordering::SeqCst);
                             engine.process_keys(&state.keys, host_actions_enabled);
+                            engine.process_knob(
+                                (host_actions_enabled && host_knob).then_some(state.pot_value),
+                            );
                         }
                     }
                     Ok(_) => {}      // timeout, no data
@@ -282,6 +297,7 @@ impl HidConnection {
             // Device disconnected (or released for a firmware update):
             // release any key that was down so nothing looks held
             engine.process_keys(&[false; KEY_COUNT], false);
+            engine.process_knob(None);
             {
                 let mut dev_lock = shared_device.lock().unwrap();
                 *dev_lock = None;

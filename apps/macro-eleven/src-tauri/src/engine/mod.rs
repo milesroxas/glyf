@@ -6,6 +6,7 @@
 //! under the lock.
 
 pub mod events;
+mod knob;
 
 use serde::Serialize;
 use std::sync::{Arc, Mutex, MutexGuard, Weak};
@@ -17,10 +18,12 @@ use crate::config::keymap::{Action, FrontApp, Keymap, MatrixPosition};
 use crate::executor::actions::ActionExecutor;
 use crate::executor::app_detector;
 use crate::executor::runtime::PlatformRuntime;
+use crate::executor::volume::SystemVolume;
 use crate::executor::worker::ActionWorker;
 use crate::hid::connection::KeyStateSink;
 use crate::hid::protocol::KEY_COUNT;
 use events::EngineEvents;
+use knob::KnobVolume;
 
 const FRONT_APP_INTERVAL: Duration = Duration::from_millis(250);
 
@@ -89,6 +92,7 @@ pub struct EngineSnapshot {
 pub struct KeymapEngine {
     state: Mutex<EngineState>,
     worker: ActionWorker,
+    knob: KnobVolume,
     events: Arc<dyn EngineEvents>,
 }
 
@@ -97,6 +101,7 @@ impl KeymapEngine {
         profile: String,
         keymap: Keymap,
         runtime: Box<dyn PlatformRuntime>,
+        volume: Box<dyn SystemVolume>,
         events: Arc<dyn EngineEvents>,
     ) -> Self {
         Self {
@@ -109,6 +114,7 @@ impl KeymapEngine {
                 front_app: None,
             }),
             worker: ActionWorker::spawn(ActionExecutor::new(runtime), events.clone()),
+            knob: KnobVolume::spawn(volume),
             events,
         }
     }
@@ -261,6 +267,10 @@ impl KeyStateSink for KeymapEngine {
     fn process_keys(&self, keys: &[bool; KEY_COUNT], host_control: bool) {
         KeymapEngine::process_keys(self, keys, host_control);
     }
+
+    fn process_knob(&self, reading: Option<u16>) {
+        self.knob.report(reading);
+    }
 }
 
 /// Poll the front app on a background thread for as long as the engine lives.
@@ -282,6 +292,7 @@ pub fn watch_front_app(engine: &Arc<KeymapEngine>) {
 mod tests {
     use super::*;
     use crate::executor::actions::tests::Recorder;
+    use crate::executor::volume::tests::FakeVolume;
     use serde_json::json;
     use std::time::Instant;
 
@@ -341,6 +352,7 @@ mod tests {
             "Test".into(),
             keymap(),
             Box::new(recorder.clone()),
+            Box::new(FakeVolume::new(0.5)),
             heard.clone(),
         );
         (engine, recorder, heard)

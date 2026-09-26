@@ -154,7 +154,7 @@ A versioned v2 protocol shared with the Glyf display is planned (audit LINK-01).
 | VIA layers / macros | `config.h` `DYNAMIC_KEYMAP_LAYER_COUNT` / `_MACRO_COUNT` | 4 / 16 |
 | Bootmagic key | `config.h` `BOOTMAGIC_ROW` / `_COLUMN` | `[0,2]` |
 | Potentiometer pin | `config.h` `POT_PIN` | `GP26` |
-| Firmware version | `version.h` | 1.1.1 |
+| Firmware version | `version.h` | 1.1.2 |
 | Bootloader hold | `macro_eleven.c` `housekeeping_task_kb()` (for `QK_BOOT`) and `keymaps/apps/keymap.c` `matrix_scan_user()` (for `BACK_HOME`) | 2000 ms |
 
 The app normally enters the bootloader over Raw HID. The key hold is the manual fallback.
@@ -170,8 +170,9 @@ Pot logic is in `keymaps/apps/keymap.c` `pot_task()`, called from `matrix_scan_u
 - The 10 counts at each stop read as exactly 0 or 1023; the range between is stretched to fill 0–1023.
 - The reported value changes only when it moves 2 counts, so it does not flicker between neighbors.
 - Every 24 counts (about 42 taps over the full turn) sends one tap. A fast turn sends every tap, one per 2 ms.
+- In test mode (host control) the firmware sends no taps. The companion app reads the knob from the poll reply and sets the system volume itself: smooth, with no 1/16 volume-key steps. See the [companion app](../../../../../apps/macro-eleven/README.md).
 
-The app gets the same smoothed value in the poll reply. Taps by layer:
+Taps by layer, when the firmware owns the knob:
 
 | Layer | Clockwise | Counter-clockwise |
 |-------|-----------|-------------------|
@@ -179,7 +180,7 @@ The app gets the same smoothed value in the poll reply. Taps by layer:
 | 2 (Figma) | `Tab` (next sibling) | `Shift+Tab` (previous sibling) |
 | 2, Depth key held | `Enter` (select children) | `\` (select parent) |
 
-The Depth key is at `[2,0]` on the Figma layer (bottom-left). Other layers ignore the pot. The pot also runs under host control (audit FW-02).
+The Depth key is at `[2,0]` on the Figma layer (bottom-left). Other layers ignore the pot.
 
 ## Differences from Four Pad
 

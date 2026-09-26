@@ -8,7 +8,7 @@ Desktop companion (Tauri) for the [Macro Eleven](../../domains/prototypes/macrop
 |------|--------------|
 | Designer | Edit every key on every layer: apps, shortcuts, layer switches, and macros. Changes save as you go and reach the pad at once; ⌘Z undoes. Press a key on the pad to select it. Named profiles can be switched, duplicated, imported, and exported. |
 | Diagnostics | Live key presses, event feed, and the host-control switch |
-| Knob | Live potentiometer value (0–1023) |
+| Knob | Live potentiometer value (0–1023). Under host control the knob sets the system volume. |
 | Firmware | Compares device and bundled firmware and installs the update |
 | Overlay | Compact always-on-top window with the current layer's keys |
 

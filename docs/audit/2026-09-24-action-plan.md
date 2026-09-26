@@ -665,12 +665,7 @@ Location: `domains/prototypes/macropads/macro-eleven/firmware`. The build copies
     4. The host sends `HEARTBEAT` every 250 ms (LINK-02 v2 codec). With the v1 adapter, the 16 ms poll is the heartbeat.
   - Accept: compiles for `apps`. Simulator test (LINK-04) covers the timeout. Hardware checks go to SCR-10: (a) no app → keys type; (b) app connects → host actions run; (c) `kill -9` the app → keys type again within ~1 s.
 
-- [ ] **FW-02 [P1] Potentiometer: gated by mode** (filtering, boot init, and 24-count taps shipped in firmware 1.1.1: `pot_task()` in `keymaps/apps/keymap.c`)
-  - Evidence: pot volume/Figma taps run in `pot_task` even in host-control mode. They stay on for now because the host engine has no knob action and the firmware boots with test mode on.
-  - Change:
-    - Skip key taps under host control once the host engine handles the knob.
-    - Pass `pot_value` to `glyf_core_set_inputs` (it drives `EVENT_INPUT` and, on rev 2, the knob gauge).
-  - Accept: compiles. Hardware checks go to SCR-10.
+- [x] **FW-02 [P1] Potentiometer: gated by mode, initialized, filtered, rate-limited** → **Shipped in firmware 1.1.2:** `pot_task()` in `keymaps/apps/keymap.c` filters the pot, seeds it from the first read, taps every 24 counts, and sends no taps in test mode; the app sets the volume (`engine/knob.rs`). Left for FW-05: pass `pot_value` to `glyf_core_set_inputs`.
 
 - [ ] **FW-03 [P1] Companion protocol at keyboard level for every keymap; VIA coexistence** → **Revised: the spec is LINK-01; the protocol logic is `glyf-core`; this task is the QMK glue.**
   - Files: `macro_eleven.c`, `keymaps/apps/keymap.c`, new `firmware/companion_qmk.c` (`SRC +=` in `rules.mk`).

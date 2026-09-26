@@ -42,6 +42,7 @@ fn init_state(app: &mut App) -> Result<Arc<KeymapEngine>, Box<dyn std::error::Er
         profile,
         keymap,
         executor::runtime::create_runtime(),
+        executor::volume::create_volume(),
         Arc::new(app.handle().clone()),
     ));
     engine::watch_front_app(&engine);

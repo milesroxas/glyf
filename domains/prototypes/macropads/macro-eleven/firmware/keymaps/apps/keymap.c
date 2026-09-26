@@ -274,10 +274,10 @@ static void pot_task(void) {
     }
 
     // One tap per POT_TAP_STEP counts. The reference moves one step per tap,
-    // so a fast turn sends every tap, one per sample. Taps still run in test
-    // mode: the host engine has no knob action yet (audit FW-02).
+    // so a fast turn sends every tap, one per sample. In test mode the
+    // companion app owns the knob and sets the volume itself.
     uint8_t layer = get_highest_layer(layer_state);
-    if (layer != 0 && layer != 2) {
+    if (test_mode_active || (layer != 0 && layer != 2)) {
         pot_tap_ref = pot_value;
         return;
     }

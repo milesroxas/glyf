@@ -8,4 +8,4 @@
 // is newer than what the device reports. build.sh reads these three lines.
 #define MACRO_ELEVEN_FW_VERSION_MAJOR 1
 #define MACRO_ELEVEN_FW_VERSION_MINOR 1
-#define MACRO_ELEVEN_FW_VERSION_PATCH 1
+#define MACRO_ELEVEN_FW_VERSION_PATCH 2
