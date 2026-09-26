@@ -138,7 +138,7 @@ On Windows, PICOBOOT needs a WinUSB driver, so the drive stays visible and the a
 Poll reply fields:
 
 - `key_lo`, `key_hi`: 11-bit key bitmask, one bit per matrix position.
-- `pot_lo`, `pot_hi`: potentiometer ADC value, uint16 little-endian, 0–1023.
+- `pot_lo`, `pot_hi`: smoothed potentiometer value, uint16 little-endian, 0–1023 (see [Potentiometer](#potentiometer)).
 - `layer`: highest active firmware layer.
 - `test_mode`: 1 while host control is on.
 
@@ -154,7 +154,7 @@ A versioned v2 protocol shared with the Glyf display is planned (audit LINK-01).
 | VIA layers / macros | `config.h` `DYNAMIC_KEYMAP_LAYER_COUNT` / `_MACRO_COUNT` | 4 / 16 |
 | Bootmagic key | `config.h` `BOOTMAGIC_ROW` / `_COLUMN` | `[0,2]` |
 | Potentiometer pin | `config.h` `POT_PIN` | `GP26` |
-| Firmware version | `version.h` | 1.1.0 |
+| Firmware version | `version.h` | 1.1.1 |
 | Bootloader hold | `macro_eleven.c` `housekeeping_task_kb()` (for `QK_BOOT`) and `keymaps/apps/keymap.c` `matrix_scan_user()` (for `BACK_HOME`) | 2000 ms |
 
 The app normally enters the bootloader over Raw HID. The key hold is the manual fallback.
@@ -163,7 +163,15 @@ The app normally enters the bootloader over Raw HID. The key hold is the manual 
 
 Wiring: left outer pin to GND, wiper to GP26, right outer pin to 3V3. Swap the outer pins to reverse direction. To move it, use GP27 or GP28 (the other ADC pins) and update `POT_PIN`. Do not use GP29: it measures VSYS on the Pico.
 
-Pot logic is in `keymaps/apps/keymap.c` `matrix_scan_user()`. A change of more than 80 ADC counts (about 12 steps over the full range) sends one tap:
+Pot logic is in `keymaps/apps/keymap.c` `pot_task()`, called from `matrix_scan_user()`:
+
+- The ADC is read every 2 ms and smoothed with an integer moving average (weight 1/8, about 16 ms lag). One raw RP2040 read jumps by several counts.
+- The first read seeds the average, so boot sends no tap.
+- The 10 counts at each stop read as exactly 0 or 1023; the range between is stretched to fill 0–1023.
+- The reported value changes only when it moves 2 counts, so it does not flicker between neighbors.
+- Every 24 counts (about 42 taps over the full turn) sends one tap. A fast turn sends every tap, one per 2 ms.
+
+The app gets the same smoothed value in the poll reply. Taps by layer:
 
 | Layer | Clockwise | Counter-clockwise |
 |-------|-----------|-------------------|

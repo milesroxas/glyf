@@ -209,6 +209,88 @@ static bool figma_depth_held = false;
 // Test mode for companion app (disables all key actions)
 static bool test_mode_active = true;
 
+// Potentiometer. One raw RP2040 ADC read jumps by several counts, so the pot
+// is sampled on a fixed period and smoothed with an integer moving average.
+// Both the taps and the value sent to the app use the smoothed value.
+#define POT_MAX 1023
+#define POT_SAMPLE_MS 2
+#define POT_EMA_SHIFT 3        // Average weight 1/8: ~16 ms time constant
+#define POT_FRAC_BITS 4        // Filter state keeps 1/16-count precision
+#define POT_END_DEADZONE 10    // Counts at each stop read as exactly 0 or POT_MAX
+#define POT_REPORT_HYSTERESIS 2
+#define POT_TAP_STEP 24        // Counts per tap: ~42 taps over the full turn
+
+static int32_t  pot_filter = 0; // Smoothed reading << POT_FRAC_BITS
+static uint16_t pot_value = 0;  // Calibrated 0-POT_MAX value
+static uint16_t pot_tap_ref = 0;
+static uint16_t pot_sample_timer = 0;
+static bool     pot_ready = false;
+
+// Map the smoothed reading to 0-POT_MAX so both stops reach the ends,
+// despite the ADC offset and the pot's end resistance
+static uint16_t pot_calibrate(int32_t filtered) {
+    int32_t counts = (filtered + (1 << (POT_FRAC_BITS - 1))) >> POT_FRAC_BITS;
+    if (counts <= POT_END_DEADZONE) return 0;
+    if (counts >= POT_MAX - POT_END_DEADZONE) return POT_MAX;
+    return (uint16_t)((counts - POT_END_DEADZONE) * POT_MAX / (POT_MAX - 2 * POT_END_DEADZONE));
+}
+
+static void pot_tap(bool clockwise, uint8_t layer) {
+    if (layer == 0) {
+        // App Selection: volume control
+        tap_code(clockwise ? KC_VOLU : KC_VOLD);
+    } else if (layer == 2) {
+        // Figma: layer navigation
+        if (figma_depth_held) {
+            tap_code(clockwise ? KC_ENT : KC_BSLS);
+        } else if (clockwise) {
+            tap_code(KC_TAB);
+        } else {
+            tap_code16(LSFT(KC_TAB));
+        }
+    }
+}
+
+static void pot_task(void) {
+    if (pot_ready && timer_elapsed(pot_sample_timer) < POT_SAMPLE_MS) return;
+    pot_sample_timer = timer_read();
+
+    int32_t sample = (int32_t)analogReadPin(POT_PIN) << POT_FRAC_BITS;
+    if (!pot_ready) {
+        // Start from the real position, not 0, so boot sends no tap
+        pot_filter = sample;
+        pot_value = pot_calibrate(pot_filter);
+        pot_tap_ref = pot_value;
+        pot_ready = true;
+        return;
+    }
+    pot_filter += (sample - pot_filter) >> POT_EMA_SHIFT;
+
+    // Hold the value until it moves 2 counts, so it does not flicker between
+    // neighbors. The stops always report exactly.
+    uint16_t next = pot_calibrate(pot_filter);
+    if (next == 0 || next == POT_MAX || abs((int)next - (int)pot_value) >= POT_REPORT_HYSTERESIS) {
+        pot_value = next;
+    }
+
+    // One tap per POT_TAP_STEP counts. The reference moves one step per tap,
+    // so a fast turn sends every tap, one per sample. Taps still run in test
+    // mode: the host engine has no knob action yet (audit FW-02).
+    uint8_t layer = get_highest_layer(layer_state);
+    if (layer != 0 && layer != 2) {
+        pot_tap_ref = pot_value;
+        return;
+    }
+    int16_t diff = (int16_t)pot_value - (int16_t)pot_tap_ref;
+    if (diff >= POT_TAP_STEP) {
+        pot_tap_ref += POT_TAP_STEP;
+        pot_tap(true, layer);
+    } else if (diff <= -POT_TAP_STEP) {
+        pot_tap_ref -= POT_TAP_STEP;
+        pot_tap(false, layer);
+    }
+}
+
 // Function to launch app via Spotlight and switch to layer
 void launch_app(const char* app_name, uint8_t target_layer) {
     // Open Spotlight (Cmd+Space)
@@ -309,38 +391,7 @@ void matrix_scan_user(void) {
         }
     }
 
-    // Potentiometer ADC
-    static uint16_t pot_last_value = 0;
-    uint16_t pot_value = analogReadPin(POT_PIN);
-    int16_t diff = (int16_t)pot_value - (int16_t)pot_last_value;
-    uint8_t layer = get_highest_layer(layer_state);
-
-    if (abs(diff) > 80) {
-        pot_last_value = pot_value;
-        if (layer == 0) {
-            // App Selection: volume control
-            if (diff > 0) {
-                tap_code(KC_VOLU);
-            } else {
-                tap_code(KC_VOLD);
-            }
-        } else if (layer == 2) {
-            // Figma: layer navigation
-            if (diff > 0) {
-                if (figma_depth_held) {
-                    tap_code(KC_ENT);
-                } else {
-                    tap_code(KC_TAB);
-                }
-            } else {
-                if (figma_depth_held) {
-                    tap_code(KC_BSLS);
-                } else {
-                    tap_code16(LSFT(KC_TAB));
-                }
-            }
-        }
-    }
+    pot_task();
 }
 
 // Raw HID handler for companion app communication
@@ -378,8 +429,8 @@ void raw_hid_receive_keymap(uint8_t *data, uint8_t length) {
         }
     }
 
-    // Read potentiometer ADC value
-    uint16_t pot = analogReadPin(POT_PIN);
+    // Smoothed potentiometer value (pot_task)
+    uint16_t pot = pot_value;
 
     // Read current layer
     uint8_t layer = get_highest_layer(layer_state);
