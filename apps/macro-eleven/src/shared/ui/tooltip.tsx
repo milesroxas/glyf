@@ -2,6 +2,7 @@ import { Tooltip as TooltipPrimitive } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "../lib/utils";
+import { FLOATING_PLACEMENT } from "./floating";
 
 /** Wrap the app once; tooltips share one delay so moving between them is instant. */
 function TooltipProvider(
@@ -26,7 +27,7 @@ function Tooltip({
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
           side={side}
-          sideOffset={6}
+          {...FLOATING_PLACEMENT}
           className={cn(
             "pop z-50 max-w-64 rounded-md bg-foreground px-2 py-1 text-xs text-background shadow-md [--pop-origin:var(--radix-tooltip-content-transform-origin)]",
           )}

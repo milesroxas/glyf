@@ -114,16 +114,23 @@ export function AppPicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent align="start" className="w-80 p-0">
-        <Command shouldFilter={false} label="Apps" loop>
+      <PopoverContent align="start" className="flex w-80 flex-col p-0">
+        <Command
+          shouldFilter={false}
+          label="Apps"
+          loop
+          className="flex min-h-0 flex-col"
+        >
           <Command.Input
-            autoFocus
             value={query}
             onValueChange={setQuery}
             placeholder="Search apps"
-            className="h-10 w-full border-b bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
+            className="h-10 w-full shrink-0 border-b bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
           />
-          <Command.List className="max-h-72 overflow-y-auto overscroll-contain p-1">
+          {/* A fixed height, not a max: the picker keeps its size and side
+              while results filter, so the search field never moves under
+              the typing. In a short window the list gives up the height. */}
+          <Command.List className="h-72 min-h-24 overflow-y-auto overscroll-contain p-1">
             {apps === null ? (
               <Command.Loading label="Loading apps">
                 {SKELETON_ROWS.map((row) => (
@@ -152,7 +159,7 @@ export function AppPicker({
               </>
             )}
           </Command.List>
-          <div className="flex items-center justify-between border-t p-1">
+          <div className="flex shrink-0 items-center justify-between border-t p-1">
             <button
               type="button"
               onClick={chooseFromDisk}
@@ -174,7 +181,7 @@ export function AppPicker({
           </div>
         </Command>
         {onDropOnKey && (
-          <p className="border-t px-3 py-2 text-[11px] text-muted-foreground">
+          <p className="shrink-0 border-t px-3 py-2 text-[11px] text-muted-foreground">
             Tip: drag an app onto any key.
           </p>
         )}

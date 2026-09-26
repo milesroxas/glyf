@@ -147,7 +147,9 @@
 /* ── Floating surfaces ─────────────────────────────────────────────────────
    Popovers, menus, tooltips, and dialogs share one enter/exit: a short fade
    and scale from 96%, anchored at the trigger via --pop-origin. Exits are
-   shorter than entrances. */
+   shorter than entrances. A tooltip that opens while another is showing
+   (instant-open) appears at once: sweeping along a toolbar should not
+   replay the entrance on every button. */
 @keyframes pop-in {
     from {
         opacity: 0;
@@ -178,11 +180,7 @@
     transform-origin: var(--pop-origin, center);
 }
 
-.pop:is(
-    [data-state="open"],
-    [data-state="delayed-open"],
-    [data-state="instant-open"]
-) {
+.pop:is([data-state="open"], [data-state="delayed-open"]) {
     animation: pop-in 160ms var(--ease-out);
 }
 
@@ -200,11 +198,7 @@
 
 /* Reduced motion: keep the fade, drop the scale */
 @media (prefers-reduced-motion: reduce) {
-    .pop:is(
-        [data-state="open"],
-        [data-state="delayed-open"],
-        [data-state="instant-open"]
-    ) {
+    .pop:is([data-state="open"], [data-state="delayed-open"]) {
         animation-name: fade-in;
     }
 

@@ -3,6 +3,7 @@ import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "../lib/utils";
+import { FLOATING_PLACEMENT } from "./floating";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
@@ -13,13 +14,12 @@ const itemClass =
 
 function DropdownMenuContent({
   className,
-  sideOffset = 6,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
-        sideOffset={sideOffset}
+        {...FLOATING_PLACEMENT}
         className={cn(
           "pop z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-52 overflow-y-auto rounded-xl border bg-popover p-1 text-popover-foreground shadow-lg [--pop-origin:var(--radix-dropdown-menu-content-transform-origin)]",
           className,

@@ -3,6 +3,7 @@ import { Select as SelectPrimitive } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "../lib/utils";
+import { FLOATING_PLACEMENT } from "./floating";
 
 const Select = SelectPrimitive.Root;
 const SelectValue = SelectPrimitive.Value;
@@ -37,7 +38,7 @@ function SelectContent({
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         position="popper"
-        sideOffset={4}
+        {...FLOATING_PLACEMENT}
         className={cn(
           "pop z-50 max-h-(--radix-select-content-available-height) min-w-(--radix-select-trigger-width) overflow-y-auto rounded-xl border bg-popover p-1 text-popover-foreground shadow-lg [--pop-origin:var(--radix-select-content-transform-origin)]",
           className,

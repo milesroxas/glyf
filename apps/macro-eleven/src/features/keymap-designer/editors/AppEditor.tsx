@@ -1,5 +1,5 @@
 import { ChevronsUpDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { findApp, type InstalledApp } from "../../../entities/app";
 import type {
   LaunchAppAction,
@@ -26,8 +26,16 @@ export function AppEditor({
   onChange,
 }: AppEditorProps) {
   const { apps } = useInstalledApps();
-  // A new app key opens the picker straight away
-  const [open, setOpen] = useState(!action);
+  const [open, setOpen] = useState(false);
+  const [isNew] = useState(!action);
+
+  // A new app key opens the picker, a frame late: the click that picked the
+  // App kind would take focus back and close it as it opens
+  useEffect(() => {
+    if (!isNew) return;
+    const frame = requestAnimationFrame(() => setOpen(true));
+    return () => cancelAnimationFrame(frame);
+  }, [isNew]);
   const installed = action && apps ? findApp(apps, action) : undefined;
   const missing = Boolean(action && apps && !installed);
 
