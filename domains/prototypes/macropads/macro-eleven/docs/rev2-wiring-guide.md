@@ -9,7 +9,7 @@ Step-by-step guide to hand-wire a Raspberry Pi Pico, the 11-key matrix, the knob
 | MCU | Raspberry Pi Pico or Pico H (**RP2040**). A Pico 2 (RP2350) does not run this firmware. |
 | Keys | 11 switches in the Macro Eleven layout (3 rows x 4 columns, knob in the top-right slot) |
 | Knob | 10 kΩ linear potentiometer (B10K) |
-| Display | 4.0" ST7796S SPI TFT, 480x320, XPT2046 resistive touch, 14-pin header (same panel as the [Glyf display module](../../../../glyf/display/docs/glyf.md)) |
+| Display | 4.0" ST7796S SPI TFT, 480x320, XPT2046 resistive touch, 14-pin header (same panel as the [Glyf display module](../../../../glyf/display/docs/glyf.md), photos in [Step 7](#identify-the-display-header)) |
 
 > **Firmware status.** No single rev 2 firmware exists yet (audit task SCR-09). This guide tests the board with the two firmwares that exist today:
 > - **Macro Eleven (QMK)** tests the keys and the knob.
@@ -250,14 +250,27 @@ The protoboard holds the Pico and three connectors. The keys, knob, and display 
 │  └──┴──┴──┴──┴──┴──┴──┘ │  in female  │   └──┴──┴──┘              │
 │   wires to pins 4-11 ───┤   headers   ├─── wires to pins 31-36    │
 │                         │             │                           │
-│                         └─────────────┘                           │
-│      wires from pins 14-24 (both sides) run down to J2            │
-│                                                                   │
-│  ┌──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┐                      │
-│  │ 1│ 2│ 3│ 4│ 5│ 6│ 7│ 8│ 9│10│11│12│13│14│  J2 display (1x14)   │
-│  └──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┘                      │
+│                         │             │     J2 display (1x14)     │
+│                         │             │     ┌────┬─────────┐      │
+│                         │             │     │  1 │ VCC     │      │
+│                         │             │     │  2 │ GND     │      │
+│                         │             │     │  3 │ CS      │      │
+│                         │             │     │  4 │ RESET   │      │
+│                         │             │     │  5 │ DC/RS   │      │
+│                         │             │     │  6 │ SDI     │      │
+│                         └─────────────┘     │  7 │ SCK     │      │
+│                                             │  8 │ LED     │      │
+│   wires from pins 14-24 (both sides         │  9 │ SDO     │      │
+│   of the Pico) run on the underside         │ 10 │ T_CLK   │      │
+│   to J2                                     │ 11 │ T_CS    │      │
+│                                             │ 12 │ T_DIN   │      │
+│                                             │ 13 │ T_DO    │      │
+│                                             │ 14 │ T_IRQ   │      │
+│                                             └────┴─────────┘      │
 └───────────────────────────────────────────────────────────────────┘
 ```
+
+J2 stands as a vertical column with pin 1 (VCC) at the top, the same way you hold the display. The display lies to the right of the board, so each display pin sits level with its J2 pin.
 
 ### Connector pinouts
 
@@ -281,16 +294,17 @@ The protoboard holds the Pico and three connectors. The keys, knob, and display 
 | 2 (W) | GP26 / ADC0 (wiper) | 31 |
 | 3 (+) | 3V3(OUT) | 36 |
 
-**J2: display (1x14)**, see [Step 7](#step-7-wire-the-display). Pin 9 stays unconnected.
+**J2: display (1x14)**, vertical, pin 1 (VCC) at the top. Pinout in [Step 7](#display-header-wiring). Pin 9 stays unconnected.
 
 ### Procedure
 
 1. Plug the Pico's male headers into the two female headers. Set the whole stack on the protoboard, with the USB port at the board edge.
 2. Solder two opposite corner pins of each female header. Check that the Pico sits flat. Then solder the other pins. The Pico keeps the headers aligned while you solder.
 3. Remove the Pico. From now on, it stays out while you solder. It goes back in only for tests.
-4. Solder J1, J2, and J3 in the places shown in the layout. Leave at least one empty row of holes between a connector and the Pico headers.
+4. Solder J1, J2, and J3 in the places shown in the layout. Solder J2 as a vertical column with pin 1 at the top. Leave at least one empty row of holes between a connector and the Pico headers.
 5. Run the wires on the underside, from each Pico header pin to its connector pin (tables above). Use the [mirrored view](#warning-the-underside-is-mirrored).
    - Leave the J2 wires for Step 7. Do J1 and J3 now.
+   - From the underside, J2 is on the left of the Pico. Its pin 1 is still at the top: the mirror swaps left and right, not top and bottom.
 6. Keep the SWD pads at the bottom edge of the Pico clear, so you can connect a debug probe later.
 7. Optional: add a small push button from **RUN** (pin 30) to **GND** (pin 28). Hold BOOTSEL and tap the button to enter the bootloader without unplugging the cable.
 
@@ -485,59 +499,45 @@ Tick each key as it passes:
 
 ## Step 7: Wire the display
 
+### Identify the display header
+
+Hold the module with the screen facing you and the 14-pin header on the left edge. **Pin 1 (VCC) is at the top.** Every diagram in this guide shows the header this way: VCC at the top, T_IRQ (pin 14) at the bottom.
+
+![Display module, front, in the wiring position. The 14-pin header is on the left edge. Pin 1 (VCC) is at the top and has the square pad.](../../../../../docs/refs/screen-front.jpg)
+
+![Display module, back, turned upside down: VCC is at the bottom in this photo and T_IRQ is at the top. The SD card slot and its 4-pin header are on the right.](../../../../../docs/refs/screen-back.jpg)
+
+- The pin labels are only on the back, and you cannot see them from the front. Wire from the diagrams below, not from the back photo. The photo shows the pin order upside down.
+- The square pad on the front marks pin 1 (VCC). Find it before you connect any wire.
+- To read the labels without losing your place, flip the module left to right, like a page in a book. VCC stays at the top and the header moves to the right edge. The labels read upside down, but the pin order matches the diagrams.
+- The module's silkscreen names the 14-pin header `J2`, the same name as the protoboard connector it connects to.
+- Leave the 4-pin SD card header (`J4` on the module: SD_CS, SD_MOSI, SD_MISO, SD_SCK) unconnected. This build does not use the SD card.
+
 ### Display header wiring
 
-Pins 1 to 14 are in the order on the display module's header.
+VCC (pin 1) is at the top, the same as the front photo and J2 on the protoboard. The Pico is on the left and the display is on the right, as on the bench.
 
 ```
-                 display header                  Pico pin, GPIO
-                 ┌────┬─────────┐
-                 │  1 │ VCC     ├──────── 36  3V3(OUT)
-                 │  2 │ GND     ├──────── 38  GND
-                 │  3 │ CS      ├──────── 17  GP13
-                 │  4 │ RESET   ├──────── 20  GP15
-                 │  5 │ DC/RS   ├──────── 19  GP14
-        ┌────────┤  6 │ SDI     ├──────── 15  GP11  (MOSI)
-        │   ┌────┤  7 │ SCK     ├──────── 14  GP10  (SCK)
-        │   │    │  8 │ LED     ├──────── 21  GP16  (PWM)
-        │   │    │  9 │ SDO     │   X     leave open (see note)
-        │   └────┤ 10 │ T_CLK   │         bridge to pin 7
-        │        │ 11 │ T_CS    ├──────── 22  GP17
-        └────────┤ 12 │ T_DIN   │         bridge to pin 6
-                 │ 13 │ T_DO    ├──────── 16  GP12  (MISO)
-                 │ 14 │ T_IRQ   ├──────── 24  GP18
-                 └────┴─────────┘
+  Pico pin, GPIO               display header, VCC at the top
+                               ┌────┬─────────┐
+  36  3V3(OUT)  ───────────────┤  1 │ VCC     │  square pad
+  38  GND       ───────────────┤  2 │ GND     │
+  17  GP13      ───────────────┤  3 │ CS      │
+  20  GP15      ───────────────┤  4 │ RESET   │
+  19  GP14      ───────────────┤  5 │ DC/RS   │
+  15  GP11 MOSI ───────────────┤  6 │ SDI     ├────────┐
+  14  GP10 SCK  ───────────────┤  7 │ SCK     ├────┐   │
+  21  GP16 PWM  ───────────────┤  8 │ LED     │    │   │
+      leave open (see note) X  │  9 │ SDO     │    │   │
+                               │ 10 │ T_CLK   ├────┘   │  bridge to pin 7
+  22  GP17      ───────────────┤ 11 │ T_CS    │        │
+                               │ 12 │ T_DIN   ├────────┘  bridge to pin 6
+  16  GP12 MISO ───────────────┤ 13 │ T_DO    │
+  24  GP18      ───────────────┤ 14 │ T_IRQ   │
+                               └────┴─────────┘
 ```
 
 ### The shared SPI bus
-
-```mermaid
-flowchart LR
-    subgraph PICO["Pico"]
-        G10["GP10 · pin 14"]
-        G11["GP11 · pin 15"]
-        G12["GP12 · pin 16"]
-        G13["GP13 · pin 17"]
-        G17["GP17 · pin 22"]
-    end
-    subgraph DISP["Display header"]
-        P7["7 · SCK"]
-        P10["10 · T_CLK"]
-        P6["6 · SDI"]
-        P12["12 · T_DIN"]
-        P13["13 · T_DO"]
-        P3["3 · CS (display)"]
-        P11["11 · T_CS (touch)"]
-        P9["9 · SDO: leave open"]
-    end
-    G10 --> P7
-    G10 --> P10
-    G11 --> P6
-    G11 --> P12
-    P13 --> G12
-    G13 --> P3
-    G17 --> P11
-```
 
 The display and the touch controller use the same clock and data lines. On J2, join pin 7 to pin 10, and pin 6 to pin 12, with short bridges on the underside. Then run one wire from each bridge to the Pico.
 
@@ -548,7 +548,7 @@ The display and the touch controller use the same clock and data lines. On J2, j
 1. Unplug USB.
 2. Wire J2 on the underside, from the table above. Make the two bridges first (7 to 10, 6 to 12).
 3. Keep every display wire at **10 cm or shorter**. The display SPI bus runs at 40 MHz, and long wires corrupt the signal.
-4. Connect the display to J2. If the module does not plug straight in, use 14 female-to-female jumpers of the same length. Check that display pin 1 (VCC) goes to J2-1.
+4. Connect the display to J2, with VCC at the top on both. If the module does not plug straight in, lay it to the right of the protoboard, screen up, VCC at the top. Its header then lines up with J2 pin for pin. Use 14 female-to-female jumpers of the same length, and join each display pin to the J2 pin level with it. Check that display pin 1 (VCC, top) goes to J2-1 (top).
 
 ### Test: continuity
 
