@@ -9,8 +9,6 @@ import { SPRING } from "../../../shared/lib/motion";
 
 /** Gap between a key and the ring around it. */
 const OFFSET = 4;
-/** Key corner radius (keycap.css) plus the gap. */
-const RADIUS = 10 + OFFSET;
 
 /**
  * One ring that moves between keys. Each move springs from wherever the ring
@@ -29,7 +27,7 @@ export function SelectionRing({
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const opacity = useMotionValue(0);
-  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [size, setSize] = useState({ width: 0, height: 0, borderRadius: 0 });
   const shown = useRef(false);
   const reduceMotion = useReducedMotion();
 
@@ -56,9 +54,14 @@ export function SelectionRing({
         left += node.offsetLeft;
         top += node.offsetTop;
       }
+      // Concentric with the key, whose corners follow its size
+      const radius = Number.parseFloat(
+        getComputedStyle(target).borderTopLeftRadius,
+      );
       setSize({
         width: target.offsetWidth + OFFSET * 2,
         height: target.offsetHeight + OFFSET * 2,
+        borderRadius: (radius || 0) + OFFSET,
       });
       if (move && shown.current && !reduceMotion) {
         animate(x, left - OFFSET, SPRING);
@@ -94,7 +97,7 @@ export function SelectionRing({
   return (
     <motion.div
       aria-hidden
-      style={{ x, y, opacity, ...size, borderRadius: RADIUS }}
+      style={{ x, y, opacity, ...size }}
       className="pointer-events-none absolute top-0 left-0 ring-2 ring-primary shadow-[0_0_0_6px_color-mix(in_oklab,var(--primary)_14%,transparent)]"
     />
   );

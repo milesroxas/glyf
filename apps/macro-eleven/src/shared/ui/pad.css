@@ -1,0 +1,95 @@
+/* The pad, drawn from one length: --key, the width of a key cap. Gaps, the
+   chassis, cap corners, and legends all follow it, so the designer, the
+   overlay, and Diagnostics draw the same object at any size. Keys are
+   square, as on the pad. Registered so a container-relative value resolves
+   where it is set and reaches the keys as a plain length. */
+@property --key {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 72px;
+}
+
+.pad {
+    display: grid;
+    grid-template-columns: repeat(4, var(--key));
+    grid-auto-rows: var(--key);
+    gap: calc(var(--key) * 0.1);
+}
+
+/* The chassis around the keys. Its corners follow the caps' corners. */
+.pad-plate {
+    --_inset: calc(var(--key) * 0.22);
+
+    padding: var(--_inset);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--key) * 0.12 + var(--_inset));
+    background: linear-gradient(to bottom, var(--card), var(--background));
+    box-shadow:
+        0 24px 48px -24px oklch(0 0 0 / 0.7),
+        inset 0 1px 0 oklch(1 0 0 / 0.05);
+}
+
+/* ── Legend: what a key does, printed on its cap ─────────────────────────
+   The app or shortcut sits top left, the label bottom left, and a kind
+   glyph (layer, macro, plugin) in the bottom right corner. */
+.key-legend {
+    --_pad: calc(var(--key) * 0.1);
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    padding: var(--_pad);
+    font-size: clamp(10px, calc(var(--key) * 0.15), 13px);
+    line-height: 1.2;
+    text-align: left;
+}
+
+.key-legend__mark {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    height: clamp(14px, calc(var(--key) * 0.2), 20px);
+    color: var(--muted-foreground);
+    font-size: 0.85em;
+    letter-spacing: 0.04em;
+}
+
+.key-legend__icon {
+    width: auto;
+    height: 100%;
+}
+
+/* Two lines at most. The label's longest word (--_word, in letters) shrinks
+   it to fit across the cap, down to 9 px, so a name like "SuperWhisper"
+   stays whole; past that it hyphenates. 0.64 em is a wide Inter letter. */
+.key-legend__label {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: max(
+        9px,
+        min(1em, calc(var(--key) * 0.76 / (var(--_word, 1) * 0.64)))
+    );
+    font-weight: 500;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    overflow-wrap: break-word;
+}
+
+/* Clear of the kind glyph in the corner */
+.key-legend[data-glyph] .key-legend__label {
+    padding-right: 1em;
+}
+
+.key-legend__glyph {
+    position: absolute;
+    right: calc(var(--_pad) * 0.75);
+    bottom: calc(var(--_pad) * 0.75);
+    width: 0.8em;
+    height: 0.8em;
+    color: var(--muted-foreground);
+}

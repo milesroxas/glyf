@@ -11,11 +11,11 @@ import {
   KEY_POSITIONS,
   neighborKey,
 } from "../../../shared/config/layout";
+import { useInstalledApps } from "../../../shared/lib/useInstalledApps";
 import { usePotValue } from "../../../shared/lib/usePotValue";
 import { KnobDial } from "../../../shared/ui/KnobDial";
 import { MacropadGrid } from "../../../shared/ui/MacropadGrid";
 import { useDragToKey } from "../apps/DragToKey";
-import { useInstalledApps } from "../apps/useInstalledApps";
 import { focusInspector } from "../inspector/focusInspector";
 import { useDesigner, useKeymap } from "../model/KeymapProvider";
 import { KeyTile } from "./KeyTile";
@@ -37,7 +37,8 @@ function LiveKnob() {
 }
 
 /**
- * The pad, drawn to scale: the thing you edit. Click a key, press it on the
+ * The pad, drawn in proportion: the thing you edit. Its size comes from
+ * `--key`, which the designer sets from the room it has. Click a key, press it on the
  * pad, or move with the arrow keys; Delete clears; Return jumps to the
  * inspector.
  */
@@ -89,7 +90,7 @@ export function KeyCanvas() {
     <fieldset
       onKeyDown={onKeyDown}
       ref={setPlate}
-      className="relative min-w-0 rounded-[26px] border bg-gradient-to-b from-card to-background p-5 shadow-[0_24px_48px_-24px_oklch(0_0_0/0.7),inset_0_1px_0_oklch(1_0_0/0.05)]"
+      className="pad-plate relative min-w-0"
     >
       <legend className="sr-only">Keys</legend>
       <MacropadGrid

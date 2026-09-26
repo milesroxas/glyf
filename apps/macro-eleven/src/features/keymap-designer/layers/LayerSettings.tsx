@@ -8,6 +8,8 @@ import { ChevronsUpDown, Copy, Settings2, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { findApp } from "../../../entities/app";
 import { layerName } from "../../../entities/keymap";
+import { useInstalledApps } from "../../../shared/lib/useInstalledApps";
+import { AppIcon } from "../../../shared/ui/AppIcon";
 import { Button } from "../../../shared/ui/button";
 import { Input } from "../../../shared/ui/input";
 import {
@@ -16,9 +18,7 @@ import {
   PopoverTrigger,
 } from "../../../shared/ui/popover";
 import { Tooltip } from "../../../shared/ui/tooltip";
-import { AppIcon } from "../apps/AppIcon";
 import { AppPicker } from "../apps/AppPicker";
-import { useInstalledApps } from "../apps/useInstalledApps";
 import { Field } from "../editors/Field";
 import { useDesigner, useKeymap } from "../model/KeymapProvider";
 

@@ -1,7 +1,7 @@
 import { AppWindow } from "lucide-react";
-import type { InstalledApp } from "../../../entities/app";
-import { assetUrl } from "../../../shared/lib/tauri";
-import { cn } from "../../../shared/lib/utils";
+import type { InstalledApp } from "../../entities/app";
+import { assetUrl } from "../lib/tauri";
+import { cn } from "../lib/utils";
 
 /** An app's Finder icon, or a generic app glyph when it has none. */
 export function AppIcon({

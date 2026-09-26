@@ -10,7 +10,7 @@ Desktop companion (Tauri) for the [Macro Eleven](../../domains/prototypes/macrop
 | Diagnostics | Live key presses, event feed, and the host-control switch |
 | Knob | Live potentiometer value (0–1023). Under host control the knob sets the system volume and plays the volume feedback sound. |
 | Firmware | Compares device and bundled firmware and installs the update |
-| Overlay | Compact always-on-top window with the current layer's keys |
+| Overlay | A small always-on-top window drawn as the pad: the live layer's keys as the Designer shows them, lit as you press them, with the knob. Drag it anywhere; resize it and the pad scales. |
 
 How key presses become actions: [docs/keymap-engine.md](docs/keymap-engine.md).
 

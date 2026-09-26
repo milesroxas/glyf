@@ -45,11 +45,22 @@ function CanvasFooter() {
 /** Empty keys in the pad's shape while the profile loads. */
 function CanvasSkeleton() {
   return (
-    <div className="rounded-[26px] border p-5 opacity-60">
+    <div className="pad-plate opacity-60">
       <MacropadGrid renderKey={() => <Keycap empty className="h-full" />} />
     </div>
   );
 }
+
+/**
+ * Key size for the room the canvas has (cqw/cqh of the canvas column): the
+ * pad takes most of the width and leaves room below for the footer, or for
+ * the inspector sheet when it slides up. Never smaller than a legible key;
+ * never larger than a key on the pad itself.
+ */
+const KEY_SIZE = {
+  beside: "[--key:clamp(64px,min(18cqw,18.5cqh),104px)]",
+  sheet: "[--key:clamp(64px,min(18cqw,11.5cqh),104px)]",
+};
 
 function DesignerBody() {
   const { keymap, loadError, retryLoad } = useDesigner();
@@ -78,12 +89,14 @@ function DesignerBody() {
       <div ref={setBody} className="relative flex min-h-0 flex-1">
         <div
           className={cn(
-            "flex min-w-0 flex-1 flex-col items-center gap-6 overflow-auto p-6",
+            "flex min-w-0 flex-1 flex-col items-center gap-6 overflow-auto p-6 @container-[size]",
             // With the sheet up, keep the pad at the top, above the sheet
             twoColumns ? "justify-center" : "justify-start pb-[60vh]",
           )}
         >
-          {keymap ? <KeyCanvas /> : <CanvasSkeleton />}
+          <div className={twoColumns ? KEY_SIZE.beside : KEY_SIZE.sheet}>
+            {keymap ? <KeyCanvas /> : <CanvasSkeleton />}
+          </div>
           <CanvasFooter />
         </div>
         {keymap &&

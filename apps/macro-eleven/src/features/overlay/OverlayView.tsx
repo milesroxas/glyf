@@ -1,127 +1,141 @@
-import { formatMatrixPosition, getAction } from "@glyf/keymap-schema";
+import { formatMatrixPosition, getAction, layerIds } from "@glyf/keymap-schema";
 import { useEffect } from "react";
-import { actionLabel } from "../../entities/action";
-import { layerName } from "../../entities/keymap";
+import { keyFace } from "../../entities/action";
+import { type Keymap, layerName } from "../../entities/keymap";
 import { useDeviceStatus } from "../../shared/lib/useDeviceStatus";
+import { useInstalledApps } from "../../shared/lib/useInstalledApps";
 import { useKeyEvents } from "../../shared/lib/useKeyEvents";
 import { usePotValue } from "../../shared/lib/usePotValue";
 import { cn } from "../../shared/lib/utils";
-import { Badge } from "../../shared/ui/badge";
 import { Keycap } from "../../shared/ui/Keycap";
+import { KeyLegend } from "../../shared/ui/KeyLegend";
 import { KnobDial } from "../../shared/ui/KnobDial";
 import { MacropadGrid } from "../../shared/ui/MacropadGrid";
-import { Separator } from "../../shared/ui/separator";
 import { useActiveKeymap } from "./useActiveKeymap";
 
-function OverlayShell({
-  children,
-  header,
-}: {
-  children: React.ReactNode;
-  header: React.ReactNode;
-}) {
+const MAX_POT = 1023;
+
+/**
+ * Key size that fits the window below the title bar: 12 px chassis margin at
+ * the sides and bottom, 2 px under the title bar. The grid is 4.3 keys wide
+ * and 3.2 keys tall (keys plus 0.1-key gaps; pad.css). The window's default
+ * and minimum sizes in `commands/overlay.rs` come from the same numbers.
+ */
+const FIT_KEY = "[--key:min(calc((100cqw-24px)/4.3),calc((100cqh-14px)/3.2))]";
+
+/** One pip per layer; the live one lit. */
+function LayerPips({ keymap, layer }: { keymap: Keymap; layer: number }) {
+  const ids = layerIds(keymap);
+  if (ids.length < 2) return null;
+  return (
+    <span className="flex shrink-0 items-center gap-0.75">
+      {ids.map((id) => (
+        <span
+          key={id}
+          className={cn(
+            "size-1 rounded-full bg-foreground/20 transition-colors duration-150",
+            id === layer && "bg-primary",
+          )}
+        />
+      ))}
+    </span>
+  );
+}
+
+/**
+ * A small always-on-top window: the pad as it is now. It shows what each key
+ * does on the live layer, lights keys as you press them, and turns its knob
+ * with yours. The window is the pad's chassis; drag it anywhere to move it.
+ */
+export function OverlayView() {
+  const { keys, layer } = useKeyEvents();
+  const { keymap, error } = useActiveKeymap();
+  const { apps } = useInstalledApps();
+  const { value: potValue } = usePotValue();
+  const connected = useDeviceStatus() === "connected";
+
   useEffect(() => {
     document.documentElement.classList.add("dark");
     return () => document.documentElement.classList.remove("dark");
   }, []);
 
+  const status = error
+    ? "Could not load your keymap"
+    : connected
+      ? null
+      : "Not connected";
+
   return (
-    <div className="dark flex min-h-screen w-full flex-col bg-background">
-      <header className="shrink-0 px-5 py-3">{header}</header>
-      <Separator />
-      <div className="flex min-h-0 flex-1 flex-col">{children}</div>
-    </div>
-  );
-}
-
-/** A small always-on-top window showing what each key does on the live layer. */
-export function OverlayView() {
-  const { keys, layer } = useKeyEvents();
-  const { keymap, error } = useActiveKeymap();
-  const { value: potValue } = usePotValue();
-  const connected = useDeviceStatus() === "connected";
-
-  const header = (
-    <div className="flex items-center justify-between gap-3">
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <h2 className="text-sm font-semibold tracking-tight text-foreground">
-          Macro Eleven
-        </h2>
-        {keymap && (
-          <Badge variant="outline" className="max-w-full truncate">
-            {layerName(keymap, layer)}
-          </Badge>
-        )}
-      </div>
-      <span
-        className={cn(
-          "size-2 shrink-0 rounded-full",
-          connected
-            ? "bg-primary ring-2 ring-primary/40"
-            : "bg-muted-foreground",
-        )}
-        title={connected ? "Connected" : "Not connected"}
-      />
-    </div>
-  );
-
-  if (!keymap) {
-    return (
-      <OverlayShell header={header}>
-        <div className="flex flex-1 items-center justify-center p-4">
-          <p
+    <div
+      data-tauri-drag-region
+      className="flex h-screen w-full cursor-default flex-col bg-linear-to-b from-card to-background select-none"
+    >
+      {/* Title bar: the window buttons sit over its left end */}
+      <header
+        data-tauri-drag-region
+        className="flex h-7 shrink-0 items-center gap-2.5 pr-3 pl-19 text-[11px] leading-none"
+      >
+        <h1 className="pointer-events-none min-w-0 flex-1 truncate font-medium text-foreground/90">
+          {keymap && layerName(keymap, layer)}
+        </h1>
+        {status && (
+          <span
+            role="status"
             className={cn(
-              "text-sm",
+              "pointer-events-none shrink-0",
               error ? "text-destructive" : "text-muted-foreground",
             )}
           >
-            {error ?? "Loading…"}
-          </p>
-        </div>
-      </OverlayShell>
-    );
-  }
-
-  return (
-    <OverlayShell header={header}>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 px-5 py-3">
-        {!connected && (
-          <p className="shrink-0 text-xs text-muted-foreground">
-            Plug in Macro Eleven to see key feedback
-          </p>
+            {status}
+          </span>
         )}
-        <div className="flex min-h-0 flex-1">
+        {keymap && connected && <LayerPips keymap={keymap} layer={layer} />}
+      </header>
+
+      <div
+        data-tauri-drag-region
+        className="flex min-h-0 flex-1 items-center justify-center @container-[size]"
+      >
+        <div
+          className={cn(
+            "pointer-events-none mt-0.5 mb-3 transition-opacity duration-200",
+            FIT_KEY,
+            !connected && "opacity-60",
+          )}
+        >
           <MacropadGrid
-            fluid
             renderKey={(position, index) => {
-              const action = getAction(
-                keymap,
-                layer,
-                formatMatrixPosition(position),
-              );
+              const action =
+                keymap &&
+                getAction(keymap, layer, formatMatrixPosition(position));
               return (
                 <Keycap
                   pressed={keys[index] ?? false}
-                  empty={!action}
-                  className="flex h-full w-full items-center justify-center overflow-hidden px-1 py-0.5"
+                  empty={Boolean(keymap) && !action}
+                  className="h-full w-full overflow-hidden"
                 >
-                  <span className="line-clamp-2 w-full text-center text-[10px] leading-tight font-medium break-words">
-                    {action ? actionLabel(action, keymap) : ""}
-                  </span>
+                  {keymap && action && (
+                    // Keyed by layer: a layer change fades the new legends in
+                    <KeyLegend
+                      key={layer}
+                      face={keyFace(action, keymap, apps)}
+                      className="animate-in duration-150 fade-in-0 motion-reduce:animate-none"
+                    />
+                  )}
                 </Keycap>
               );
             }}
             renderEmpty={() => (
               <KnobDial
-                value={potValue / 1023}
-                ticks={31}
-                label="Potentiometer"
+                value={potValue / MAX_POT}
+                ticks={21}
+                label="Knob"
                 fluid
               />
             )}
           />
         </div>
       </div>
-    </OverlayShell>
+    </div>
   );
 }

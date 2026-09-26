@@ -1,6 +1,7 @@
 /* A physical key cap: a card-colored face inside a beveled edge, lit from
    above. Shared by the designer, the overlay, and Diagnostics so every view
-   of the pad looks like the same object. */
+   of the pad looks like the same object. Corners follow the key's size
+   (--key, pad.css). */
 .keycap {
     --_edge-top: oklch(0.36 0 0);
     --_edge-bottom: oklch(0.2 0 0);
@@ -8,9 +9,13 @@
 
     position: relative;
     border: 1px solid transparent;
-    border-radius: 10px;
+    border-radius: calc(var(--key) * 0.12);
     background:
-        linear-gradient(var(--_face), var(--_face)) padding-box,
+        linear-gradient(
+            color-mix(in oklab, var(--_face), var(--foreground) 3%),
+            var(--_face) 60%
+        )
+        padding-box,
         linear-gradient(to bottom, var(--_edge-top), var(--_edge-bottom))
         border-box;
     box-shadow:

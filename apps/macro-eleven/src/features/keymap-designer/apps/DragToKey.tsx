@@ -24,7 +24,7 @@ import { createPortal } from "react-dom";
 import type { InstalledApp } from "../../../entities/app";
 import type { MatrixPositionKey } from "../../../entities/keymap";
 import { SPRING_MOMENTUM } from "../../../shared/lib/motion";
-import { AppIcon } from "./AppIcon";
+import { AppIcon } from "../../../shared/ui/AppIcon";
 
 /** Pointer travel before a press becomes a drag. */
 const DRAG_THRESHOLD_PX = 4;

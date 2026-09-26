@@ -5,15 +5,16 @@ import { toast } from "sonner";
 import { type InstalledApp, rankApps } from "../../../entities/app";
 import type { MatrixPositionKey } from "../../../entities/keymap";
 import { pickAppFromFile } from "../../../shared/lib/tauri";
+import { useInstalledApps } from "../../../shared/lib/useInstalledApps";
+import { AppIcon } from "../../../shared/ui/AppIcon";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "../../../shared/ui/popover";
 import { Tooltip } from "../../../shared/ui/tooltip";
-import { AppIcon } from "./AppIcon";
 import { useDragToKey } from "./DragToKey";
-import { recentApps, rememberApp, useInstalledApps } from "./useInstalledApps";
+import { recentApps, rememberApp } from "./recentApps";
 
 interface AppPickerProps {
   /** The button that opens the picker. */

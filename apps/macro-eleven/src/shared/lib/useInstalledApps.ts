@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
-import type { InstalledApp } from "../../../entities/app";
-import { readStored, writeStored } from "../../../shared/lib/storage";
-import { listInstalledApps } from "../../../shared/lib/tauri";
+import type { InstalledApp } from "../../entities/app";
+import { listInstalledApps } from "./tauri";
 
 /**
  * Installed apps, loaded once per session and shared by every picker, tile,
@@ -40,22 +39,4 @@ export function useInstalledApps() {
   }, []);
   const refresh = useCallback(() => load(true), []);
   return { apps: current, refresh };
-}
-
-const RECENTS_KEY = "designer.recentApps";
-const RECENTS_LIMIT = 8;
-
-/** Bundle IDs of recently chosen apps, most recent first. */
-export function recentApps(): string[] {
-  return readStored<string[]>(RECENTS_KEY, []);
-}
-
-export function rememberApp(bundleId: string): void {
-  writeStored(
-    RECENTS_KEY,
-    [bundleId, ...recentApps().filter((id) => id !== bundleId)].slice(
-      0,
-      RECENTS_LIMIT,
-    ),
-  );
 }

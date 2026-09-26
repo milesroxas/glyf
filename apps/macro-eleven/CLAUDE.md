@@ -13,12 +13,12 @@ React 19, TypeScript, Vite, Tailwind v4, shadcn/ui on `radix-ui` (`components.js
 | Path | Holds |
 |------|-------|
 | `entities/` | `keymap` (profile and engine types, layer names), `action` (kinds, labels, spoken descriptions, result messages), `app` (installed apps, picker ranking), `key`, `device`, `firmware` |
-| `features/keymap-designer/` | The designer. `model/` holds state: `KeymapProvider` (the one place edits happen), `history` (undo that returns to the edited key), `useAutosave` (300 ms trailing, serialized), `profileActions`, keyboard shortcuts, press-to-select. `canvas/`, `inspector/`, `editors/`, `layers/`, `profiles/`, `apps/` (picker, icons, drag onto keys). |
+| `features/keymap-designer/` | The designer. `model/` holds state: `KeymapProvider` (the one place edits happen), `history` (undo that returns to the edited key), `useAutosave` (300 ms trailing, serialized), `profileActions`, keyboard shortcuts, press-to-select. `canvas/`, `inspector/`, `editors/`, `layers/`, `profiles/`, `apps/` (picker, recent apps, drag onto keys). |
 | `features/` (others) | `key-tester` (Diagnostics page), `pot-monitor` (Knob page), `overlay`, `firmware-update` |
 | `pages/` | Routes `/` Designer, `/diagnostics`, `/knob`, `/firmware`. `/designer`, `/layers`, `/pot` redirect. `#/overlay` renders the overlay window. |
 | `shared/config/layout.ts` | `KEY_POSITIONS`, `MATRIX_LAYOUT`, `matrixToIndex`, `neighborKey`, derived from the shared device file |
-| `shared/lib/` | `tauri.ts` (every command and event wrapper), `motion.ts` (spring and easing tokens), event hooks (`useDeviceStatus`, `useKeyEvents`, `usePotValue`), `storage.ts` (per-user preferences) |
-| `shared/ui/` | `MacropadGrid`, `Keycap` (one key look for designer, overlay, and Diagnostics), `KnobDial`, `Segmented`, shadcn primitives (dialog, popover, dropdown-menu, select, slider, switch, tooltip, toaster, …) |
+| `shared/lib/` | `tauri.ts` (every command and event wrapper), `motion.ts` (spring and easing tokens), event hooks (`useDeviceStatus`, `useKeyEvents`, `usePotValue`), `useInstalledApps` (loaded once per window), `storage.ts` (per-user preferences) |
+| `shared/ui/` | The pad, drawn the same everywhere: `MacropadGrid` and `pad.css` (every length follows `--key`, the key width), `Keycap` (designer, overlay, and Diagnostics), `KeyLegend` (what a key does, from `keyFace` in `entities/action`), `KnobDial`, `AppIcon`. Also `Segmented` and shadcn primitives (dialog, popover, dropdown-menu, select, slider, switch, tooltip, toaster, …) |
 | `test/` | Vitest setup and `fakeBackend.ts`, a fake host at the IPC layer (`@tauri-apps/api/mocks`) |
 
 ## Backend map (`src-tauri/src/`)
@@ -84,7 +84,8 @@ cargo test -p macro-eleven                         # profiles, engine, executor,
 ## UI
 
 - Dark theme (`class="dark"` on `<html>`), shadcn oklch tokens in `app/App.css`, green primary (hue 163), `--warning` for inline warnings.
-- Window 1000×680 (minimum 900×600): 224 px sidebar plus content. The designer shows the inspector beside the pad when there is room (760 px of content) and as a bottom sheet otherwise.
+- Window 1000×680 (minimum 900×600): 224 px sidebar plus content. The designer shows the inspector beside the pad when there is room (760 px of content) and as a bottom sheet otherwise. The pad scales with the canvas: square keys from 64 px to 104 px (about life size).
+- Overlay window (`commands/overlay.rs`, `features/overlay/`): the window is the pad's chassis. On macOS its content runs under a hidden title bar with the window buttons over it, and every part of it drags the window. The key size fits the window; its default and minimum sizes derive from the same numbers.
 - Motion: springs from `shared/lib/motion.ts` for anything the user can interrupt (selection ring, tab indicator, sheet, drag); floating surfaces share the `.pop` enter/exit in `App.css`; content swaps cross-fade. `MotionConfig reducedMotion="user"` plus CSS media queries honor Reduce Motion and Reduce Transparency (`material` utilities).
 
 ## Adding features

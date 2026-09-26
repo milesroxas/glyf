@@ -5,10 +5,10 @@ import type {
   LaunchAppAction,
   MatrixPositionKey,
 } from "../../../entities/keymap";
+import { useInstalledApps } from "../../../shared/lib/useInstalledApps";
+import { AppIcon } from "../../../shared/ui/AppIcon";
 import { Switch } from "../../../shared/ui/switch";
-import { AppIcon } from "../apps/AppIcon";
 import { AppPicker } from "../apps/AppPicker";
-import { useInstalledApps } from "../apps/useInstalledApps";
 import { Field, Warning } from "./Field";
 
 interface AppEditorProps {

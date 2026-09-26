@@ -8,6 +8,7 @@ import {
   type Keymap,
   type MatrixPosition,
 } from "@glyf/keymap-schema";
+import { findApp, type InstalledApp } from "./app";
 import { layerName } from "./keymap";
 
 /** Longest tile label; also the rev 2 screen's tile limit. */
@@ -65,6 +66,32 @@ export function describeAction(action: Action, keymap?: Keymap): string {
 
 export function actionLabel(action: Action, keymap: Keymap): string {
   return action.label || describeAction(action, keymap);
+}
+
+/** What a key's cap shows, in the designer and the overlay alike. */
+export interface KeyFace {
+  label: string;
+  kind: ActionKind | "plugin";
+  /** App keys: the installed app, when it is found. */
+  app?: InstalledApp;
+  /** Shortcut keys: the keys, as symbols ("⇧ ⌘ P"). */
+  shortcut?: string;
+}
+
+export function keyFace(
+  action: Action,
+  keymap: Keymap,
+  apps: readonly InstalledApp[] | null,
+): KeyFace {
+  return {
+    label: actionLabel(action, keymap),
+    kind: actionKind(action),
+    ...(action.action === "launch_app" &&
+      apps && { app: findApp(apps, action) }),
+    ...(action.action === "shortcut" && {
+      shortcut: formatShortcut(action.keys).join(" "),
+    }),
+  };
 }
 
 export interface ActionExecutedEvent {
