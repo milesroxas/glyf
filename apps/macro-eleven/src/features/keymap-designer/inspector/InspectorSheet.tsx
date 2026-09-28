@@ -31,37 +31,42 @@ export function InspectorSheet() {
   };
 
   return (
-    <AnimatePresence>
-      {selected && (
-        <motion.div
-          ref={sheet}
-          key="inspector-sheet"
-          role="dialog"
-          aria-label="Key inspector"
-          initial={{ y: "100%" }}
-          animate={{ y: 0, transition: SPRING }}
-          exit={{ y: "100%", transition: SPRING_MOMENTUM }}
-          drag="y"
-          dragListener={false}
-          dragControls={controls}
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={{ top: 0.08, bottom: 1 }}
-          dragMomentum={false}
-          dragTransition={{ bounceStiffness: 400, bounceDamping: 32 }}
-          onDragEnd={onDragEnd}
-          className="material-raised absolute inset-x-0 bottom-0 z-20 flex max-h-[55%] flex-col rounded-t-2xl border-t shadow-[0_-12px_32px_-12px_oklch(0_0_0/0.6)]"
-        >
-          <div
-            onPointerDown={(event) => controls.start(event)}
-            className="flex shrink-0 cursor-grab touch-none justify-center py-2.5 select-none active:cursor-grabbing"
+    // A glass panel inset from the window like the others, so its content
+    // sits on the gutter. It clips the sheet at that inset: the sheet slides
+    // out of sight there, not under the window edge.
+    <div className="pointer-events-none absolute inset-x-chrome top-0 bottom-chrome z-20 overflow-hidden">
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            ref={sheet}
+            key="inspector-sheet"
+            role="dialog"
+            aria-label="Key inspector"
+            initial={{ y: "100%" }}
+            animate={{ y: 0, transition: SPRING }}
+            exit={{ y: "100%", transition: SPRING_MOMENTUM }}
+            drag="y"
+            dragListener={false}
+            dragControls={controls}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0.08, bottom: 1 }}
+            dragMomentum={false}
+            dragTransition={{ bounceStiffness: 400, bounceDamping: 32 }}
+            onDragEnd={onDragEnd}
+            className="material-raised pointer-events-auto absolute inset-x-0 bottom-0 flex max-h-[55%] flex-col rounded-xl shadow-[inset_0_1px_0_var(--chrome-highlight),inset_0_0_0_1px_var(--chrome-edge),0_-12px_32px_-12px_var(--chrome-shadow)]"
           >
-            <span className="h-1 w-9 rounded-full bg-muted-foreground/40" />
-          </div>
-          <div className="min-h-0 flex-1">
-            <Inspector />
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            <div
+              onPointerDown={(event) => controls.start(event)}
+              className="flex shrink-0 cursor-grab touch-none justify-center py-2.5 select-none active:cursor-grabbing"
+            >
+              <span className="h-1 w-9 rounded-full bg-muted-foreground/40" />
+            </div>
+            <div className="min-h-0 flex-1">
+              <Inspector />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

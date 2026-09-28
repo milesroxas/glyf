@@ -2,7 +2,7 @@ import { Settings as Gear, PictureInPicture2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Tabs as TabsPrimitive } from "radix-ui";
 import { useEffect, useId } from "react";
-import { SPRING } from "../../shared/lib/motion";
+import { EASE_OUT, SPRING } from "../../shared/lib/motion";
 import { useStoredState } from "../../shared/lib/storage";
 import { fitSettingsWindow, setWindowTitle } from "../../shared/lib/tauri";
 import { useFitToContent } from "../../shared/lib/useFitToContent";
@@ -17,8 +17,6 @@ const PANES = [
 ] as const;
 
 type PaneId = (typeof PANES)[number]["id"];
-
-const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
 /**
  * The Settings window, as Mac apps have it: the pane's name in the title

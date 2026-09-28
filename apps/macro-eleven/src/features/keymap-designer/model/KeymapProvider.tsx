@@ -64,6 +64,12 @@ interface DesignerContextValue {
   layer: number;
   selected: MatrixPositionKey | null;
   setLayer: (layer: number) => void;
+  /** Show a layer in the designer, from anywhere in the window. */
+  showLayer: (layer: number) => void;
+  /** Bring the designer on screen, on the layer it was on. */
+  showDesigner: () => void;
+  /** The designer is on screen (not another page of the window). */
+  visible: boolean;
   select: (pos: MatrixPositionKey | null) => void;
   edit: (op: EditOp, options?: EditOptions) => void;
   undo: () => void;
@@ -110,7 +116,21 @@ export function useKeymap(): Keymap {
   return keymap;
 }
 
-export function KeymapProvider({ children }: { children: ReactNode }) {
+/**
+ * The designer's state outlives its page: the window's sidebar lists the
+ * layers on every page. `visible` says whether the designer itself is on
+ * screen; undo, press-to-select, and action toasts work only then.
+ * `showDesigner` brings it on screen when a layer is picked elsewhere.
+ */
+export function KeymapProvider({
+  children,
+  visible = true,
+  showDesigner: bringOnScreen,
+}: {
+  children: ReactNode;
+  visible?: boolean;
+  showDesigner?: () => void;
+}) {
   const state = useHistoryState();
   const { history, focus, latest, commit, navigate, reset, undo } = state;
   const [profiles, setProfiles] = useState<ProfileSummary[]>([]);
@@ -125,8 +145,8 @@ export function KeymapProvider({ children }: { children: ReactNode }) {
   const { keys: pressed, hostLayer } = useKeyEvents();
 
   // Callbacks that outlive a render read the latest values here
-  const live = useRef({ profile, profiles, hostLayer });
-  live.current = { profile, profiles, hostLayer };
+  const live = useRef({ profile, profiles, hostLayer, bringOnScreen });
+  live.current = { profile, profiles, hostLayer, bringOnScreen };
 
   const keymap = history.present?.keymap ?? null;
   const autosave = useAutosave(
@@ -138,18 +158,19 @@ export function KeymapProvider({ children }: { children: ReactNode }) {
   const retrySave = useCallback(() => {
     flush().catch(() => {}); // the error shows in the save status
   }, [flush]);
-  useActionToasts(keymap);
+  useActionToasts(keymap, visible);
 
-  // Leaving the designer writes pending edits. A failure there has no status
-  // bar left to show it, so it gets a toast that stays.
-  useEffect(
-    () => () => {
+  // Leaving the designer for another page (or closing the window) writes
+  // pending edits. A failure there has no save status left to show it, so
+  // it gets a toast that stays.
+  useEffect(() => {
+    if (!visible) return;
+    return () => {
       flush().catch((error: Error) =>
         toast.error(error.message, { duration: Number.POSITIVE_INFINITY }),
       );
-    },
-    [flush],
-  );
+    };
+  }, [visible, flush]);
 
   const load = useCallback(async () => {
     try {
@@ -222,17 +243,28 @@ export function KeymapProvider({ children }: { children: ReactNode }) {
   );
 
   // Press a key on the pad: show it on the layer the pad is on
-  useDeviceKeySelection(connected && selectByPressing, (pos) =>
+  useDeviceKeySelection(visible && connected && selectByPressing, (pos) =>
     navigate({
       layer: live.current.hostLayer ?? latest().focus.layer,
       selected: pos,
     }),
   );
 
+  const { setLayer } = state;
+  const showDesigner = useCallback(() => live.current.bringOnScreen?.(), []);
+  const showLayer = useCallback(
+    (id: number) => {
+      setLayer(id);
+      showDesigner();
+    },
+    [setLayer, showDesigner],
+  );
+
   useDesignerShortcuts({
-    undo,
-    redo: state.redo,
-    setLayer: state.setLayer,
+    // Undo acts on what is on screen; elsewhere ⌘Z is left alone
+    undo: visible ? undo : undefined,
+    redo: visible ? state.redo : undefined,
+    setLayer: showLayer,
     layerIds: () => {
       const present = latest().history.present;
       return present ? layerIds(present.keymap) : [];
@@ -274,7 +306,10 @@ export function KeymapProvider({ children }: { children: ReactNode }) {
     retryLoad: () => void load(),
     layer: focus.layer,
     selected: focus.selected,
-    setLayer: state.setLayer,
+    setLayer,
+    showLayer,
+    showDesigner,
+    visible,
     select: state.select,
     edit,
     undo,

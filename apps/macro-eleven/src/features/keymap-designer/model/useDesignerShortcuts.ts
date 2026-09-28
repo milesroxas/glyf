@@ -9,15 +9,16 @@ function isEditable(target: EventTarget | null): boolean {
 }
 
 interface Shortcuts {
-  undo: () => void;
-  redo: () => void;
-  /** Layer IDs in tab order, for ⌘1-⌘9. */
+  /** Left out, ⌘Z and ⇧⌘Z do nothing here. */
+  undo?: () => void;
+  redo?: () => void;
+  /** Layer IDs in sidebar order, for ⌘1-⌘9. */
   layerIds: () => number[];
   setLayer: (layer: number) => void;
 }
 
 /**
- * ⌘Z / ⇧⌘Z undo and redo, and ⌘1-⌘9 switch layers. Text fields keep their
+ * ⌘Z / ⇧⌘Z undo and redo, and ⌘1-⌘9 show a layer. Text fields keep their
  * own undo.
  */
 export function useDesignerShortcuts(shortcuts: Shortcuts) {
@@ -29,9 +30,10 @@ export function useDesignerShortcuts(shortcuts: Shortcuts) {
       if (!event.metaKey || event.ctrlKey || event.altKey) return;
       const { undo, redo, layerIds, setLayer } = latest.current;
       if (event.code === "KeyZ") {
-        if (isEditable(event.target)) return;
+        const run = event.shiftKey ? redo : undo;
+        if (!run || isEditable(event.target)) return;
         event.preventDefault();
-        (event.shiftKey ? redo : undo)();
+        run();
         return;
       }
       const digit = /^Digit([1-9])$/.exec(event.code)?.[1];

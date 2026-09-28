@@ -208,20 +208,8 @@
 }
 
 /* ── Materials ─────────────────────────────────────────────────────────────
-   Translucent chrome over content. Reduced transparency makes it solid. */
-@utility material {
-    background-color: color-mix(in oklab, var(--background) 72%, transparent);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    backdrop-filter: blur(20px) saturate(160%);
-
-    @media (prefers-reduced-transparency: reduce) {
-        background-color: var(--background);
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-    }
-}
-
-/* Heavier: large surfaces over busy content (the inspector sheet) */
+   Large translucent surfaces over busy content (the inspector sheet).
+   Reduced transparency makes them solid. */
 @utility material-raised {
     background-color: color-mix(in oklab, var(--card) 92%, transparent);
     -webkit-backdrop-filter: blur(30px) saturate(160%);
@@ -251,6 +239,145 @@
 :root:is([data-surface="panel"], [data-surface="overlay"]),
 :root:is([data-surface="panel"], [data-surface="overlay"]) body {
     background: transparent;
+}
+
+/* ── Window chrome ─────────────────────────────────────────────────────────
+   The designer window, drawn the macOS 26 way: the sidebar and inspector
+   are glass panels inset from the window edge, and toolbar controls are
+   glass capsules floating over the content. No divider lines; a panel's
+   edge is a hairline of light on top and a soft shadow below. */
+:root {
+    --chrome-panel: oklch(0.218 0 0 / 0.82);
+    --chrome-capsule: oklch(0.289 0 0 / 0.72);
+    --chrome-capsule-hover: oklch(0.33 0 0 / 0.76);
+    --chrome-capsule-press: oklch(0.37 0 0 / 0.8);
+    --chrome-highlight: oklch(1 0 0 / 0.09);
+    --chrome-edge: oklch(1 0 0 / 0.06);
+    --chrome-shadow: oklch(0 0 0 / 0.6);
+    /* Rows and wells on a panel */
+    --chrome-well: oklch(1 0 0 / 0.05);
+    --chrome-hover: oklch(1 0 0 / 0.05);
+    --chrome-selection: oklch(1 0 0 / 0.12);
+}
+
+/* Where the chrome sits. `trafficLightPosition` in tauri.conf.json follows
+   these. Its x is 18: the sidebar's inset plus its 10 px padding, so the
+   window buttons line up with the sidebar's rows. Its y is half
+   `--spacing-toolbar` plus 2, because the host draws the buttons' centres
+   2 pt above y (measured on macOS 26); they centre on the toolbar, level
+   with its title and capsules. */
+@theme {
+    /* The glass panels' inset from the window edge */
+    --spacing-chrome: 8px;
+    /* The content column's side margin: toolbar, pages, and the inspector's
+       content all start and end on it */
+    --spacing-gutter: 24px;
+    /* The toolbar strip; content and the inspector start below it */
+    --spacing-toolbar: 52px;
+}
+
+@utility glass-panel {
+    background-color: var(--chrome-panel);
+    box-shadow:
+        inset 0 1px 0 var(--chrome-highlight),
+        0 0 0 1px var(--chrome-edge),
+        0 16px 32px -16px var(--chrome-shadow);
+
+    @media (prefers-reduced-transparency: reduce) {
+        background-color: var(--card);
+    }
+}
+
+/* Content scrolls under capsules, so they blur what passes beneath */
+@utility glass-capsule {
+    background-color: var(--chrome-capsule);
+    box-shadow:
+        inset 0 1px 0 oklch(1 0 0 / 0.1),
+        0 0 0 1px oklch(1 0 0 / 0.07),
+        0 6px 16px -6px var(--chrome-shadow);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
+
+    @media (prefers-reduced-transparency: reduce) {
+        background-color: var(--secondary);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
+
+/* ── Scroll edges ──────────────────────────────────────────────────────────
+   A scroller fades out where more content is hidden (`data-top`,
+   `data-bottom`, from useScrollEdges). The fade grows in as scrolling
+   starts instead of snapping on. `--fade-size` sets its depth (16px);
+   `--fade-top` deepens the top alone, for a page that scrolls under the
+   toolbar. */
+@property --edge-top {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+@property --edge-bottom {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+.scroll-fade {
+    --fade-size: 16px;
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent calc(var(--edge-top) * 0.4),
+        black var(--edge-top),
+        black calc(100% - var(--edge-bottom)),
+        transparent calc(100% - var(--edge-bottom) * 0.4)
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        transparent calc(var(--edge-top) * 0.4),
+        black var(--edge-top),
+        black calc(100% - var(--edge-bottom)),
+        transparent calc(100% - var(--edge-bottom) * 0.4)
+    );
+    transition:
+        --edge-top 180ms var(--ease-out),
+        --edge-bottom 180ms var(--ease-out);
+}
+
+.scroll-fade[data-top] {
+    --edge-top: var(--fade-top, var(--fade-size));
+}
+
+.scroll-fade[data-bottom] {
+    --edge-bottom: var(--fade-bottom, var(--fade-size));
+}
+
+/* ── Live indicator ────────────────────────────────────────────────────────
+   A green dot that sends out one ring when it lights up: the pad just
+   connected. Plays once per mount; Reduce Motion keeps the dot, no ring. */
+@keyframes live-ring {
+    from {
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(3);
+    }
+}
+
+.live-ring::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: live-ring 700ms var(--ease-out) forwards;
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+        opacity: 0;
+    }
 }
 
 /* The corners follow the window's (`CORNER_RADIUS` in shell/panel.rs) */

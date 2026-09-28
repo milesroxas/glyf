@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-26T17:35:50+00:00",
+  "generatedAt": "2026-09-26T18:30:00+00:00",
   "title": "Design System: Macro Eleven",
   "extensions": {
     "colorMeta": {
@@ -234,6 +234,56 @@
         "displayName": "Glass Press",
         "canonical": "oklch(1 0 0 / 0.16)"
       },
+      "chrome-panel": {
+        "role": "neutral",
+        "displayName": "Chrome Panel",
+        "canonical": "oklch(0.218 0 0 / 0.82)"
+      },
+      "chrome-capsule": {
+        "role": "neutral",
+        "displayName": "Chrome Capsule",
+        "canonical": "oklch(0.289 0 0 / 0.72)"
+      },
+      "chrome-capsule-hover": {
+        "role": "neutral",
+        "displayName": "Capsule Hover",
+        "canonical": "oklch(0.33 0 0 / 0.76)"
+      },
+      "chrome-capsule-press": {
+        "role": "neutral",
+        "displayName": "Capsule Press",
+        "canonical": "oklch(0.37 0 0 / 0.8)"
+      },
+      "chrome-highlight": {
+        "role": "neutral",
+        "displayName": "Chrome Highlight",
+        "canonical": "oklch(1 0 0 / 0.09)"
+      },
+      "chrome-edge": {
+        "role": "neutral",
+        "displayName": "Chrome Edge",
+        "canonical": "oklch(1 0 0 / 0.06)"
+      },
+      "chrome-shadow": {
+        "role": "neutral",
+        "displayName": "Chrome Shadow",
+        "canonical": "oklch(0 0 0 / 0.6)"
+      },
+      "chrome-well": {
+        "role": "neutral",
+        "displayName": "Chrome Well",
+        "canonical": "oklch(1 0 0 / 0.05)"
+      },
+      "chrome-hover": {
+        "role": "neutral",
+        "displayName": "Chrome Hover",
+        "canonical": "oklch(1 0 0 / 0.05)"
+      },
+      "chrome-selection": {
+        "role": "neutral",
+        "displayName": "Chrome Selection",
+        "canonical": "oklch(1 0 0 / 0.12)"
+      },
       "keycap-edge-top": {
         "role": "neutral",
         "displayName": "Bevel Light",
@@ -266,6 +316,10 @@
       }
     },
     "typographyMeta": {
+      "window-title": {
+        "displayName": "Window Title",
+        "purpose": "The layer name in the designer toolbar."
+      },
       "title": {
         "displayName": "Title",
         "purpose": "Panel name, window titles, tip heading."
@@ -276,15 +330,15 @@
       },
       "caption": {
         "displayName": "Caption",
-        "purpose": "Status, second lines of notices, pad module footer."
+        "purpose": "Status, second lines of notices, pad module footer, Follow the front app row."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Sentence-case group headings and toolbar pane names."
+        "purpose": "Sentence-case group headings (panel, settings, sidebar sections), toolbar pane names, sidebar badges."
       },
       "footnote": {
         "displayName": "Footnote",
-        "purpose": "One line of help under a settings row or group."
+        "purpose": "One line of help under a settings row or group; toolbar subtitle, profile and device status lines at 14px line height."
       },
       "shortcut": {
         "displayName": "Shortcut",
@@ -314,7 +368,7 @@
       {
         "name": "well-edge",
         "value": "inset 0 0 0 1px var(--glass-edge)",
-        "purpose": "Recessed wells on glass (pad module, first-close tip)."
+        "purpose": "Recessed wells on glass (pad module, first-close tip, pad glyph tile)."
       },
       {
         "name": "panel-solid-edge",
@@ -322,9 +376,19 @@
         "purpose": "The panel's edge when Reduce Transparency paints it solid."
       },
       {
-        "name": "material",
-        "value": "background: color-mix(in oklab, var(--background) 72%, transparent); backdrop-filter: blur(20px) saturate(160%)",
-        "purpose": "In-webview translucent chrome; opaque background under Reduce Transparency."
+        "name": "glass-panel",
+        "value": "background: var(--chrome-panel); box-shadow: inset 0 1px 0 var(--chrome-highlight), 0 0 0 1px var(--chrome-edge), 0 16px 32px -16px var(--chrome-shadow)",
+        "purpose": "Designer sidebar and inspector panels, inset 8px, 11.2px corners. No blur. Reduce Transparency: card."
+      },
+      {
+        "name": "glass-capsule",
+        "value": "background: var(--chrome-capsule); box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.1), 0 0 0 1px oklch(1 0 0 / 0.07), 0 6px 16px -6px var(--chrome-shadow); backdrop-filter: blur(16px) saturate(160%)",
+        "purpose": "Toolbar capsules; the only blurred designer chrome, since content scrolls under them. Reduce Transparency: secondary, no blur."
+      },
+      {
+        "name": "row-lift",
+        "value": "0 10px 24px -10px var(--chrome-shadow)",
+        "purpose": "A layer row while dragged (with scale 1.02)."
       },
       {
         "name": "material-raised",
@@ -356,7 +420,7 @@
       {
         "name": "spring",
         "value": "spring, bounce 0, duration 300ms",
-        "purpose": "Interruptible UI: selection ring, tab and segment indicators, sheets."
+        "purpose": "Interruptible UI: Settings pane and segment indicators, sheets, sidebar section collapse, new layer rows (from x -6px), the live dot glide."
       },
       {
         "name": "spring-momentum",
@@ -366,7 +430,42 @@
       {
         "name": "crossfade",
         "value": "opacity 150ms ease-out",
-        "purpose": "Content swaps in place; layer-change legends."
+        "purpose": "Content swaps in place; layer-change legends; page switches (exit 100ms); toolbar title in and out."
+      },
+      {
+        "name": "label-swap",
+        "value": "opacity 0 and blur(2px) to rest and back, crossfade timing",
+        "purpose": "A short status label changing in place: connection, firmware percentage, toolbar subtitle."
+      },
+      {
+        "name": "pop",
+        "value": "opacity 0 and scale 0.6 to rest and back, crossfade timing",
+        "purpose": "Small marks that come and go: firmware badge, live dot."
+      },
+      {
+        "name": "live-dot-glide",
+        "value": "shared layout (layoutId live-layer) on spring",
+        "purpose": "The one authored moment: the live dot moves between layer rows when the pad changes layer."
+      },
+      {
+        "name": "sidebar-selection",
+        "value": "none (instant)",
+        "purpose": "Sidebar row selection follows clicks and ⌘-number at once, as in a Mac source list."
+      },
+      {
+        "name": "chrome-press",
+        "value": "scale 0.97 capsules, 0.98 profile well, 0.92 heading actions; 150ms ease-out",
+        "purpose": "Press feedback in the designer chrome."
+      },
+      {
+        "name": "scroll-edge",
+        "value": "mask edge --edge-top/--edge-bottom 0 to --fade-size (16px) over 180ms ease-out; --fade-top deepens the top",
+        "purpose": "A scroller fades where more content is hidden; the fade grows in as scrolling starts."
+      },
+      {
+        "name": "live-ring",
+        "value": "one ring from the dot, opacity 0.7 to 0 and scale 1 to 3, 700ms ease-out",
+        "purpose": "The pad just connected (device well). Reduce Motion: dot only."
       },
       {
         "name": "pop-in",
@@ -417,7 +516,7 @@
     "breakpoints": [
       {
         "name": "designer-inspector-beside",
-        "value": "760px of content"
+        "value": "720px of content"
       }
     ]
   },
@@ -485,15 +584,31 @@
       "description": "The one committing action on a designer page.",
       "html": "<button class=\"ds-btn-primary\">Install Update</button>",
       "css": ".ds-btn-primary{height:36px;padding:8px 16px;border:0;border-radius:5.2px;background:oklch(0.7 0.15 162);color:oklch(0.26 0.05 173);font:500 14px 'Inter Variable',sans-serif;transition:background 150ms} .ds-btn-primary:hover{background:color-mix(in oklab,oklch(0.7 0.15 162) 90%,transparent)} .ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.556 0 0 / 0.5)}"
+    },
+    {
+      "name": "Sidebar",
+      "kind": "nav",
+      "refersTo": "sidebar-panel",
+      "description": "Designer glass sidebar: profile well, a collapsible Layers section with the live dot, and the device well.",
+      "html": "<aside class=\"ds-side\"><div class=\"ds-prof\"><span class=\"ds-glyph\"></span><span class=\"ds-prof-t\"><b>Default</b><small>Profile · 3 layers</small></span></div><div class=\"ds-sec\">Layers</div><button class=\"ds-srow ds-srow-on\"><span class=\"ds-ico\"></span><span class=\"ds-lab\">Base</span><span class=\"ds-lane\"><i class=\"ds-dot\"></i></span><kbd class=\"ds-k\">⌘1</kbd></button><button class=\"ds-srow\"><span class=\"ds-ico\"></span><span class=\"ds-lab\">Figma</span><span class=\"ds-lane\"></span><kbd class=\"ds-k\">⌘2</kbd></button><button class=\"ds-srow\"><span class=\"ds-ico\"></span><span class=\"ds-lab\">Firmware</span><span class=\"ds-badge\">Update</span></button><div class=\"ds-card\"><span class=\"ds-glyph\"></span><span class=\"ds-prof-t\"><b class=\"ds-card-n\">Macro Eleven</b><small><i class=\"ds-dot\"></i> Connected</small></span></div></aside>",
+      "css": ".ds-side{width:232px;padding:44px 10px 10px;border-radius:11.2px;background:oklch(0.218 0 0 / 0.82);box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.09),0 0 0 1px oklch(1 0 0 / 0.06),0 16px 32px -16px oklch(0 0 0 / 0.6);color:oklch(0.985 0 0);font-family:'Inter Variable',sans-serif} .ds-prof{display:flex;align-items:center;gap:10px;height:48px;padding:0 8px 0 10px;border-radius:10px;background:oklch(1 0 0 / 0.05)} .ds-glyph{width:30px;height:30px;flex-shrink:0;border-radius:7.2px;background:oklch(0.145 0 0);box-shadow:inset 0 0 0 1px oklch(1 0 0 / 0.1)} .ds-prof-t{display:flex;flex-direction:column;gap:1px;min-width:0} .ds-prof-t b{font:600 13px/17px 'Inter Variable',sans-serif} .ds-prof-t small{display:flex;align-items:center;gap:5px;font:400 11px/14px 'Inter Variable',sans-serif;color:oklch(0.985 0 0 / 0.6)} .ds-sec{display:flex;align-items:center;height:22px;margin-top:18px;padding-left:10px;font:600 11px 'Inter Variable',sans-serif;color:oklch(0.985 0 0 / 0.5)} .ds-srow{display:flex;align-items:center;gap:8px;width:100%;height:28px;margin-top:1px;padding:0 8px 0 10px;border:0;border-radius:7px;background:transparent;color:inherit;font:400 13px/18px 'Inter Variable',sans-serif;text-align:left} .ds-srow:hover{background:oklch(1 0 0 / 0.05)} .ds-srow-on,.ds-srow-on:hover{background:oklch(1 0 0 / 0.12)} .ds-ico{width:16px;height:16px;flex-shrink:0;border-radius:4px;background:oklch(0.985 0 0 / 0.3)} .ds-lab{flex:1;min-width:0} .ds-lane{display:flex;justify-content:center;width:10px} .ds-dot{display:block;width:6px;height:6px;border-radius:50%;background:oklch(0.7 0.15 162)} .ds-k{width:22px;text-align:right;font:400 12px 'Inter Variable',sans-serif;letter-spacing:0.08em;color:oklch(0.985 0 0 / 0.45)} .ds-badge{display:flex;align-items:center;height:18px;padding:0 7px;border-radius:9999px;background:oklch(1 0 0 / 0.12);font:500 11px 'Inter Variable',sans-serif;color:oklch(0.985 0 0 / 0.85)} .ds-card{display:flex;align-items:center;gap:10px;height:48px;margin-top:16px;padding:0 8px 0 10px;border-radius:10px;background:oklch(1 0 0 / 0.05)} .ds-card-n{font:600 13px/17px 'Inter Variable',sans-serif!important}"
+    },
+    {
+      "name": "Toolbar Capsules",
+      "kind": "button",
+      "refersTo": "toolbar-capsule",
+      "description": "Designer toolbar: layer title and subtitle, the undo and redo capsule, the Overlay capsule.",
+      "html": "<header class=\"ds-tb\"><div class=\"ds-tt\"><button class=\"ds-title\">Figma <span class=\"ds-chev\">⌄</span></button><p class=\"ds-sub\"><i class=\"ds-dot\"></i> With Figma in front · Live on the pad</p></div><div class=\"ds-grp\"><button class=\"ds-ib\" aria-label=\"Undo\">↶</button><button class=\"ds-ib\" aria-label=\"Redo\" aria-disabled=\"true\">↷</button></div><button class=\"ds-cap\">Overlay</button></header>",
+      "css": ".ds-tb{display:flex;align-items:center;gap:8px;width:560px;height:52px;padding:0 24px;background:oklch(0.145 0 0);color:oklch(0.985 0 0);font-family:'Inter Variable',sans-serif} .ds-tt{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px} .ds-title{align-self:flex-start;display:flex;align-items:center;gap:4px;margin:0 -6px;padding:0 6px;border:0;border-radius:5.2px;background:transparent;color:inherit;font:600 15px/19px 'Inter Variable',sans-serif;letter-spacing:-0.01em} .ds-title:hover{background:oklch(1 0 0 / 0.1)} .ds-chev{font-size:12px;color:oklch(0.708 0 0)} .ds-sub{display:flex;align-items:center;gap:5px;margin:0;font:400 11px/14px 'Inter Variable',sans-serif;color:oklch(0.708 0 0)} .ds-dot{display:block;width:6px;height:6px;border-radius:50%;background:oklch(0.7 0.15 162)} .ds-grp,.ds-cap{height:34px;border-radius:9999px;background:oklch(0.289 0 0 / 0.72);box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.1),0 0 0 1px oklch(1 0 0 / 0.07),0 6px 16px -6px oklch(0 0 0 / 0.6);backdrop-filter:blur(16px) saturate(160%)} .ds-grp{display:flex;align-items:center;padding:0 3px} .ds-ib{width:32px;height:28px;border:0;border-radius:9999px;background:transparent;color:oklch(0.985 0 0 / 0.9);font-size:15px;transition:background-color 150ms,scale 150ms} .ds-ib:hover{background:oklch(1 0 0 / 0.1)} .ds-ib:active{background:oklch(1 0 0 / 0.16);scale:0.97} .ds-ib[aria-disabled=true]{color:oklch(0.985 0 0 / 0.35);background:transparent} .ds-cap{padding:0 14px 0 12px;border:0;color:oklch(0.985 0 0 / 0.9);font:500 13px 'Inter Variable',sans-serif;transition:background-color 150ms,scale 150ms} .ds-cap:hover{background:oklch(0.33 0 0 / 0.76)} .ds-cap:active{background:oklch(0.37 0 0 / 0.8);scale:0.97}"
     }
   ],
   "narrative": {
     "northStar": "The Pad on the Desk",
-    "overview": "Macro Eleven is a dark Mac app whose one real object is the pad. The same drawing of it (keycaps on a chassis, sized from one length) appears in the designer, the overlay, Diagnostics, and the menu bar panel, and everything around it behaves like macOS: a menu bar extra, a Settings window with toolbar panes, grouped rows, native fades. The chrome stays quiet and neutral so the keys, and the moment one lights under your finger, carry the screen.\n\nTwo materials meet here. Floating functional layers (the menu bar panel, the overlay background) are native glass drawn by macOS; the pad and its keycaps are solid, lit-from-above objects that sit on that glass as content. Density is Mac-menu density: 13 px text, 26 px rows, hairline separators. Code map and window behavior live in [CLAUDE.md](CLAUDE.md#ui); product principles in [PRODUCT.md](PRODUCT.md).",
+    "overview": "Macro Eleven is a dark Mac app whose one real object is the pad. The same drawing of it (keycaps on a chassis, sized from one length) appears in the designer, the overlay, Diagnostics, and the menu bar panel, and everything around it behaves like macOS: a menu bar extra, a Settings window with toolbar panes, grouped rows, native fades. The designer window is drawn the macOS 26 way: a glass sidebar and inspector inset from the window edge, toolbar controls as glass capsules floating over the content. The chrome stays quiet and neutral so the keys, and the moment one lights under your finger, carry the screen.\n\nTwo materials meet here. Floating functional layers (the menu bar panel, the overlay background) are native glass drawn by macOS, and the designer window's panels and capsules are the webview's own drawing of that glass; the pad and its keycaps are solid, lit-from-above objects that sit on it as content. Density is Mac-menu density: 13 px text, 26 px rows, hairline separators. Code map and window behavior live in [CLAUDE.md](CLAUDE.md#ui); product principles in [PRODUCT.md](PRODUCT.md).",
     "keyCharacteristics": [
       "Dark only (`dark` class on every window); neutral greys with zero chroma.",
       "One green accent, hue 162 to 163, that always means state.",
-      "Native Liquid Glass for floating layers, solid chassis everywhere else; Reduce Transparency turns glass solid.",
+      "Native Liquid Glass for floating layers, drawn glass panels and capsules for the designer window's chrome, solid chassis everywhere else; Reduce Transparency turns glass solid.",
       "One pad look, scaled from `--key`.",
       "Springs for interruptible motion, short ease-out fades for everything else, native window fades on the host."
     ],
@@ -510,7 +625,7 @@
       },
       {
         "name": "The Tint, Not Glass Rule",
-        "body": "On a glass window, wells and hover fills are tints (glass-well, glass-hover, glass-press). Never stack a second blurred layer on native glass.",
+        "body": "On a glass window or glass panel, wells and hover fills are tints (glass-well, glass-hover, glass-press, chrome-well, chrome-hover, chrome-selection). Never stack a second blurred layer on glass.",
         "section": "colors"
       },
       {
@@ -519,13 +634,23 @@
         "section": "typography"
       },
       {
+        "name": "The Inset Chrome Rule",
+        "body": "Designer panels float 8 px in from the window edge and each other; they never run edge to edge or share a divider with the content. Nothing floats over a panel's edge: a control either sits inside a panel's padding or clear of it.",
+        "section": "layout"
+      },
+      {
         "name": "The One Length Rule",
         "body": "Every pad dimension derives from `--key`. Never size a keycap, gap, or legend in fixed pixels.",
         "section": "layout"
       },
       {
         "name": "The Lit Key Rule",
-        "body": "Only a pressed keycap glows. Status dots, pips, and switches are flat color.",
+        "body": "Only a pressed keycap glows. Status dots, pips, and switches are flat color; the connect ring is one fading pulse on arrival, never a resting glow.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Lit Edge Rule",
+        "body": "In the designer window, no divider lines: a panel's edge is a hairline of light on top and a soft shadow below.",
         "section": "elevation"
       }
     ],
@@ -534,11 +659,14 @@
       "**Do** draw the pad with `MacropadGrid`, `Keycap`, and `pad.css`, sized by `--key` alone.",
       "**Do** keep text on glass at full strength and step secondary text down with foreground opacity.",
       "**Do** give every glass surface its solid fallback for Reduce Transparency, and every motion a Reduce Motion path (fade only or none).",
+      "**Do** build designer chrome from the glass panel and capsule utilities and the sidebar and toolbar parts in `shared/ui/`, inset 8 px from the window.",
+      "**Do** keep sidebar selection instant; save motion for the live dot and for things that appear.",
       "**Do** use 16 px drawn icons in notice rows, colored by meaning (Caution Amber for warnings, foreground at 70% for neutral news)."
     ],
     "donts": [
       "**Don't** use green for anything that is not state: no green tips, banners, or decoration.",
-      "**Don't** add a glow outside the pressed keycap; status dots stay flat.",
+      "**Don't** add a glow outside the pressed keycap; status dots stay flat (the connect ring plays once and is gone).",
+      "**Don't** draw divider lines in the designer window's chrome; panels separate by inset, light edge, and shadow.",
       "**Don't** layer a blurred material on top of native glass; use the glass tints.",
       "**Don't** set labels in uppercase with wide tracking; headings are sentence case at 11 px semibold.",
       "**Don't** use raw colors; every color comes from the tokens in `src/app/App.css`."

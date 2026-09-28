@@ -22,7 +22,7 @@ import {
   layerName,
   type MatrixPositionKey,
 } from "../../../entities/keymap";
-import { CROSSFADE } from "../../../shared/lib/motion";
+import { FADE } from "../../../shared/lib/motion";
 import { Button } from "../../../shared/ui/button";
 import { Input } from "../../../shared/ui/input";
 import { Segmented } from "../../../shared/ui/segmented";
@@ -49,14 +49,7 @@ function Crossfade({
 }) {
   return (
     <AnimatePresence mode="popLayout" initial={false}>
-      <motion.div
-        key={id}
-        className={className}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={CROSSFADE}
-      >
+      <motion.div key={id} className={className} {...FADE}>
         {children}
       </motion.div>
     </AnimatePresence>
@@ -201,7 +194,9 @@ export function Inspector() {
         className={selected ? undefined : "h-full"}
       >
         {selected ? (
-          <div className="grid gap-5 p-5">
+          // 16 px in from the panel, which sits 8 px in from the window:
+          // its content ends on the gutter, under the toolbar's capsules
+          <div className="grid gap-5 p-4">
             <header className="grid gap-0.5">
               <p className="text-xs text-muted-foreground">
                 {layerName(keymap, layer)} › Key {keyNumber(selected)}

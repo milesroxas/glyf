@@ -5,6 +5,7 @@ import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 import type { FirmwareStatus } from "../../entities/firmware";
 import type { Backdrop } from "../../entities/settings";
 import { unlistenAll } from "../../shared/lib/listeners";
+import { EASE_OUT } from "../../shared/lib/motion";
 import {
   fitPanel,
   getBackdrop,
@@ -33,7 +34,7 @@ import { PanelRow, PanelSeparator } from "./PanelRow";
 import { ProfileSection } from "./ProfileSection";
 
 /** Strong ease-out (`--ease-out`). */
-const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
+const EASE_OUT_CSS = "cubic-bezier(0.23, 1, 0.32, 1)";
 
 /** Arrow keys move between items, as in a menu. */
 function moveFocus(event: KeyboardEvent<HTMLElement>) {
@@ -107,7 +108,7 @@ export function PanelView() {
               { transform: "translateY(-6px) scale(0.985)" },
               { transform: "none" },
             ],
-            { duration: 260, easing: EASE_OUT },
+            { duration: 260, easing: EASE_OUT_CSS },
           );
         }
       }),
@@ -180,7 +181,7 @@ export function PanelView() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+            transition={{ duration: 0.22, ease: EASE_OUT }}
             className="overflow-hidden px-0.5"
           >
             <CloseTip onDone={() => setTip(false)} />

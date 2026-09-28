@@ -22,9 +22,25 @@ colors:
   glass-edge: "oklch(1 0 0 / 0.1)"
   glass-hover: "oklch(1 0 0 / 0.1)"
   glass-press: "oklch(1 0 0 / 0.16)"
+  chrome-panel: "oklch(0.218 0 0 / 0.82)"
+  chrome-capsule: "oklch(0.289 0 0 / 0.72)"
+  chrome-capsule-hover: "oklch(0.33 0 0 / 0.76)"
+  chrome-capsule-press: "oklch(0.37 0 0 / 0.8)"
+  chrome-highlight: "oklch(1 0 0 / 0.09)"
+  chrome-edge: "oklch(1 0 0 / 0.06)"
+  chrome-shadow: "oklch(0 0 0 / 0.6)"
+  chrome-well: "oklch(1 0 0 / 0.05)"
+  chrome-hover: "oklch(1 0 0 / 0.05)"
+  chrome-selection: "oklch(1 0 0 / 0.12)"
   keycap-edge-top: "oklch(0.36 0 0)"
   keycap-edge-bottom: "oklch(0.2 0 0)"
 typography:
+  window-title:
+    fontFamily: "Inter Variable, sans-serif"
+    fontSize: "15px"
+    fontWeight: 600
+    lineHeight: "19px"
+    letterSpacing: "-0.01em"
   title:
     fontFamily: "Inter Variable, sans-serif"
     fontSize: "13px"
@@ -68,6 +84,7 @@ rounded:
   lg: "7.2px"
   xl: "11.2px"
   row: "7px"
+  sidebar-well: "10px"
   group: "10px"
   tip-well: "12px"
   pad-well: "14px"
@@ -76,6 +93,10 @@ rounded:
   full: "9999px"
 spacing:
   panel-inset: "6px"
+  chrome-inset: "8px"
+  gutter: "24px"
+  sidebar-row-height: "28px"
+  toolbar-height: "52px"
   row-inline: "10px"
   row-height: "26px"
   group-gap: "6px"
@@ -165,6 +186,75 @@ components:
     rounded: "{rounded.md}"
     height: "24px"
     padding: "0 10px"
+  sidebar-panel:
+    backgroundColor: "{colors.chrome-panel}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.xl}"
+    padding: "44px 10px 10px"
+    width: "232px"
+  sidebar-row:
+    textColor: "{colors.foreground}"
+    typography: "{typography.body}"
+    rounded: "{rounded.row}"
+    padding: "0 8px 0 10px"
+    height: "{spacing.sidebar-row-height}"
+  sidebar-row-hover:
+    backgroundColor: "{colors.chrome-hover}"
+  sidebar-row-selected:
+    backgroundColor: "{colors.chrome-selection}"
+  sidebar-badge:
+    backgroundColor: "{colors.chrome-selection}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.full}"
+    padding: "0 7px"
+    height: "18px"
+  sidebar-well:
+    backgroundColor: "{colors.chrome-well}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.sidebar-well}"
+    padding: "0 8px 0 10px"
+    height: "48px"
+  sidebar-well-hover:
+    backgroundColor: "{colors.glass-hover}"
+  sidebar-well-open:
+    backgroundColor: "{colors.chrome-selection}"
+  toolbar:
+    height: "{spacing.toolbar-height}"
+    padding: "0 {spacing.gutter}"
+  toolbar-title:
+    textColor: "{colors.foreground}"
+    typography: "{typography.window-title}"
+    rounded: "{rounded.md}"
+  toolbar-capsule:
+    backgroundColor: "{colors.chrome-capsule}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.full}"
+    padding: "0 14px 0 12px"
+    height: "34px"
+  toolbar-capsule-hover:
+    backgroundColor: "{colors.chrome-capsule-hover}"
+  toolbar-capsule-press:
+    backgroundColor: "{colors.chrome-capsule-press}"
+  toolbar-group:
+    backgroundColor: "{colors.chrome-capsule}"
+    rounded: "{rounded.full}"
+    padding: "0 3px"
+    height: "34px"
+  toolbar-button:
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.full}"
+    width: "32px"
+    height: "28px"
+  toolbar-button-hover:
+    backgroundColor: "{colors.glass-hover}"
+  toolbar-button-press:
+    backgroundColor: "{colors.glass-press}"
+  inspector-panel:
+    backgroundColor: "{colors.chrome-panel}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.xl}"
+    padding: "16px"
+    width: "288px"
   keycap:
     backgroundColor: "{colors.card}"
     textColor: "{colors.foreground}"
@@ -179,14 +269,14 @@ components:
 
 **Creative North Star: "The Pad on the Desk"**
 
-Macro Eleven is a dark Mac app whose one real object is the pad. The same drawing of it (keycaps on a chassis, sized from one length) appears in the designer, the overlay, Diagnostics, and the menu bar panel, and everything around it behaves like macOS: a menu bar extra, a Settings window with toolbar panes, grouped rows, native fades. The chrome stays quiet and neutral so the keys, and the moment one lights under your finger, carry the screen.
+Macro Eleven is a dark Mac app whose one real object is the pad. The same drawing of it (keycaps on a chassis, sized from one length) appears in the designer, the overlay, Diagnostics, and the menu bar panel, and everything around it behaves like macOS: a menu bar extra, a Settings window with toolbar panes, grouped rows, native fades. The designer window is drawn the macOS 26 way: a glass sidebar and inspector inset from the window edge, toolbar controls as glass capsules floating over the content. The chrome stays quiet and neutral so the keys, and the moment one lights under your finger, carry the screen.
 
-Two materials meet here. Floating functional layers (the menu bar panel, the overlay background) are native glass drawn by macOS; the pad and its keycaps are solid, lit-from-above objects that sit on that glass as content. Density is Mac-menu density: 13 px text, 26 px rows, hairline separators. Code map and window behavior live in [CLAUDE.md](CLAUDE.md#ui); product principles in [PRODUCT.md](PRODUCT.md).
+Two materials meet here. Floating functional layers (the menu bar panel, the overlay background) are native glass drawn by macOS, and the designer window's panels and capsules are the webview's own drawing of that glass; the pad and its keycaps are solid, lit-from-above objects that sit on it as content. Density is Mac-menu density: 13 px text, 26 px rows, hairline separators. Code map and window behavior live in [CLAUDE.md](CLAUDE.md#ui); product principles in [PRODUCT.md](PRODUCT.md).
 
 **Key Characteristics:**
 - Dark only (`dark` class on every window); neutral greys with zero chroma.
 - One green accent, hue 162 to 163, that always means state.
-- Native Liquid Glass for floating layers, solid chassis everywhere else; Reduce Transparency turns glass solid.
+- Native Liquid Glass for floating layers, drawn glass panels and capsules for the designer window's chrome, solid chassis everywhere else; Reduce Transparency turns glass solid.
 - One pad look, scaled from `--key`.
 - Springs for interruptible motion, short ease-out fades for everything else, native window fades on the host.
 
@@ -194,7 +284,15 @@ Two materials meet here. Floating functional layers (the menu bar panel, the ove
 
 Springs for anything the user can interrupt; short ease-out fades for everything that simply appears. The shared curve is a strong ease-out (`cubic-bezier(0.23, 1, 0.32, 1)`), the same on the web side and in AppKit. Exits are shorter than entrances. Exact values are in the sidecar; code in `shared/lib/motion.ts`, `App.css`, and `src-tauri/src/shell/`.
 
-- **Default spring:** no bounce, 300 ms; selection indicators, tab indicator, sheets. Momentum spring (0.2 bounce, 400 ms) only after a drag or throw.
+- **Default spring:** no bounce, 300 ms; selection indicators (Settings toolbar panes, segmented choice), sheets, sidebar sections collapsing and opening (height and opacity), a new layer row easing in from 6 px left. Momentum spring (0.2 bounce, 400 ms) only after a drag or throw.
+- **The authored moment:** when the pad changes layer on its own, the green live dot glides from one layer row to the next on the default spring. It is the one thing in the sidebar that moves by itself; everything else in the chrome stays still or fades.
+- **Sidebar selection:** instant, no animation, as in a Mac source list; it follows clicks and ⌘-number dozens of times a day.
+- **Label swap:** a short status label that changes in place (connection, save, firmware percentage, the toolbar subtitle) crossfades through a 2 px blur so it reads as one label changing.
+- **Pop:** small marks that come and go (the firmware badge, the live dot) scale from 60% with the crossfade; small things start further from full size than large ones.
+- **Page switches:** the outgoing page fades out in 100 ms while the new one crossfades in over 150 ms.
+- **Presses:** capsules give to 97%, the profile well to 98%, sidebar heading actions to 92%, all 150 ms ease-out. A dragged layer row lifts to 102% with a soft shadow.
+- **Scroll edges:** a scroller's faded edge grows in over 180 ms as scrolling starts instead of snapping on.
+- **Connect ring:** when the pad connects, its dot sends out one ring (to 3× and transparent, 700 ms); Reduce Motion keeps the dot and drops the ring.
 - **Floating surfaces:** fade and scale from 96%, 160 ms in, 110 ms out, anchored at the trigger. Reduce Motion keeps the fade and drops the scale.
 - **Content swaps:** opacity only, 150 ms; Settings panes fade in over 180 ms after 40 ms and out in 100 ms while the native window resizes over 240 ms with its top edge still.
 - **Native windows:** the panel fades in over 120 ms and out over 100 ms while its content settles 6 px toward the icon (260 ms); the idle overlay fades to 35% over 600 ms and returns in 120 ms; Reset position and size glides the overlay home in 350 ms.
@@ -206,7 +304,7 @@ Springs for anything the user can interrupt; short ease-out fades for everything
 A zero-chroma dark neutral ramp with a single green for state and an amber for warnings.
 
 ### Primary
-- **Signal Green** (primary): the only accent. It marks state: the connected dot, the lit keycap, the active profile's check, the live layer pip, a switch or checkbox that is on, the recorder while recording, the pad glyph in the first-close tip. The primary button uses it for the one committing action on a page. Dark text on green uses **Deep Green Ink** (primary-foreground).
+- **Signal Green** (primary): the only accent. It marks state: the connected dot, the lit keycap, the active profile's check, the live layer dot and pip, the Overlay capsule's icon while the overlay is up, a switch or checkbox that is on, the recorder while recording, the pad glyph in the first-close tip. The primary button uses it for the one committing action on a page. Dark text on green uses **Deep Green Ink** (primary-foreground).
 
 ### Secondary
 - **Caution Amber** (warning): inline warnings only, such as the Accessibility notice icon in the panel. Never a fill for a whole surface.
@@ -219,12 +317,13 @@ A zero-chroma dark neutral ramp with a single green for state and an amber for w
 - **Slate** (muted) and **Ash** (muted-foreground): segmented-control track; help text, shortcut glyphs, unselected tabs.
 - **Zinc** (secondary): the secondary button fill ("Got it"). It carries a trace of hue 286 inherited from the shadcn base; treat it as neutral.
 - **Hairline** (border, 10% white) and **Field Edge** (input, 15% white): row dividers, group outlines, unchecked switch track, checkbox edge.
+- **Chrome tints** (designer window): chrome-panel is the fill of the inset sidebar and inspector panels, chrome-capsule (with its hover and press steps) the fill of toolbar capsules. chrome-highlight is the hairline of light along a panel's top, chrome-edge its 1 px outline, chrome-shadow the soft shadow beneath panels, capsules, and a lifted row. On a panel, chrome-well fills the profile well, chrome-hover highlights a row under the pointer, and chrome-selection marks the selected row, an open profile menu, and a badge.
 - **Glass tints**: glass-tint darkens the panel's glass so white text holds over bright desktops; glass-well is the recessed fill for the pad module and the tip; glass-edge is the 1 px inner outline of a well and the panel's separator; glass-hover and glass-press are row highlights.
 
 ### Named Rules
 **The Green Means State Rule.** Green appears only where something is on, live, connected, or pressed. Notices, tips, and decoration stay neutral; the first-close tip is a neutral well, green only on its pad glyph.
 
-**The Tint, Not Glass Rule.** On a glass window, wells and hover fills are tints (glass-well, glass-hover, glass-press). Never stack a second blurred layer on native glass.
+**The Tint, Not Glass Rule.** On a glass window or glass panel, wells and hover fills are tints (glass-well, glass-hover, glass-press, chrome-well, chrome-hover, chrome-selection). Never stack a second blurred layer on glass.
 
 ## Typography
 
@@ -233,11 +332,12 @@ A zero-chroma dark neutral ramp with a single green for state and an amber for w
 **Character:** System-sized, Mac-menu Inter: 13 px for anything you read or click, 12 and 11 px for what explains it. Weight, not size, makes hierarchy.
 
 ### Hierarchy
+- **Window Title** (600, 15 px, 19 px, -0.01em): the layer name in the designer toolbar, the one line that names the window's content.
 - **Title** (600, 13 px, 18 px): the panel's name, window titles, the tip's heading.
 - **Body** (400, 13 px, 18 px): panel rows, settings row labels.
-- **Caption** (400, 12 px, 16 px): connection status, second lines of panel notices, the pad module footer (layer name at 500).
-- **Label** (600, 11 px): group headings over panel sections and settings groups ("Profile", sentence case), toolbar pane names (500).
-- **Footnote** (400, 11 px, 15 px): one line of help under a settings row or group.
+- **Caption** (400, 12 px, 16 px): connection status, second lines of panel notices, the pad module footer (layer name at 500), the Follow the front app row.
+- **Label** (600, 11 px): group headings over panel sections, settings groups, and sidebar sections ("Layers", sentence case, at 50% foreground), toolbar pane names (500), sidebar badges (500).
+- **Footnote** (400, 11 px, 15 px): one line of help under a settings row or group; at 14 px line height, the toolbar subtitle and the second line of both sidebar wells.
 - **Shortcut** (400, 12 px, 0.08em tracking): key glyphs at the right of a row, as macOS menus set them.
 - **Key Legend** (500, 10 to 13 px following `--key`): labels printed on keycaps; the longest word shrinks the label to fit, down to 9 px, then it hyphenates.
 
@@ -250,27 +350,43 @@ The panel is 320 pt wide, 6 px inner inset, and sizes its height to its content.
 
 Settings is 560 pt wide. Header: a 28 px title bar showing the pane's name, then a centered toolbar of 72 × 48 px pane buttons (icon over label). Panes pad 24 px at the sides, 20 px top, 24 px bottom. Groups stack with a heading 6 px above and a footnote 6 px below. A row is label and help on the left, control on the right, 24 px gap, 10 px vertical padding; hairlines start at the text.
 
+The designer window (overlay title bar) is a 232 px glass sidebar inset 8 px from the window edge and a content column with a 52 px toolbar floating over its top. The chrome geometry lives in three tokens in `App.css`: `--spacing-chrome` (8 px panel inset), `--spacing-toolbar` (52 px), and `--spacing-gutter` (24 px).
+
+- **Window buttons** sit at 18, 28 in `tauri.conf.json`. Their left edge lines up with the sidebar's rows and wells (8 px inset plus 10 px padding). Their centre sits on the toolbar's centre line, level with the title and the capsules.
+- **Sidebar:** its top strip holds the window buttons and drags the window. Its content starts where the toolbar ends: the 48 px profile well, a scrolling middle with the Layers and Device sections (28 px rows, 1 px apart, 16 px between sections), and the device well at the foot. Both wells are the same tile; their pad glyphs line up with the rows' icons.
+- **Toolbar:** content-column gutter on both sides. Layer title and subtitle at the start, then save status, the undo and redo capsule, and the Overlay capsule, 8 px apart. Its empty space drags the window too.
+- **Content** starts below the toolbar, so nothing sits under it at rest; scrolling pages fade out beneath it. Pages keep the same 24 px gutter, so page content ends under the capsules.
+- **Inspector:** a 288 px glass panel that starts below the toolbar (level with the profile well) and sits 8 px in from the window's right and bottom. Its 16 px padding puts its content on the gutter, under the capsules; nothing floats over it. The pad and its footer centre on the panel.
+- **Inspector sheet** (too little room for the panel): a glass panel 8 px in from the content column's sides and the window foot, so its content also sits on the gutter. It slides out of sight at that inset.
+
 The pad is laid out from one length, `--key`: gaps 0.1 key, chassis inset 0.22 key, cap corners 0.12 key. Hosts only choose `--key` (the overlay fits it to its window, the panel to its width). Window sizes and the designer's breakpoints are in [CLAUDE.md](CLAUDE.md#ui).
+
+**The Inset Chrome Rule.** Designer panels float 8 px in from the window edge and each other; they never run edge to edge or share a divider with the content. Nothing floats over a panel's edge: a control either sits inside a panel's padding or clear of it.
 
 **The One Length Rule.** Every pad dimension derives from `--key`. Never size a keycap, gap, or legend in fixed pixels.
 
 ## Elevation & Depth
 
-Depth comes from material first and shadow second. Native glass (Liquid Glass on macOS 26, HUD vibrancy before) floats the panel and overlay; the page on top of it paints only tints. In-webview floating chrome uses the `material` utility (72% background, 20 px blur, 160% saturate) or `material-raised` (92% card, 30 px blur) for large sheets. Both fall back to opaque color under Reduce Transparency, and the host draws no glass then either: the panel paints popover with a 1 px border inset, the overlay paints the chassis gradient.
+Depth comes from material first and shadow second. Native glass (Liquid Glass on macOS 26, HUD vibrancy before) floats the panel and overlay; the page on top of it paints only tints. In the designer window, the sidebar and inspector are drawn glass panels (chrome-panel fill, no blur) lifted by light and shadow, and toolbar capsules are the one blurred chrome (16 px blur, 160% saturate) because content scrolls beneath them. The inspector sheet uses `material-raised` (92% card, 30 px blur). Under Reduce Transparency, panels paint Graphite and capsules paint Zinc with no blur. Both fall back to opaque color under Reduce Transparency, and the host draws no glass then either: the panel paints popover with a 1 px border inset, the overlay paints the chassis gradient.
 
-Shadows belong to physical objects. The keycap is lit from above with a bevel gradient edge; the chassis casts one long soft shadow. Chrome controls use only shadcn's hairline `shadow-xs`/`shadow-sm` (switch thumb, selected segment).
+Shadows belong to physical objects. The keycap is lit from above with a bevel gradient edge; the chassis casts one long soft shadow. Chrome panels and capsules carry a lit edge rather than a divider: a 1 px top highlight, a 1 px outline, and one soft shadow below. Other chrome controls use only shadcn's hairline `shadow-xs`/`shadow-sm` (switch thumb, selected segment).
 
 ### Shadow Vocabulary
 - **Keycap rest** (`0 1px 1px oklch(0 0 0 / 0.35), 0 6px 12px -4px oklch(0 0 0 / 0.45), inset 0 1px 0 oklch(1 0 0 / 0.07)`): every key at rest.
 - **Keycap lit** (`0 0 0 1px primary at 60%, 0 2px 10px -2px primary at 45%`): a key that is physically held. The only glow in the system.
 - **Chassis** (`0 24px 48px -24px oklch(0 0 0 / 0.7), inset 0 1px 0 oklch(1 0 0 / 0.05)`): the pad plate.
-- **Well edge** (`inset 0 0 0 1px glass-edge`): recessed wells on glass.
+- **Well edge** (`inset 0 0 0 1px glass-edge`): recessed wells on glass, the pad glyph tile.
+- **Glass panel** (`inset 0 1px 0 chrome-highlight, 0 0 0 1px chrome-edge, 0 16px 32px -16px chrome-shadow`): the sidebar and inspector panels.
+- **Glass capsule** (`inset 0 1px 0 oklch(1 0 0 / 0.1), 0 0 0 1px oklch(1 0 0 / 0.07), 0 6px 16px -6px chrome-shadow`): toolbar capsules.
+- **Row lift** (`0 10px 24px -10px chrome-shadow`): a layer row while it is dragged.
 
-**The Lit Key Rule.** Only a pressed keycap glows. Status dots, pips, and switches are flat color.
+**The Lit Key Rule.** Only a pressed keycap glows. Status dots, pips, and switches are flat color; the connect ring is one fading pulse on arrival, never a resting glow.
+
+**The Lit Edge Rule.** In the designer window, no divider lines: a panel's edge is a hairline of light on top and a soft shadow below.
 
 ## Shapes
 
-Corners follow macOS: 18 px for the panel window, 16 px for the overlay window (the macOS 26 window corner), 14 px for the pad well, 12 px for the tip well, 10 px for settings groups, 7 px for menu rows, and the shadcn scale from `--radius` (0.45rem) for controls. Wells nest: each inner radius is smaller than its container. Keycap corners are 0.12 key, and the chassis corner is the cap corner plus the inset, so the curves stay concentric. Empty keys are a dashed Hairline outline with no fill. Status dots and layer pips are 6 px circles (4 px in the overlay).
+Corners follow macOS: 18 px for the panel window, 16 px for the overlay window (the macOS 26 window corner), 14 px for the pad well, 12 px for the tip well, 11.2 px for the designer's glass panels, 10 px for settings groups and the sidebar wells, 7 px for menu and sidebar rows, full pills for toolbar capsules and sidebar badges, and the shadcn scale from `--radius` (0.45rem) for controls. Wells nest: each inner radius is smaller than its container. Keycap corners are 0.12 key, and the chassis corner is the cap corner plus the inset, so the curves stay concentric. Empty keys are a dashed Hairline outline with no fill. Status dots, the live layer dot, and layer pips are 6 px circles (4 px in the overlay).
 
 ## Components
 
@@ -317,6 +433,24 @@ System Settings grouped forms.
 - **Legend:** app or shortcut top left in Ash, label bottom left, a kind glyph bottom right. A layer change cross-fades the legends in 150 ms.
 - **Chassis:** Graphite to Night gradient, Hairline border, chassis shadow. In the overlay the window itself is the chassis.
 
+### Sidebar (designer window)
+A Mac source list on a glass panel.
+- **Profile well:** 48 px, chrome-well fill, 10 px corners: the pad glyph tile (30 px, Night with a well edge), the profile's name (13 px semibold), "Profile · N layers" below (a lock and "Read-only" for built-in profiles), up-down chevrons. Opens the profile menu; open, it holds chrome-selection.
+- **Sections:** a sentence-case heading at 50% foreground collapses its section; its chevron shows on hover or focus and stays while collapsed so the way back is visible. The state is remembered. A heading may end in a 20 px icon action (add a layer).
+- **Rows:** 28 px, 7 px corners, a 16 px icon lane (icons 15 px at 75% foreground; a layer's trigger app icon at 18 px), the label, then trailing marks in fixed lanes so labels and shortcuts align. Hover is chrome-hover, selected is chrome-selection, both instant.
+- **Layer rows:** trigger app icon (or a grid glyph), name, the green live dot lane, ⌘-number in shortcut type at 45%. Base layer first and fixed; drag or ⌥↑/⌥↓ reorders the rest. Right-click, double-click, or Return opens the layer's settings beside the row. Under the list, a "Follow the front app" switch row in caption type at 60%.
+- **Badges:** an 18 px chrome-selection pill in 11 px medium, tabular figures ("Update", then the percentage while firmware installs).
+- **Device well:** at the foot, the same well as the profile's (`SIDEBAR_WELL`): pad glyph tile, "Macro Eleven", and a status line with a 6 px dot (Signal Green connected, Ash not) and a label that swaps in place. It is the window's only connection status.
+
+### Toolbar and capsules (designer window)
+- **Title:** the layer name in window-title type with a small chevron; it opens the layer settings popover under the title block. Below, an 11 px subtitle in Ash saying how the pad reaches the layer, with a live dot and "Live on the pad" while it is there.
+- **Capsules:** a labelled button is a 34 px glass capsule of its own (13 px medium, 16 px icon); related icon buttons share one capsule (undo and redo, 32 × 28 px buttons with glass-hover and glass-press fills). Disabled buttons stay focusable at 35% and keep their tooltip.
+- **Overlay capsule:** its icon is Signal Green while the overlay is up.
+- **Save status:** "Saved" with a check in Ash for 1.2 s after each save; a failure stays as "Not saved. Retry" in Error Red.
+
+### Inspector panel
+The inspector beside the pad is a 288 px glass panel below the toolbar. Narrow windows use the inset sheet instead.
+
 ### Shortcut recorder
 A System Settings recorder field; "Click to record" in Ash, "Recording…" in Signal Green; rejected chords explain themselves in Error Red below.
 
@@ -327,11 +461,14 @@ A System Settings recorder field; "Click to record" in Ash, "Recording…" in Si
 - **Do** draw the pad with `MacropadGrid`, `Keycap`, and `pad.css`, sized by `--key` alone.
 - **Do** keep text on glass at full strength and step secondary text down with foreground opacity.
 - **Do** give every glass surface its solid fallback for Reduce Transparency, and every motion a Reduce Motion path (fade only or none).
+- **Do** build designer chrome from the glass panel and capsule utilities and the sidebar and toolbar parts in `shared/ui/`, inset 8 px from the window.
+- **Do** keep sidebar selection instant; save motion for the live dot and for things that appear.
 - **Do** use 16 px drawn icons in notice rows, colored by meaning (Caution Amber for warnings, foreground at 70% for neutral news).
 
 ### Don't:
 - **Don't** use green for anything that is not state: no green tips, banners, or decoration.
-- **Don't** add a glow outside the pressed keycap; status dots stay flat.
+- **Don't** add a glow outside the pressed keycap; status dots stay flat (the connect ring plays once and is gone).
+- **Don't** draw divider lines in the designer window's chrome; panels separate by inset, light edge, and shadow.
 - **Don't** layer a blurred material on top of native glass; use the glass tints.
 - **Don't** set labels in uppercase with wide tracking; headings are sentence case at 11 px semibold.
 - **Don't** use raw colors; every color comes from the tokens in `src/app/App.css`.

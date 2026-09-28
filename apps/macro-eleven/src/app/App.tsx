@@ -1,5 +1,4 @@
-import { PictureInPicture2 } from "lucide-react";
-import { MotionConfig } from "motion/react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { useEffect } from "react";
 import {
   BrowserRouter,
@@ -7,58 +6,28 @@ import {
   Outlet,
   Route,
   Routes,
+  useLocation,
+  useMatch,
   useNavigate,
 } from "react-router-dom";
-import { FirmwareUpdateIndicator } from "../features/firmware-update/FirmwareUpdateIndicator";
 import { FirmwareUpdateProvider } from "../features/firmware-update/FirmwareUpdateProvider";
+import { LayerSettingsProvider } from "../features/keymap-designer/layers/LayerSettings";
+import { KeymapProvider } from "../features/keymap-designer/model/KeymapProvider";
+import { DuplicateDefaultDialog } from "../features/keymap-designer/profiles/ProfileMenu";
 import { PanelView } from "../features/menu-bar-panel/PanelView";
 import { OverlayView } from "../features/overlay/OverlayView";
 import { SettingsView } from "../features/settings/SettingsView";
-import { DiagnosticsPage } from "../pages/DiagnosticsPage";
-import { FirmwarePage } from "../pages/FirmwarePage";
 import { KeymapDesignerPage } from "../pages/KeymapDesignerPage";
-import { KnobPage } from "../pages/KnobPage";
-import { onNavigate, setOverlayVisible } from "../shared/lib/tauri";
-import { useSettings } from "../shared/lib/useSettings";
-import { cn } from "../shared/lib/utils";
-import { Button } from "../shared/ui/button";
-import { NavBar } from "../shared/ui/NavBar";
-import { StatusBadge } from "../shared/ui/StatusBadge";
+import { FADE } from "../shared/lib/motion";
+import { onNavigate } from "../shared/lib/tauri";
+import { ScrollFade } from "../shared/ui/ScrollFade";
 import { Toaster } from "../shared/ui/toaster";
 import { TooltipProvider } from "../shared/ui/tooltip";
-import { DeviceProvider, useDevice } from "./providers";
+import { DESIGNER_PATH, DEVICE_PAGES } from "./pages";
+import { DeviceProvider } from "./providers";
+import { Sidebar } from "./shell/Sidebar";
+import { Toolbar } from "./shell/Toolbar";
 import "./App.css";
-
-function AppHeader() {
-  const { status } = useDevice();
-  const { settings } = useSettings();
-  const overlay = settings?.overlayVisible ?? false;
-
-  return (
-    <header className="material flex h-14 shrink-0 items-center justify-end border-b px-6">
-      <div className="flex items-center gap-3">
-        <FirmwareUpdateIndicator />
-        <StatusBadge status={status} />
-        <div className="mx-1 h-4 w-px bg-border" />
-        <Button
-          variant="outline"
-          size="sm"
-          aria-pressed={overlay}
-          onClick={() => setOverlayVisible(!overlay)}
-          title={overlay ? "Hide the overlay" : "Show the overlay"}
-          className={cn(
-            "active:scale-[0.97]",
-            overlay &&
-              "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary dark:border-primary/40 dark:bg-primary/10 dark:hover:bg-primary/15",
-          )}
-        >
-          <PictureInPicture2 aria-hidden />
-          Overlay
-        </Button>
-      </div>
-    </header>
-  );
-}
 
 /** The menu bar panel can send the designer to a page (Update Firmware…). */
 function FollowHostNavigation() {
@@ -72,14 +41,82 @@ function FollowHostNavigation() {
   return null;
 }
 
-/** Pages that read top to bottom scroll inside a centered column. */
+/**
+ * Pages that read top to bottom scroll inside a centered column, under the
+ * toolbar: they start below it and fade out beneath it once scrolled.
+ */
 function ScrollingPage() {
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="container mx-auto max-w-screen-lg space-y-8 px-6 py-8">
+    <ScrollFade className="h-full [--fade-top:calc(var(--spacing-toolbar)+12px)]">
+      <div className="container mx-auto max-w-screen-lg space-y-8 px-gutter pt-[calc(var(--spacing-toolbar)+var(--spacing-chrome))] pb-8">
         <Outlet />
       </div>
-    </div>
+    </ScrollFade>
+  );
+}
+
+/** The page on screen. Moving to another page cross-fades the two. */
+function Pages() {
+  const location = useLocation();
+  return (
+    <AnimatePresence initial={false}>
+      <motion.div
+        key={location.pathname}
+        {...FADE}
+        // The old page gets out of the way first
+        exit={{ opacity: 0, transition: { duration: 0.1 } }}
+        className="absolute inset-0"
+      >
+        <Routes location={location}>
+          <Route path={DESIGNER_PATH} element={<KeymapDesignerPage />} />
+          <Route element={<ScrollingPage />}>
+            {DEVICE_PAGES.map(({ path, element }) => (
+              <Route key={path} path={path} element={element} />
+            ))}
+          </Route>
+          {/* Earlier locations of these pages */}
+          <Route
+            path="/designer"
+            element={<Navigate to={DESIGNER_PATH} replace />}
+          />
+          <Route
+            path="/layers"
+            element={<Navigate to={DESIGNER_PATH} replace />}
+          />
+          <Route path="/pot" element={<Navigate to="/knob" replace />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+/**
+ * The designer window: the glass sidebar, and the content column with the
+ * toolbar floating over it. The keymap's state belongs to the window, since
+ * the sidebar lists its layers on every page.
+ */
+function Window() {
+  const navigate = useNavigate();
+  const onDesigner = useMatch(DESIGNER_PATH) !== null;
+
+  return (
+    <KeymapProvider
+      visible={onDesigner}
+      showDesigner={() => onDesigner || navigate(DESIGNER_PATH)}
+    >
+      <LayerSettingsProvider>
+        <div className="flex h-screen w-full bg-background">
+          <Sidebar />
+          <div className="relative flex min-w-0 flex-1 flex-col">
+            <Toolbar />
+            <main className="relative min-h-0 flex-1">
+              <Pages />
+            </main>
+          </div>
+        </div>
+        <DuplicateDefaultDialog />
+      </LayerSettingsProvider>
+    </KeymapProvider>
   );
 }
 
@@ -89,32 +126,7 @@ function MainApp() {
       <FollowHostNavigation />
       <DeviceProvider>
         <FirmwareUpdateProvider>
-          <div className="flex h-screen w-full bg-background">
-            <NavBar />
-            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-              <AppHeader />
-              <main className="min-h-0 flex-1">
-                <Routes>
-                  <Route path="/" element={<KeymapDesignerPage />} />
-                  <Route element={<ScrollingPage />}>
-                    <Route path="/diagnostics" element={<DiagnosticsPage />} />
-                    <Route path="/knob" element={<KnobPage />} />
-                    <Route path="/firmware" element={<FirmwarePage />} />
-                  </Route>
-                  {/* Earlier locations of these pages */}
-                  <Route
-                    path="/designer"
-                    element={<Navigate to="/" replace />}
-                  />
-                  <Route path="/layers" element={<Navigate to="/" replace />} />
-                  <Route
-                    path="/pot"
-                    element={<Navigate to="/knob" replace />}
-                  />
-                </Routes>
-              </main>
-            </div>
-          </div>
+          <Window />
           <Toaster />
         </FirmwareUpdateProvider>
       </DeviceProvider>

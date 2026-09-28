@@ -1,7 +1,7 @@
 import { ShieldAlert } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
-import { CROSSFADE } from "../../../shared/lib/motion";
+import { FADE } from "../../../shared/lib/motion";
 import { openAccessibilitySettings } from "../../../shared/lib/tauri";
 import { useAccessibilityPermission } from "../../../shared/lib/useAccessibilityPermission";
 import { Button } from "../../../shared/ui/button";
@@ -17,10 +17,7 @@ export function PermissionsBanner({ watch }: { watch: boolean }) {
       {watch && granted === false && (
         <motion.div
           role="status"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={CROSSFADE}
+          {...FADE}
           className="grid gap-2 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm"
         >
           <p className="flex gap-2">

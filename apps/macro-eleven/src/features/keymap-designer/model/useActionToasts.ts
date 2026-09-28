@@ -15,11 +15,12 @@ import {
  * a completion toast, or an error toast that stays until dismissed and can
  * run the action again.
  */
-export function useActionToasts(keymap: Keymap | null) {
+export function useActionToasts(keymap: Keymap | null, enabled: boolean) {
   const latest = useRef(keymap);
   latest.current = keymap;
 
   useEffect(() => {
+    if (!enabled) return;
     const listeners = [
       onActionExecuted((event) => {
         if (latest.current) {
@@ -49,5 +50,5 @@ export function useActionToasts(keymap: Keymap | null) {
       }),
     ];
     return () => unlistenAll(listeners);
-  }, []);
+  }, [enabled]);
 }

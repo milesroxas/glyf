@@ -1,6 +1,6 @@
-import { MACRO_ELEVEN_DEFAULT_KEYMAP } from "@glyf/keymap-schema";
+import { layerIds, MACRO_ELEVEN_DEFAULT_KEYMAP } from "@glyf/keymap-schema";
 import {
-  ChevronDown,
+  ChevronsUpDown,
   Copy,
   FileDown,
   FileUp,
@@ -15,6 +15,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { uniqueName } from "../../../entities/keymap";
 import { revealProfilesDir } from "../../../shared/lib/tauri";
+import { cn } from "../../../shared/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,10 +26,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../shared/ui/dropdown-menu";
+import { PadGlyph } from "../../../shared/ui/icons";
+import { SIDEBAR_WELL, SidebarWellText } from "../../../shared/ui/sidebar";
 import { useDesigner } from "../model/KeymapProvider";
 import { ConfirmDialog, NameDialog } from "./ProfileDialogs";
 
 type Dialog = "new" | "duplicate" | "rename" | "delete" | "restore" | null;
+
+function pluralLayers(count: number) {
+  return count === 1 ? "1 layer" : `${count} layers`;
+}
 
 /** Reports a failed profile action in a toast. */
 function attempt(work: () => Promise<unknown> | undefined) {
@@ -38,14 +45,16 @@ function attempt(work: () => Promise<unknown> | undefined) {
 }
 
 /**
- * The active profile, and everything about profiles: switch, create,
+ * The active profile, at the top of the sidebar the way Mail shows the
+ * account, and everything about profiles in its menu: switch, create,
  * duplicate, rename, delete, import, export, and show the folder.
  */
 export function ProfileMenu() {
   const designer = useDesigner();
-  const { profile, profiles } = designer;
+  const { profile, profiles, keymap } = designer;
   const [dialog, setDialog] = useState<Dialog>(null);
-  if (!profile) return null;
+  // The well holds its place while the profile loads
+  if (!profile) return <div className={SIDEBAR_WELL} />;
 
   const names = profiles.map((p) => p.name);
   const close = (open: boolean) => !open && setDialog(null);
@@ -53,15 +62,22 @@ export function ProfileMenu() {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger className="group flex h-8 max-w-64 items-center gap-2 rounded-md px-2 text-sm font-semibold tracking-tight outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60 data-[state=open]:bg-accent">
-          <span className="truncate">{profile.name}</span>
-          {profile.readOnly && (
-            <span className="flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium tracking-normal text-muted-foreground">
-              <Lock className="size-2.5" />
-              Read-only
-            </span>
+        <DropdownMenuTrigger
+          className={cn(
+            SIDEBAR_WELL,
+            "outline-none transition-[background-color,scale] duration-150 ease-(--ease-out) hover:bg-(--glass-hover) focus-visible:ring-2 focus-visible:ring-ring/60 active:scale-[0.98] data-[state=open]:bg-(--chrome-selection)",
           )}
-          <ChevronDown className="size-3.5 text-muted-foreground transition-transform duration-200 ease-(--ease-out) group-data-[state=open]:rotate-180 motion-reduce:transition-none" />
+        >
+          <PadGlyph />
+          <SidebarWellText title={profile.name}>
+            {profile.readOnly && <Lock aria-hidden className="size-2.5" />}
+            {profile.readOnly ? "Read-only" : "Profile"}
+            {keymap && ` · ${pluralLayers(layerIds(keymap).length)}`}
+          </SidebarWellText>
+          <ChevronsUpDown
+            aria-hidden
+            className="size-3.5 shrink-0 text-foreground/60"
+          />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">
           <DropdownMenuLabel>Profiles</DropdownMenuLabel>

@@ -8,14 +8,12 @@ import { MacropadGrid } from "../../shared/ui/MacropadGrid";
 import { Switch } from "../../shared/ui/switch";
 import { DragToKeyProvider } from "./apps/DragToKey";
 import { KeyCanvas } from "./canvas/KeyCanvas";
-import { DesignerToolbar } from "./DesignerToolbar";
 import { Inspector } from "./inspector/Inspector";
 import { InspectorSheet } from "./inspector/InspectorSheet";
-import { KeymapProvider, useDesigner } from "./model/KeymapProvider";
-import { DuplicateDefaultDialog } from "./profiles/ProfileMenu";
+import { useDesigner } from "./model/KeymapProvider";
 
-/** Canvas (the pad plus margins) and the 320 px inspector side by side. */
-const TWO_COLUMN_MIN_WIDTH = 760;
+/** Canvas (the pad plus margins) and the 288 px inspector panel side by side. */
+const TWO_COLUMN_MIN_WIDTH = 720;
 
 function CanvasFooter() {
   const { device, selectByPressing, setSelectByPressing } = useDesigner();
@@ -85,13 +83,16 @@ function DesignerBody() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      {keymap && <DesignerToolbar />}
       <div ref={setBody} className="relative flex min-h-0 flex-1">
         <div
           className={cn(
-            "flex min-w-0 flex-1 flex-col items-center gap-6 overflow-auto p-6 @container-[size]",
-            // With the sheet up, keep the pad at the top, above the sheet
-            twoColumns ? "justify-center" : "justify-start pb-[60vh]",
+            "flex min-w-0 flex-1 flex-col items-center gap-6 overflow-auto px-gutter @container-[size]",
+            twoColumns
+              ? // Centred on the inspector panel: below the toolbar, above
+                // the panel's inset from the window foot
+                "justify-center pt-toolbar pb-chrome"
+              : // With the sheet up, keep the pad at the top, above the sheet
+                "justify-start pt-[calc(var(--spacing-toolbar)+--spacing(4))] pb-[60vh]",
           )}
         >
           <div className={twoColumns ? KEY_SIZE.beside : KEY_SIZE.sheet}>
@@ -101,28 +102,29 @@ function DesignerBody() {
         </div>
         {keymap &&
           (twoColumns ? (
-            <aside className="w-80 shrink-0 border-l bg-card/40">
+            // A glass panel below the toolbar, so the capsules keep clear
+            // of it; its top lines up with the sidebar's profile well
+            <aside className="glass-panel mt-toolbar mr-chrome mb-chrome w-72 shrink-0 overflow-hidden rounded-xl">
               <Inspector />
             </aside>
           ) : (
             <InspectorSheet />
           ))}
       </div>
-      <DuplicateDefaultDialog />
     </div>
   );
 }
 
 /**
- * The Keymap Designer: every key on every layer, edited in place. Changes
- * save as you go and reach the pad at once; ⌘Z undoes them.
+ * The Keymap Designer: every key on the layer picked in the sidebar, edited
+ * in place. Changes save as you go and reach the pad at once; ⌘Z undoes
+ * them. Its state (`KeymapProvider`) belongs to the window, which lists the
+ * layers in the sidebar on every page.
  */
 export function KeymapDesigner() {
   return (
-    <KeymapProvider>
-      <DragToKeyProvider>
-        <DesignerBody />
-      </DragToKeyProvider>
-    </KeymapProvider>
+    <DragToKeyProvider>
+      <DesignerBody />
+    </DragToKeyProvider>
   );
 }

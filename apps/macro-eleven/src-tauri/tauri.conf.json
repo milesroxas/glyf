@@ -13,14 +13,17 @@
     "windows": [
       {
         "title": "Macro Eleven",
-        "width": 1000,
-        "height": 680,
+        "width": 1180,
+        "height": 760,
         "resizable": true,
         "decorations": true,
         "label": "main",
         "minWidth": 900,
         "minHeight": 600,
         "theme": "Dark",
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "trafficLightPosition": { "x": 18, "y": 28 },
         "visible": false
       }
     ],

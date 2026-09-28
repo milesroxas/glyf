@@ -1,19 +1,19 @@
 import { useLayoutEffect, useState } from "react";
 
-/** Whether a horizontal scroller has more content to the left or right. */
+/** Whether a vertical scroller has more content above or below. */
 export function useScrollEdges(element: HTMLElement | null) {
-  const [edges, setEdges] = useState({ left: false, right: false });
+  const [edges, setEdges] = useState({ top: false, bottom: false });
 
   useLayoutEffect(() => {
     if (!element) return;
     const update = () => {
-      const { scrollLeft, scrollWidth, clientWidth } = element;
-      const left = scrollLeft > 1;
-      const right = scrollLeft + clientWidth < scrollWidth - 1;
+      const { scrollTop, scrollHeight, clientHeight } = element;
+      const top = scrollTop > 1;
+      const bottom = scrollTop + clientHeight < scrollHeight - 1;
       setEdges((current) =>
-        current.left === left && current.right === right
+        current.top === top && current.bottom === bottom
           ? current
-          : { left, right },
+          : { top, bottom },
       );
     };
     update();
