@@ -8,7 +8,7 @@ Repo map, prerequisites, and run commands: [README.md](README.md). Doc index: [d
 pnpm install                    # all JS workspaces, one lockfile
 pnpm typecheck                  # tsc --noEmit in each workspace with a typecheck script
 pnpm lint                       # Biome check; pnpm lint:fix writes fixes
-pnpm test                       # Vitest: shared libs + apps/glyf (jsdom and Playwright browser)
+pnpm test                       # Vitest: shared libs + both apps (jsdom and Playwright browser)
 cargo test --workspace --locked # both Tauri crates
 pnpm fallow:dead-code           # unused code/deps and FSD boundary violations
 ```

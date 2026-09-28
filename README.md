@@ -63,7 +63,7 @@ Firmware build and flash steps are in each firmware README.
 GitHub Actions on push and pull request to `main` ([ci.yml](.github/workflows/ci.yml)):
 
 - **Repository layout**: firmware folders and build scripts exist.
-- **TypeScript & Vitest**: `pnpm typecheck`, then `pnpm test` (jsdom and Playwright Chromium).
+- **TypeScript & Vitest**: `pnpm typecheck`, then `pnpm test` (jsdom, and Playwright in Chromium and WebKit).
 - **Rust**: `cargo test --workspace --locked` on Ubuntu with Tauri system packages.
 
 CI does not run `pnpm lint`, Clippy, or firmware builds yet (audit X-02).

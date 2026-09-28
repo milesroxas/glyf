@@ -55,8 +55,8 @@ jobs:
       - name: Typecheck workspace
         run: pnpm typecheck
 
-      - name: Install Playwright Chromium (Vitest browser mode)
-        run: pnpm exec playwright install chromium --with-deps
+      - name: Install Playwright Chromium and WebKit (Vitest browser mode)
+        run: pnpm exec playwright install chromium webkit --with-deps
 
       - name: Run Vitest workspace
         run: pnpm test

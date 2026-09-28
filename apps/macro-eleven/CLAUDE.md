@@ -87,6 +87,7 @@ The app bundles `src-tauri/firmware/{macro_eleven.uf2,manifest.json}`, written b
 pnpm dev:macro-eleven                              # from repo root: Vite HMR + Rust rebuild
 pnpm --filter macro-eleven typecheck
 pnpm exec vitest run --project macro-eleven        # designer, recorder, layout, ranking
+pnpm exec vitest run --project macro-eleven-browser # *.browser.test.tsx: focus and pointer cases in WebKit and Chromium
 cargo test -p macro-eleven                         # profiles, engine, executor, validation fixtures, UF2, PICOBOOT
 ```
 

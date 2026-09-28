@@ -14,6 +14,7 @@ export type {
   LaunchAppAction,
   MacroAction,
   MacroStep,
+  MacroStepType,
   MatrixPosition,
   MatrixPositionKey,
   ShortcutAction,

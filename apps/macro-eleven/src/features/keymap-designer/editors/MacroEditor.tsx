@@ -8,28 +8,29 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../../shared/ui/dropdown-menu";
-import { ShortcutRecorder } from "../../../shared/ui/ShortcutRecorder";
 import { Field } from "./Field";
-import { MacroStepRow, STEP_LABELS } from "./MacroStepRow";
+import { MacroStepRow, StepLabel, StepRecorder } from "./MacroStepRow";
+import {
+  blankStep,
+  isRecorded,
+  NEW_STEP_TYPES,
+  type NewStepType,
+  type RecordedStepType,
+  STEP_LABELS,
+} from "./macroSteps";
 
-type NewStep = "shortcut" | "text" | "wait" | "keydown" | "keyup";
+const rowKeys = new WeakMap<MacroStep, string>();
+let nextRowKey = 0;
 
-const NEW_STEPS: readonly NewStep[] = [
-  "shortcut",
-  "text",
-  "wait",
-  "keydown",
-  "keyup",
-];
-
-/** Steps that are complete as soon as they exist; the others need a key first. */
-const READY: Partial<Record<NewStep, MacroStep>> = {
-  text: { type: "text", text: "" },
-  wait: { type: "wait", ms: 100 },
-};
-
-let nextId = 0;
-const newId = () => `step-${nextId++}`;
+/** A row's identity follows its step object through reorders and undo. */
+function rowKey(step: MacroStep): string {
+  let key = rowKeys.get(step);
+  if (key === undefined) {
+    key = `step-${nextRowKey++}`;
+    rowKeys.set(step, key);
+  }
+  return key;
+}
 
 function Draggable({
   id,
@@ -65,46 +66,36 @@ export function MacroEditor({
   onChange: (sequence: MacroStep[], coalesce?: string) => void;
 }) {
   const steps = action.sequence;
-  // Stable row identities, so typing in a step keeps its focus
-  const [ids, setIds] = useState(() => steps.map(newId));
-  const rowIds = ids.length === steps.length ? ids : steps.map(newId);
-  if (rowIds !== ids) setIds(rowIds);
-  const [draft, setDraft] = useState<"shortcut" | "keydown" | "keyup" | null>(
-    null,
-  );
+  const keys = steps.map(rowKey);
+  const [draft, setDraft] = useState<RecordedStepType | null>(null);
+  const chosen = useRef<RecordedStepType | null>(null);
   const dragSession = useRef(0);
-  // The new step's recorder takes focus; the menu must not take it back
-  const keepFocus = useRef(false);
 
-  const add = (type: NewStep) => {
-    const ready = READY[type];
-    if (ready) {
-      setIds([...rowIds, newId()]);
-      onChange([...steps, ready]);
-    } else {
-      keepFocus.current = true;
-      setDraft(type as "shortcut" | "keydown" | "keyup");
-    }
+  const choose = (type: NewStepType) => {
+    if (isRecorded(type)) chosen.current = type;
+    else onChange([...steps, blankStep(type)]);
   };
 
-  const commitDraft = (keys: string[]) => {
-    const step: MacroStep | null =
-      draft === "shortcut"
-        ? { type: "shortcut", keys }
-        : draft
-          ? { type: draft, key: keys[0] }
-          : null;
-    setDraft(null);
-    if (step) {
-      setIds([...rowIds, newId()]);
-      onChange([...steps, step]);
-    }
+  const replace = (index: number, step: MacroStep, coalesce?: string) => {
+    rowKeys.set(step, keys[index]);
+    onChange(
+      steps.map((s, i) => (i === index ? step : s)),
+      coalesce,
+    );
+  };
+
+  const reorder = (order: string[]) => {
+    const byKey = new Map(keys.map((key, i) => [key, steps[i]]));
+    onChange(
+      order.map((key) => byKey.get(key) as MacroStep),
+      `reorder:${dragSession.current}`,
+    );
   };
 
   const move = (index: number, offset: -1 | 1) => {
     const to = index + offset;
     if (to < 0 || to >= steps.length) return;
-    const order = [...rowIds];
+    const order = [...keys];
     [order[index], order[to]] = [order[to], order[index]];
     dragSession.current += 1; // each move is its own undo step
     reorder(order);
@@ -113,15 +104,6 @@ export function MacroEditor({
       document
         .querySelector<HTMLElement>(`[data-step="${order[to]}"] button`)
         ?.focus(),
-    );
-  };
-
-  const reorder = (order: string[]) => {
-    const byId = new Map(rowIds.map((id, i) => [id, steps[i]]));
-    setIds(order);
-    onChange(
-      order.map((id) => byId.get(id) as MacroStep),
-      `reorder:${dragSession.current}`,
     );
   };
 
@@ -135,31 +117,27 @@ export function MacroEditor({
         ) : (
           <Reorder.Group
             axis="y"
-            values={rowIds}
+            values={keys}
             onReorder={reorder}
             className="grid gap-1.5"
           >
-            {rowIds.map((id, index) => (
-              <Draggable key={id} id={id}>
+            {steps.map((step, index) => (
+              <Draggable key={keys[index]} id={keys[index]}>
                 {(startDrag) => (
                   <MacroStepRow
-                    step={steps[index]}
+                    step={step}
                     index={index}
                     onDragHandle={(event) => {
                       dragSession.current += 1;
                       startDrag(event);
                     }}
-                    onChange={(step, coalesce) =>
-                      onChange(
-                        steps.map((s, i) => (i === index ? step : s)),
-                        coalesce,
-                      )
+                    onChange={(next, coalesce) =>
+                      replace(index, next, coalesce)
                     }
                     onMove={(offset) => move(index, offset)}
-                    onRemove={() => {
-                      setIds(rowIds.filter((_, i) => i !== index));
-                      onChange(steps.filter((_, i) => i !== index));
-                    }}
+                    onRemove={() =>
+                      onChange(steps.filter((_, i) => i !== index))
+                    }
                   />
                 )}
               </Draggable>
@@ -169,15 +147,17 @@ export function MacroEditor({
       </Field>
       {draft && (
         <div className="grid gap-1.5 rounded-lg border border-primary/40 bg-primary/5 p-2">
-          <span className="text-[11px] font-medium text-muted-foreground">
-            {steps.length + 1}. {STEP_LABELS[draft]}
-          </span>
-          <ShortcutRecorder
+          <StepLabel index={steps.length} type={draft} />
+          <StepRecorder
+            key={draft}
             autoRecord
-            mode={draft === "shortcut" ? "chord" : "key"}
+            type={draft}
             aria-label={STEP_LABELS[draft]}
             value={[]}
-            onCommit={commitDraft}
+            onCommit={(step) => {
+              setDraft(null);
+              onChange([...steps, step]);
+            }}
             onCancel={() => setDraft(null)}
           />
         </div>
@@ -191,12 +171,16 @@ export function MacroEditor({
           align="start"
           className="min-w-40"
           onCloseAutoFocus={(event) => {
-            if (keepFocus.current) event.preventDefault();
-            keepFocus.current = false;
+            // Record only once the menu is gone: while it closes it takes
+            // focus back, and a recorder that loses focus cancels
+            if (!chosen.current) return;
+            event.preventDefault();
+            setDraft(chosen.current);
+            chosen.current = null;
           }}
         >
-          {NEW_STEPS.map((type) => (
-            <DropdownMenuItem key={type} onSelect={() => add(type)}>
+          {NEW_STEP_TYPES.map((type) => (
+            <DropdownMenuItem key={type} onSelect={() => choose(type)}>
               {STEP_LABELS[type]}
             </DropdownMenuItem>
           ))}

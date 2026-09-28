@@ -16,6 +16,7 @@ export default defineConfig({
       path.join(workspaceRoot, "apps/glyf/vitest.config.ts"),
       path.join(workspaceRoot, "apps/glyf/vitest.browser.config.ts"),
       path.join(workspaceRoot, "apps/macro-eleven/vitest.config.ts"),
+      path.join(workspaceRoot, "apps/macro-eleven/vitest.browser.config.ts"),
     ],
   },
 });

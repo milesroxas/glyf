@@ -17,7 +17,7 @@ export class KeymapValidationError extends Error {
 
 const MAX_LAYER_ID = 255;
 /** Longest single wait a macro may hold the action queue. */
-const MAX_WAIT_MS = 10_000;
+export const MAX_WAIT_MS = 10_000;
 
 type Json = Record<string, unknown>;
 

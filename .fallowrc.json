@@ -5,6 +5,7 @@
     "apps/glyf/vitest.browser.config.ts",
     "apps/glyf/src/test/setup.ts",
     "apps/macro-eleven/vitest.config.ts",
+    "apps/macro-eleven/vitest.browser.config.ts",
     "apps/macro-eleven/src/test/setup.ts"
   ],
   "ignorePatterns": [

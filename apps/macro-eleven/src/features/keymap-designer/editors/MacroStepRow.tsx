@@ -1,22 +1,20 @@
+import { MAX_WAIT_MS } from "@glyf/keymap-schema";
 import { GripVertical, X } from "lucide-react";
 import type { PointerEvent } from "react";
-import type { MacroStep } from "../../../entities/keymap";
+import type { MacroStep, MacroStepType } from "../../../entities/keymap";
 import { Input } from "../../../shared/ui/input";
 import { ShortcutRecorder } from "../../../shared/ui/ShortcutRecorder";
 import { Slider } from "../../../shared/ui/slider";
+import {
+  type RecordedStep,
+  type RecordedStepType,
+  recordedKeys,
+  recordedStep,
+  STEP_LABELS,
+} from "./macroSteps";
 
-/** Slider range for waits; the number field allows up to the host's limit. */
+/** The slider covers common waits; the number field goes up to the limit. */
 const WAIT_SLIDER_MAX_MS = 2000;
-const WAIT_MAX_MS = 10_000;
-
-export const STEP_LABELS: Record<MacroStep["type"], string> = {
-  shortcut: "Shortcut",
-  text: "Type text",
-  wait: "Wait",
-  keydown: "Key down",
-  keyup: "Key up",
-  keypress: "Press key",
-};
 
 interface MacroStepRowProps {
   step: MacroStep;
@@ -29,6 +27,48 @@ interface MacroStepRowProps {
   onMove: (offset: -1 | 1) => void;
 }
 
+export function StepLabel({
+  index,
+  type,
+}: {
+  index: number;
+  type: MacroStepType;
+}) {
+  return (
+    <span className="text-[11px] font-medium text-muted-foreground">
+      {index + 1}. {STEP_LABELS[type]}
+    </span>
+  );
+}
+
+/** Records a step's keys: a chord for a shortcut, a single key otherwise. */
+export function StepRecorder({
+  type,
+  value,
+  onCommit,
+  onCancel,
+  autoRecord,
+  "aria-label": label,
+}: {
+  type: RecordedStepType;
+  value: readonly string[];
+  onCommit: (step: RecordedStep) => void;
+  onCancel?: () => void;
+  autoRecord?: boolean;
+  "aria-label": string;
+}) {
+  return (
+    <ShortcutRecorder
+      mode={type === "shortcut" ? "chord" : "key"}
+      aria-label={label}
+      value={value}
+      autoRecord={autoRecord}
+      onCommit={(keys) => onCommit(recordedStep(type, keys))}
+      onCancel={onCancel}
+    />
+  );
+}
+
 function StepBody({
   step,
   index,
@@ -37,22 +77,15 @@ function StepBody({
   const name = `Step ${index + 1}`;
   switch (step.type) {
     case "shortcut":
-      return (
-        <ShortcutRecorder
-          aria-label={name}
-          value={step.keys}
-          onCommit={(keys) => onChange({ type: "shortcut", keys })}
-        />
-      );
     case "keydown":
     case "keyup":
     case "keypress":
       return (
-        <ShortcutRecorder
-          mode="key"
+        <StepRecorder
+          type={step.type}
           aria-label={name}
-          value={[step.key]}
-          onCommit={([key]) => onChange({ type: step.type, key })}
+          value={recordedKeys(step)}
+          onCommit={onChange}
         />
       );
     case "text":
@@ -74,7 +107,7 @@ function StepBody({
         onChange(
           {
             type: "wait",
-            ms: Math.round(Math.min(Math.max(ms, 0), WAIT_MAX_MS)),
+            ms: Math.round(Math.min(Math.max(ms, 0), MAX_WAIT_MS)),
           },
           `wait:${index}`,
         );
@@ -93,7 +126,7 @@ function StepBody({
               type="number"
               aria-label={`${name}, milliseconds`}
               min={0}
-              max={WAIT_MAX_MS}
+              max={MAX_WAIT_MS}
               step={10}
               value={step.ms}
               onChange={(event) => setMs(Number(event.target.value))}
@@ -138,9 +171,7 @@ export function MacroStepRow({
         <GripVertical className="size-3.5" />
       </button>
       <div className="grid min-w-0 flex-1 gap-1.5">
-        <span className="text-[11px] font-medium text-muted-foreground">
-          {index + 1}. {STEP_LABELS[step.type]}
-        </span>
+        <StepLabel index={index} type={step.type} />
         <StepBody step={step} index={index} onChange={onChange} />
       </div>
       <button
