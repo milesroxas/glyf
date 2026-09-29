@@ -1,0 +1,103 @@
+group,name,unit,expression,comment
+envelope,case_w,mm,192 mm,"Overall width, X"
+envelope,case_d,mm,136 mm,"Overall depth, measured on the top face"
+envelope,case_r,mm,10 mm,Plan corner radius
+envelope,wall_t,mm,3 mm,Side wall thickness
+envelope,top_t,mm,1.5 mm,"Top skin thickness. The skin is the MX plate, so keep 1.5 mm"
+envelope,edge_chamfer,mm,0.6 mm,Bright-cut chamfer on the top perimeter edge
+envelope,front_h,mm,15 mm,"Desk to top face at the front edge, without feet"
+envelope,tilt,deg,5 deg,Angle of the top face to the desk
+envelope,back_h,mm,front_h + case_d * tan(tilt),Desk to top face at the back edge. Derived
+envelope,split_z,mm,11 mm,"Top case to base split, measured down from the top face"
+envelope,floor_t,mm,2 mm,Base floor thickness
+screen,scr_pcb_w,mm,108.04 mm,MSP4021 module PCB width
+screen,scr_pcb_d,mm,61.74 mm,MSP4021 module PCB depth
+screen,scr_t,mm,5.65 mm,"Module thickness, glass top to PCB bottom, header removed. Measure"
+screen,scr_pcb_t,mm,1.6 mm,Module PCB thickness
+screen,scr_aa_w,mm,83.52 mm,"Active area width, 480 px"
+screen,scr_aa_d,mm,55.68 mm,"Active area depth, 320 px"
+screen,scr_aa_off_l,mm,15.12 mm,Module left edge (header side) to active area
+screen,scr_aa_off_t,mm,3.03 mm,Module back edge to active area
+screen,scr_tp_w,mm,85.22 mm,Touch view area width. This is the window cutout
+screen,scr_tp_d,mm,56.88 mm,Touch view area depth. This is the window cutout
+screen,scr_win_off_l,mm,1.05 mm,Window left edge to active area left edge
+screen,scr_win_off_t,mm,0.6 mm,Window back edge to active area back edge
+screen,scr_hole_d,mm,3.2 mm,Module mounting hole diameter
+screen,scr_hole_px,mm,102.04 mm,"Mounting hole spacing, X"
+screen,scr_hole_py,mm,54.9 mm,"Mounting hole spacing, Y"
+screen,scr_gasket_t,mm,0.3 mm,Foam gasket between the glass and the skin underside
+screen,win_x,mm,19 mm,Left edge of the case to the window
+screen,win_y,mm,19 mm,Back edge of the case to the window
+screen,win_r,mm,0.5 mm,Window corner radius
+screen,win_chamfer,mm,0.5 mm,Bright-cut chamfer on the window edge
+screen,aa_x,mm,win_x + scr_win_off_l,Left edge to active area. Derived
+screen,aa_y,mm,win_y + scr_win_off_t,Back edge to active area. Derived
+screen,scr_x,mm,aa_x - scr_aa_off_l,Left edge to module. Derived
+screen,scr_y,mm,aa_y - scr_aa_off_t,Back edge to module. Derived
+screen,scr_boss_h,mm,scr_t - scr_pcb_t + scr_gasket_t,Screen boss length below the skin. Derived
+keys,key_cols,,4,Key columns. One per 120 px screen column
+keys,key_rows,,2,Key rows
+keys,key_pitch,mm,scr_aa_w / key_cols,"Key pitch. 120 px of screen, 20.88 mm. Derived"
+keys,key_cap,mm,18 mm,"1U cap size, secondary and primary"
+keys,key_cap_r,mm,2.2 mm,Cap plan corner radius
+keys,win_to_keys,mm,6 mm,Window front edge to the first key row
+keys,key_col1_x,mm,aa_x + key_pitch / 2,Left edge to key column 1 center. Derived
+keys,key_row1_y,mm,win_y + scr_tp_d + win_to_keys + key_cap / 2,Back edge to key row 1 center. Derived
+keys,mx_cut,mm,14 mm,MX plate cutout
+keys,mx_plate_to_pcb,mm,5 mm,"Top face to main PCB top, MX standard"
+keys,pcb_t,mm,1.6 mm,Main PCB thickness
+keys,hotswap_h,mm,1.8 mm,Hot-swap socket height below the PCB
+keys,cap_h_sec,mm,9.5 mm,Secondary cap height
+keys,cap_h_pri,mm,12 mm,Primary cap height. 2.5 mm above the secondaries
+controls,ctl_a_x,mm,122 mm,"Axis a: encoder 1, the Home key, and the primary key"
+controls,ctl_b_x,mm,161 mm,"Axis b: encoder 2, the Layers key, and the dial"
+controls,ctl_m_x,mm,(ctl_a_x + ctl_b_x) / 2,Mid axis between a and b: the Fn key. Derived
+controls,pri_y,mm,key_row1_y + key_pitch / 2,"Primary key center, level with the key block center. Derived"
+controls,pri_well,mm,22 mm,"Primary well, square"
+controls,pri_well_r,mm,4.2 mm,Primary well corner radius
+controls,pri_well_depth,mm,1 mm,"Primary well depth into the skin. Leaves 0.5 mm of skin, see pri_sw_cut"
+controls,pri_well_chamfer,mm,0.5 mm,Bright-cut chamfer on the well edge
+controls,pri_sw_cut,mm,15 mm,"Primary switch hole. The well leaves 0.5 mm of skin, too thin for MX clips, so the primary is a 5-pin PCB-mount switch that floats in this hole"
+controls,enc_knob_d,mm,19 mm,Encoder knob diameter
+controls,enc_knob_h,mm,14 mm,Encoder knob top above the top face
+controls,enc_y,mm,win_y + enc_knob_d / 2,Encoder row center. Knob tops align with the window. Derived
+controls,enc_hole_d,mm,17.6 mm,Skin hole around each EC11 body. Clears the 12 mm body diagonal
+controls,knob_gap,mm,0.5 mm,Knob skirt above the top face
+controls,ec11_body,mm,12 mm,"EC11 body, square"
+controls,ec11_body_h,mm,6.5 mm,EC11 body height above the PCB. Check the chosen part
+controls,dial_d,mm,38 mm,Dial diameter
+controls,dial_h,mm,10 mm,Dial top above the top face
+controls,dial_x,mm,ctl_b_x,"Dial center, on axis b. Derived"
+controls,dial_y,mm,pri_y,"Dial center, on the key block center line with the primary key. Derived"
+controls,dial_dimple_d,mm,8.4 mm,Finger dimple diameter
+controls,dial_dimple_off,mm,9.9 mm,Dial center to dimple center
+controls,util_w,mm,16 mm,Utility cap width
+controls,util_d,mm,7 mm,Utility cap depth
+controls,util_r,mm,2 mm,Utility cap corner radius
+controls,util_proud,mm,1.5 mm,Utility cap top above the top face
+controls,util_pitch,mm,(ctl_b_x - ctl_a_x) / 2,"Utility pitch. Home on axis a, Fn on the mid axis, Layers on axis b. Derived"
+controls,util_y,mm,win_y + scr_tp_d - util_d / 2,Utility row center. The caps' front edges line up with the window's front edge. Derived
+controls,util_clr,mm,0.15 mm,"Utility cap to slot, each side"
+controls,util_flange_t,mm,1 mm,"Retaining flange under the skin, on the front and back edges only"
+controls,tact_h,mm,2.5 mm,6 x 6 mm tact switch height. Sets the plunger length
+pico,pico_w,mm,21 mm,Raspberry Pi Pico width
+pico,pico_l,mm,51 mm,Raspberry Pi Pico length
+pico,pico_h,mm,3.9 mm,Board plus tallest part. Check the Raspberry Pi STEP
+pico,pico_x,mm,118 mm,"Left edge of the case to the Pico's tail end. Long axis along X, USB end to the right"
+pico,pico_y,mm,42 mm,Back edge of the case to the Pico's back long edge. Clears the encoder pins by 6 mm
+pico,bootsel_hole_d,mm,2 mm,Pinhole in the base under BOOTSEL
+pico,usbc_x,mm,ctl_b_x,"USB-C receptacle center, on axis b. Derived"
+pico,usbc_z,mm,mx_plate_to_pcb + pcb_t + 1.63 mm,Top face to the receptacle axis. Set from the chosen receptacle
+pico,usbc_cut_w,mm,12.5 mm,"Back wall cut for the cable overmold, width"
+pico,usbc_cut_h,mm,7 mm,"Back wall cut for the cable overmold, height"
+fasteners,boss_d,mm,6 mm,Case boss diameter
+fasteners,boss_inset,mm,9.5 mm,Outer edge to a corner boss center
+fasteners,boss_mid_x,mm,case_w / 2,Front and back center bosses. Derived
+fasteners,insert_hole_d,mm,3.6 mm,M2.5 heat-set insert hole. Check the insert datasheet
+fasteners,pcb_standoff_h,mm,mx_plate_to_pcb - top_t,Skin underside to PCB top. Derived
+base,weight_t,mm,3 mm,Stainless steel weight plate thickness
+base,weight_w,mm,158 mm,"Weight plate width, centered"
+base,weight_d,mm,96 mm,Weight plate depth. Place it 10 mm from the back edge
+base,foot_d,mm,10 mm,Silicone foot diameter
+base,foot_h,mm,1.5 mm,Silicone foot height
+base,foot_inset,mm,18 mm,Outer edge to foot center

@@ -4,6 +4,8 @@ RP2040 firmware (Pico SDK, C) for the Glyf display module: a 4.0" ST7796S TFT wi
 
 Hardware, wiring, and HID protocol: [docs/glyf.md](docs/glyf.md).
 
+Enclosure, industrial design, and Fusion 360 parameters: [enclosure/README.md](enclosure/README.md).
+
 ## Build and flash
 
 Needs the Pico SDK (v1.5+), CMake 3.13+, `arm-none-eabi-gcc`, and OpenOCD for SWD ([sdks/README.md](../../../sdks/README.md)). `build.sh` uses `PICO_SDK_PATH`, or `sdks/pico-sdk` when that is unset.

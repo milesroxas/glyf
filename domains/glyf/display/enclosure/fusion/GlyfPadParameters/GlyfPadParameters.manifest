@@ -1,0 +1,10 @@
+{
+	"autodeskProduct": "Fusion360",
+	"type": "script",
+	"author": "Glyf",
+	"description": {
+		"": "Creates or updates the Glyf Pad user parameters from parameters.csv."
+	},
+	"supportedOS": "windows|mac",
+	"editEnabled": true
+}

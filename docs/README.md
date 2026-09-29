@@ -13,7 +13,7 @@ Start at the [root README](../README.md) for the repo map, prerequisites, and de
 
 | Device | Firmware and build | Hardware and protocol reference | Companion app |
 |--------|--------------------|---------------------------------|---------------|
-| Glyf display module | [README](../domains/glyf/display/README.md) | [glyf.md](../domains/glyf/display/docs/glyf.md) | [apps/glyf](../apps/glyf/README.md) |
+| Glyf display module | [README](../domains/glyf/display/README.md) | [glyf.md](../domains/glyf/display/docs/glyf.md), [enclosure and Fusion 360 spec](../domains/glyf/display/enclosure/README.md) | [apps/glyf](../apps/glyf/README.md) |
 | Macro Eleven | [README](../domains/prototypes/macropads/macro-eleven/README.md) | [macro-eleven.md](../domains/prototypes/macropads/macro-eleven/docs/macro-eleven.md), [rev 2 wiring guide](../domains/prototypes/macropads/macro-eleven/docs/rev2-wiring-guide.md) | [apps/macro-eleven](../apps/macro-eleven/README.md), [keymap engine](../apps/macro-eleven/docs/keymap-engine.md) |
 | Four Pad | [README](../domains/prototypes/macropads/four-pad/README.md) | Same README | None |
 
