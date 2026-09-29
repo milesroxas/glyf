@@ -75,7 +75,7 @@ function KeyEditor({ pos }: { pos: MatrixPositionKey }) {
     } else if (next === "none") {
       setDraft(null);
       edit((current) => clearKey(current, layer, pos));
-    } else if (next === "layer") {
+    } else if (next === "pad") {
       assign(carryOver(defaultLayerAction(keymap, layer), action));
     } else if (next === "macro") {
       assign(carryOver({ action: "macro", sequence: [] }, action));

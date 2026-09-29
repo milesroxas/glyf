@@ -10,6 +10,7 @@ Firmware (RP2040)            App (Rust)                                         
 0x01 poll reply:       ──>   hid/connection.rs poll thread (~60 Hz)
 11-bit key bitmask,            └─ engine/mod.rs: key edges, layer rules (one lock, memory only)
 pot value, layer                    ├─ layer actions run inline
+                                    ├─ app commands: shell/mod.rs, on the main thread
                                     └─ executor/worker.rs: one action thread, in order ──>  CGEvent, open
 engine/mod.rs front-app thread (every 250 ms) ──> layer follows the front app
 ```
@@ -60,6 +61,7 @@ A profile is one keymap, in the [`@glyf/keymap-schema`](../../../shared/libs/key
 | `shortcut` | CGEvent key events, one chord after another | Accessibility |
 | `macro` | Steps in order. Modifiers held by `keydown` apply to later keys and are released when the macro ends, even if a step fails. Text is typed as Unicode, independent of the keyboard layout. | Accessibility |
 | `switch_layer`, `cycle_layer` | Engine state | Nothing |
+| `app_command` | The app runs the command on its main thread. `toggle_overlay` shows or hides the overlay, like its shortcut. | Nothing |
 | `plugin` | Not available yet. Returns an error. | – |
 | `noop` | Nothing | – |
 

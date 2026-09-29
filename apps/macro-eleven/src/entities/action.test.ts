@@ -43,7 +43,10 @@ describe("labels and kinds", () => {
   it("maps actions to the inspector's kinds", () => {
     expect(actionKind(undefined)).toBe("none");
     expect(actionKind({ action: "noop" })).toBe("none");
-    expect(actionKind({ action: "cycle_layer" })).toBe("layer");
+    expect(actionKind({ action: "cycle_layer" })).toBe("pad");
+    expect(
+      actionKind({ action: "app_command", command: "toggle_overlay" }),
+    ).toBe("pad");
     expect(actionKind({ action: "plugin", pluginId: "p", actionId: "a" })).toBe(
       "plugin",
     );
@@ -56,6 +59,12 @@ describe("labels and kinds", () => {
     expect(
       actionResultMessage({ action: "switch_layer", layer: 1 }, keymap),
     ).toBe("Switched to Chrome Shortcuts");
+    expect(
+      actionResultMessage(
+        { action: "app_command", command: "toggle_overlay" },
+        keymap,
+      ),
+    ).toBe("Toggled the overlay");
   });
 
   it("carries the shared fields over to a new action", () => {

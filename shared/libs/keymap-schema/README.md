@@ -63,7 +63,7 @@ formatShortcut(["cmd", "k", "cmd", "s"]); // ["⌘K", "⌘S"]
 - Keys are `"row,col"` positions inside the device's matrix. A cell without a switch (Macro Eleven's `0,3`) is allowed; its key never fires.
 - A shortcut's `keys` are modifiers followed by one key; several chords make a sequence (`["cmd", "k", "cmd", "s"]` is ⌘K then ⌘S).
 - `triggerApp` is a bundle ID or an app name. The host uses the lowest layer whose trigger matches the front app.
-- Action types: `launch_app`, `shortcut`, `macro` (steps `shortcut`, `text`, `wait`, `keydown`, `keyup`, `keypress`), `switch_layer`, `cycle_layer`, `noop`, and `plugin` (reserved).
+- Action types: `launch_app`, `shortcut`, `macro` (steps `shortcut`, `text`, `wait`, `keydown`, `keyup`, `keypress`), `switch_layer`, `cycle_layer`, `app_command` (a command the app runs on itself: `toggle_overlay`), `noop`, and `plugin` (reserved).
 - Unknown fields are kept when the host loads and saves a keymap.
 
 ## Changing the format

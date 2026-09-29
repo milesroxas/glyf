@@ -30,6 +30,7 @@ export type ActionType =
   | "launch_app"
   | "shortcut"
   | "macro"
+  | "app_command"
   | "plugin"
   | "noop";
 
@@ -81,6 +82,17 @@ export interface MacroAction extends BaseAction {
   sequence: MacroStep[];
 }
 
+/** Something the companion app does to itself. */
+export type AppCommand = "toggle_overlay";
+
+export const APP_COMMANDS: readonly AppCommand[] = ["toggle_overlay"];
+
+/** Run a command in the companion app (show or hide the overlay). */
+export interface AppCommandAction extends BaseAction {
+  action: "app_command";
+  command: AppCommand;
+}
+
 /** Run a plugin action. Reserved: the host does not run plugins yet. */
 export interface PluginAction extends BaseAction {
   action: "plugin";
@@ -100,6 +112,7 @@ export type Action =
   | LaunchAppAction
   | ShortcutAction
   | MacroAction
+  | AppCommandAction
   | PluginAction
   | NoopAction;
 

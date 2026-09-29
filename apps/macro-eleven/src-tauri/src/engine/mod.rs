@@ -1,10 +1,11 @@
 //! Keymap engine: turns key-state changes into actions and picks the layer.
 //!
 //! All state sits behind one lock that is only held for in-memory work.
-//! Layer actions run inline; everything that talks to the OS goes to the
-//! action worker. Reading the front app happens on its own thread, never
+//! Layer actions run inline and app commands go to the app; everything that
+//! talks to the OS goes to the action worker. Reading the front app happens on its own thread, never
 //! under the lock.
 
+pub mod control;
 pub mod events;
 mod knob;
 
@@ -14,7 +15,7 @@ use std::thread;
 use std::time::Duration;
 
 use crate::config::device::macro_eleven;
-use crate::config::keymap::{Action, FrontApp, Keymap, MatrixPosition};
+use crate::config::keymap::{Action, AppCommand, FrontApp, Keymap, MatrixPosition};
 use crate::executor::actions::ActionExecutor;
 use crate::executor::app_detector;
 use crate::executor::runtime::PlatformRuntime;
@@ -22,6 +23,7 @@ use crate::executor::volume::SystemVolume;
 use crate::executor::worker::ActionWorker;
 use crate::hid::connection::KeyStateSink;
 use crate::hid::protocol::KEY_COUNT;
+use control::AppControl;
 use events::EngineEvents;
 use knob::KnobVolume;
 
@@ -80,6 +82,8 @@ enum Effect {
     Executed(MatrixPosition, u8, Action),
     Failed(MatrixPosition, u8, String),
     Run(Action, MatrixPosition, u8),
+    /// An app command, and the action that asked for it (for the event).
+    Command(AppCommand, Action, MatrixPosition, u8),
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -96,6 +100,7 @@ pub struct KeymapEngine {
     worker: ActionWorker,
     knob: KnobVolume,
     events: Arc<dyn EngineEvents>,
+    control: Arc<dyn AppControl>,
 }
 
 impl KeymapEngine {
@@ -105,6 +110,7 @@ impl KeymapEngine {
         runtime: Box<dyn PlatformRuntime>,
         volume: Box<dyn SystemVolume>,
         events: Arc<dyn EngineEvents>,
+        control: Arc<dyn AppControl>,
     ) -> Self {
         Self {
             state: Mutex::new(EngineState {
@@ -118,6 +124,7 @@ impl KeymapEngine {
             worker: ActionWorker::spawn(ActionExecutor::new(runtime), events.clone()),
             knob: KnobVolume::spawn(volume),
             events,
+            control,
         }
     }
 
@@ -139,6 +146,12 @@ impl KeymapEngine {
                 }
                 Effect::Run(action, position, layer) => {
                     self.worker.submit_key(action, position, layer)
+                }
+                Effect::Command(command, action, position, layer) => {
+                    match self.control.run(command) {
+                        Ok(()) => self.events.action_executed(position, layer, &action),
+                        Err(error) => self.events.action_error(position, layer, &error),
+                    }
                 }
             }
         }
@@ -183,6 +196,9 @@ impl KeymapEngine {
                 }
             }
             Action::Noop { .. } => {}
+            Action::AppCommand { command, .. } => {
+                effects.push(Effect::Command(command, action, position, layer));
+            }
             Action::LaunchApp { .. } => {
                 // Opening an app hands the layer back to the front app
                 state.manual_override = false;
@@ -236,8 +252,10 @@ impl KeymapEngine {
 
     /// Run an action for the designer's "Try" button and wait for the result.
     pub fn run_action(&self, action: Action) -> Result<(), String> {
-        if !matches!(action, Action::SwitchLayer { .. } | Action::CycleLayer { .. }) {
-            return self.worker.run(action);
+        match action {
+            Action::SwitchLayer { .. } | Action::CycleLayer { .. } => {}
+            Action::AppCommand { command, .. } => return self.control.run(command),
+            _ => return self.worker.run(action),
         }
         let (result, effects) = {
             let mut state = self.lock();
@@ -315,6 +333,13 @@ mod tests {
         }
     }
 
+    impl AppControl for Heard {
+        fn run(&self, command: AppCommand) -> Result<(), String> {
+            self.0.lock().unwrap().push(format!("command {command:?}"));
+            Ok(())
+        }
+    }
+
     impl EngineEvents for Heard {
         fn key_press(&self, position: MatrixPosition, pressed: bool) {
             self.0.lock().unwrap().push(format!("key {} {pressed}", position.to_key()));
@@ -342,7 +367,8 @@ mod tests {
                     "0,1": { "action": "switch_layer", "layer": 5 },
                     "0,2": { "action": "shortcut", "keys": ["cmd", "t"] },
                     "1,0": { "action": "shortcut", "keys": ["cmd", "w"] },
-                    "1,1": { "action": "launch_app", "app": "Notes" }
+                    "1,1": { "action": "launch_app", "app": "Notes" },
+                    "1,2": { "action": "app_command", "command": "toggle_overlay" }
                 } },
                 "5": { "name": "five", "triggerApp": "com.apple.Notes", "keys": {
                     "0,0": { "action": "switch_layer", "layer": 9 }
@@ -363,6 +389,7 @@ mod tests {
             keymap(),
             Box::new(recorder.clone()),
             Box::new(FakeVolume::new(0.5)),
+            heard.clone(),
             heard.clone(),
         );
         (engine, recorder, heard)
@@ -480,6 +507,22 @@ mod tests {
         tap(&engine, 2);
         wait_for(&recorder, 1);
         assert_eq!(recorder.calls(), ["shortcut 1"], "the new keymap is live");
+    }
+
+    #[test]
+    fn app_commands_go_to_the_app_not_the_action_thread() {
+        let (engine, recorder, heard) = engine(Duration::ZERO);
+        tap(&engine, 5); // 1,2: toggle the overlay
+        assert_eq!(
+            heard.take(),
+            ["key 1,2 true", "command ToggleOverlay", "ok 1,2 0", "key 1,2 false"]
+        );
+        let action: Action =
+            serde_json::from_value(json!({ "action": "app_command", "command": "toggle_overlay" }))
+                .unwrap();
+        engine.run_action(action).unwrap();
+        assert_eq!(heard.take(), ["command ToggleOverlay"], "a try sends no action event");
+        assert!(recorder.calls().is_empty());
     }
 
     #[test]

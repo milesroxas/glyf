@@ -4,8 +4,8 @@ import { type ActionKind, carryOver } from "../../../entities/action";
 import type { InstalledApp } from "../../../entities/app";
 import type { Action, MatrixPositionKey } from "../../../entities/keymap";
 import { AppEditor } from "../editors/AppEditor";
-import { LayerEditor } from "../editors/LayerEditor";
 import { MacroEditor } from "../editors/MacroEditor";
+import { PadEditor } from "../editors/PadEditor";
 import { ShortcutEditor } from "../editors/ShortcutEditor";
 import { useDesigner, useKeymap } from "../model/KeymapProvider";
 import { launchAction, shortcutConflict } from "../model/keyActions";
@@ -79,10 +79,11 @@ export function KindEditor({ kind, pos, action, assign }: KindEditorProps) {
           }
         />
       );
-    case "layer":
+    case "pad":
       return action?.action === "switch_layer" ||
-        action?.action === "cycle_layer" ? (
-        <LayerEditor
+        action?.action === "cycle_layer" ||
+        action?.action === "app_command" ? (
+        <PadEditor
           action={action}
           keymap={keymap}
           onChange={(next) => assign(carryOver(next, action))}

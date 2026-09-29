@@ -6,7 +6,7 @@
 import { isInMatrix, MACRO_ELEVEN } from "./device";
 import { isValidMatrixPosition, parseMatrixPosition } from "./position";
 import { isKnownToken, isValidShortcutKeys } from "./shortcut";
-import type { DeviceDescriptor, Keymap } from "./types";
+import { APP_COMMANDS, type DeviceDescriptor, type Keymap } from "./types";
 
 export class KeymapValidationError extends Error {
   constructor(message: string) {
@@ -121,6 +121,13 @@ const ACTION_CHECKS = new Map<
       }
       return null;
     },
+  ],
+  [
+    "app_command",
+    ({ command }) =>
+      (APP_COMMANDS as readonly unknown[]).includes(command)
+        ? null
+        : `has an unknown command "${String(command)}"`,
   ],
   [
     "plugin",

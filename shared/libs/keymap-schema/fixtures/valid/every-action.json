@@ -61,6 +61,11 @@
         "1,3": {
           "action": "shortcut",
           "keys": ["ctrl", "alt", "delete"]
+        },
+        "2,0": {
+          "action": "app_command",
+          "command": "toggle_overlay",
+          "label": "Overlay"
         }
       }
     }

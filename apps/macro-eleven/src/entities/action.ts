@@ -3,6 +3,7 @@
  */
 import {
   type Action,
+  type AppCommand,
   describeShortcut,
   formatShortcut,
   type Keymap,
@@ -14,16 +15,24 @@ import { layerName } from "./keymap";
 /** Longest tile label; also the rev 2 screen's tile limit. */
 export const LABEL_MAX_LENGTH = 16;
 
-/** The designer's action kinds (the inspector's segmented control). */
-export type ActionKind = "app" | "shortcut" | "layer" | "macro" | "none";
+/**
+ * The designer's action kinds (the inspector's segmented control). "pad"
+ * keys work the pad itself: they change its layer or show its overlay.
+ */
+export type ActionKind = "app" | "shortcut" | "pad" | "macro" | "none";
 
 export const ACTION_KINDS: readonly { kind: ActionKind; label: string }[] = [
   { kind: "app", label: "App" },
   { kind: "shortcut", label: "Shortcut" },
-  { kind: "layer", label: "Layer" },
+  { kind: "pad", label: "Pad" },
   { kind: "macro", label: "Macro" },
   { kind: "none", label: "None" },
 ];
+
+/** What each app command is called in the designer's menu. */
+export const APP_COMMAND_NAMES: Record<AppCommand, string> = {
+  toggle_overlay: "Show or hide overlay",
+};
 
 /** Plugins cannot be edited yet; they show as read-only. */
 export function actionKind(action: Action | undefined): ActionKind | "plugin" {
@@ -34,7 +43,8 @@ export function actionKind(action: Action | undefined): ActionKind | "plugin" {
       return "shortcut";
     case "switch_layer":
     case "cycle_layer":
-      return "layer";
+    case "app_command":
+      return "pad";
     case "macro":
       return "macro";
     case "plugin":
@@ -55,6 +65,8 @@ export function describeAction(action: Action, keymap?: Keymap): string {
       return layerName(keymap, action.layer);
     case "cycle_layer":
       return "Next Layer";
+    case "app_command":
+      return "Overlay";
     case "macro":
       return "Macro";
     case "plugin":
@@ -68,10 +80,30 @@ export function actionLabel(action: Action, keymap: Keymap): string {
   return action.label || describeAction(action, keymap);
 }
 
+/** The small mark in a key's corner for keys without an app or shortcut. */
+export type KeyGlyph = "layer" | "overlay" | "macro" | "plugin";
+
+function keyGlyph(action: Action): KeyGlyph | undefined {
+  switch (action.action) {
+    case "switch_layer":
+    case "cycle_layer":
+      return "layer";
+    case "app_command":
+      return "overlay";
+    case "macro":
+      return "macro";
+    case "plugin":
+      return "plugin";
+    default:
+      return undefined;
+  }
+}
+
 /** What a key's cap shows, in the designer and the overlay alike. */
 export interface KeyFace {
   label: string;
   kind: ActionKind | "plugin";
+  glyph?: KeyGlyph;
   /** App keys: the installed app, when it is found. */
   app?: InstalledApp;
   /** Shortcut keys: the keys, as symbols ("⇧ ⌘ P"). */
@@ -86,6 +118,7 @@ export function keyFace(
   return {
     label: actionLabel(action, keymap),
     kind: actionKind(action),
+    glyph: keyGlyph(action),
     ...(action.action === "launch_app" &&
       apps && { app: findApp(apps, action) }),
     ...(action.action === "shortcut" && {
@@ -117,6 +150,8 @@ export function actionResultMessage(action: Action, keymap: Keymap): string {
       return `Switched to ${layerName(keymap, action.layer)}`;
     case "cycle_layer":
       return "Switched to the next layer";
+    case "app_command":
+      return "Toggled the overlay";
     case "macro":
       return `Ran ${action.label || "macro"}`;
     default:
@@ -153,6 +188,8 @@ function spokenAction(action: Action, keymap: Keymap): string {
       return `switches to ${layerName(keymap, action.layer)}`;
     case "cycle_layer":
       return "next layer";
+    case "app_command":
+      return "shows or hides the overlay";
     case "macro":
       return `macro with ${action.sequence.length} steps`;
     default:

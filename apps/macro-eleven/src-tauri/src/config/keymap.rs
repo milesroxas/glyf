@@ -110,6 +110,11 @@ pub enum Action {
         #[serde(flatten)]
         common: ActionCommon,
     },
+    AppCommand {
+        command: AppCommand,
+        #[serde(flatten)]
+        common: ActionCommon,
+    },
     Plugin {
         #[serde(rename = "pluginId")]
         plugin_id: String,
@@ -124,6 +129,14 @@ pub enum Action {
         #[serde(flatten)]
         common: ActionCommon,
     },
+}
+
+/// Something the app does to itself. An unknown command fails to load, like
+/// an unknown action.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AppCommand {
+    ToggleOverlay,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

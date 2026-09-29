@@ -1,11 +1,17 @@
-import { Layers, ListOrdered, Puzzle } from "lucide-react";
+import { Layers, ListOrdered, PictureInPicture2, Puzzle } from "lucide-react";
 import type { CSSProperties } from "react";
-import type { KeyFace } from "../../entities/action";
+import type { KeyFace, KeyGlyph } from "../../entities/action";
 import { cn } from "../lib/utils";
 import { AppIcon } from "./AppIcon";
 import "./pad.css";
 
-const KIND_GLYPHS = { layer: Layers, macro: ListOrdered, plugin: Puzzle };
+const GLYPHS: Record<KeyGlyph, typeof Layers> = {
+  layer: Layers,
+  // The toolbar's Overlay capsule uses the same icon
+  overlay: PictureInPicture2,
+  macro: ListOrdered,
+  plugin: Puzzle,
+};
 
 /** Letters in the label's longest word; pad.css fits the label to it. */
 function longestWord(label: string): number {
@@ -14,7 +20,8 @@ function longestWord(label: string): number {
 
 /**
  * What a key does, printed on its cap: the app or shortcut, the label, and a
- * glyph for layer, macro, and plugin keys. Scales with the key (--key).
+ * glyph for layer, overlay, macro, and plugin keys. Scales with the key
+ * (--key).
  */
 export function KeyLegend({
   face,
@@ -23,10 +30,7 @@ export function KeyLegend({
   face: KeyFace;
   className?: string;
 }) {
-  const Glyph =
-    face.kind in KIND_GLYPHS
-      ? KIND_GLYPHS[face.kind as keyof typeof KIND_GLYPHS]
-      : null;
+  const Glyph = face.glyph ? GLYPHS[face.glyph] : null;
   return (
     <span
       data-glyph={Glyph ? "" : undefined}

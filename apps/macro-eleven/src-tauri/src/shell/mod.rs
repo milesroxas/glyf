@@ -16,7 +16,9 @@ pub mod windows;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
+use crate::config::keymap::AppCommand;
 use crate::config::settings::{Settings, SettingsStore};
+use crate::engine::control::AppControl;
 
 /// Every window hears the new settings.
 pub const SETTINGS_CHANGED: &str = "macro11:settings-changed";
@@ -120,4 +122,16 @@ pub fn update_settings(
         let _ = app.emit(SETTINGS_CHANGED, &next);
     }
     Ok(next)
+}
+
+/// App commands from a key or the designer's Try. They change windows, so
+/// they run on the main thread, like the overlay shortcut.
+impl AppControl for AppHandle {
+    fn run(&self, command: AppCommand) -> Result<(), String> {
+        let app = self.clone();
+        self.run_on_main_thread(move || match command {
+            AppCommand::ToggleOverlay => overlay::toggle(&app),
+        })
+        .map_err(|e| e.to_string())
+    }
 }

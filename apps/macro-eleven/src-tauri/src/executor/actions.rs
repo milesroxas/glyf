@@ -4,8 +4,8 @@ use std::time::Duration;
 use crate::config::keymap::{Action, MacroStep};
 use crate::executor::runtime::{ModifierKey, PlatformRuntime, PrimaryKey, ShortcutSequence};
 
-/// Runs actions that talk to the OS. Layer actions change engine state and
-/// never reach the executor.
+/// Runs actions that talk to the OS. Layer actions and app commands run in
+/// the engine and never reach the executor.
 pub struct ActionExecutor {
     runtime: Box<dyn PlatformRuntime>,
 }
@@ -34,7 +34,10 @@ impl ActionExecutor {
             } => Err(format!(
                 "Plugins are not available yet ({plugin_id}:{action_id})"
             )),
-            Action::CycleLayer { .. } | Action::SwitchLayer { .. } | Action::Noop { .. } => Ok(()),
+            Action::CycleLayer { .. }
+            | Action::SwitchLayer { .. }
+            | Action::AppCommand { .. }
+            | Action::Noop { .. } => Ok(()),
         }
     }
 
